@@ -1,0 +1,22 @@
+{
+  "[typescript]": {
+    "editor.defaultFormatter": "vscode.typescript-language-features"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "vscode.typescript-language-features"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "vscode.json-language-features"
+  },
+  "path-intellisense.mappings": {
+    "@": "${workspaceRoot}/src/renderer/src",
+    "@t": "${workspaceRoot}/src/renderer/src/types",
+    "@h": "${workspaceRoot}/src/renderer/src/hook",
+    "@l": "${workspaceRoot}/src/renderer/src/layout",
+    "@s": "${workspaceRoot}/src/renderer/src/store",
+    "@i": "${workspaceRoot}/src/renderer/src/i18n",
+    "@p": "${workspaceRoot}/src/renderer/src/views",
+    "@a": "${workspaceRoot}/src/renderer/src/api",
+  },
+  "nuxt.isNuxtApp": false
+}

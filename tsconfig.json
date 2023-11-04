@@ -1,0 +1,65 @@
+{
+  "compilerOptions": {
+    "jsx": "preserve",
+    "target": "ESNext",
+    "useDefineForClassFields": true,
+    "module": "ESNext",
+    "lib": [
+      "ESNext",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "skipLibCheck": true,
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "./src/renderer/src/*"
+      ],
+      "@t/*": [
+        "./src/renderer/src/types/*"
+      ],
+      "@h/*": [
+        "./src/renderer/src/hook/*"
+      ],
+      "@i/*": [
+        "./src/renderer/src/i18n/*"
+      ],
+      "@l/*": [
+        "./src/renderer/src/layout/*"
+      ],
+      "@s/*": [
+        "./src/renderer/src/store/*"
+      ],
+      "@p/*": [
+        "./src/renderer/src/views/*"
+      ],
+      "@a/*": [
+        "./src/renderer/src/api/*"
+      ]
+    },
+    "types": [
+      "./node_modules/element-plus/global",
+      "electron-vite/node",
+      "node",
+      "./src/renderer/globle.d.ts"
+    ],
+    "composite": true,
+    "allowSyntheticDefaultImports": true
+  },
+  "include": [
+    "src/**/*",
+    "electron.vite.config.*",
+    "tailwind.config.*"
+  ]
+}
