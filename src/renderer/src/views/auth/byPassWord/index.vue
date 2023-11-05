@@ -29,8 +29,11 @@ function login() {
   }).then(val => {
     isPage1.value = false
     ret = val
-    window.email.send(email.value, `登陆验证`, `你的验证码：${passCode}`)
-    console.log(`你的验证码：${passCode}`);
+    window.email.send(email.value, `登陆验证`, `你的验证码：${passCode}`).catch(()=>{
+      ElMessage.error('邮件发送失败')
+    }).then(()=>{
+      console.log(`你的验证码：${passCode}`);
+    })
   })
     .catch(() => ElMessage.error("用户不存在"))
     .finally(() => loading.close())
@@ -39,7 +42,7 @@ function login() {
 function lastLogin() {
   if (inputPassCode.value == passCode) {
     auth.login_saveDb(...ret)
-    router.replace('/')
+    router.replace('/main')
   } else {
     passCodeTrue.value = true
     setTimeout(() => {

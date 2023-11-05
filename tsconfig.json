@@ -58,8 +58,11 @@
     "allowSyntheticDefaultImports": true
   },
   "include": [
-    "src/**/*",
+    "src/renderer/**/*",
+    "src/preload/**/*",
+    "src/main/**/*",
     "electron.vite.config.*",
-    "tailwind.config.*"
+    "tailwind.config.*",
+    "src/renderer/user.d.ts"
   ]
 }

@@ -3,7 +3,7 @@ import '@/assets/main.scss';
 import { createApp } from 'vue'
 import router from './router';
 import { createPinia } from 'pinia';
-import 'element-plus/dist/index.css'
+import 'element-plus/es/components/message/style/css'
 import axios from 'axios';
 const app = createApp(App)
 const pinia = createPinia()

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 //@ts-ignore
-import elZhCn from 'element-plus/dist/locale/zh-cn.mjs';
+import elZhCn from 'element-plus/dist/locale/zh-cn';
 import { zhCN as nZhCn, dateZhCN as nDateZhCN } from 'naive-ui'
 import { reactive } from 'vue';
 

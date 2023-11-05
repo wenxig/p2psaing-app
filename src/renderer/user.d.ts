@@ -5,12 +5,12 @@ namespace User {
   interface MsgSave {
     group: {
       linkId: string;
-      msg: Msg[]
+      msg: (Msg | never)[]
     }[];
     chat: {
       to: string;
       name?: string;
-      msg: Msg[]
+      msg: (Msg | never)[]
     }[]
   }
   type IndexUser = {

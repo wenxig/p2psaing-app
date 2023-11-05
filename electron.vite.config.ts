@@ -8,7 +8,6 @@ import Components from 'unplugin-vue-components/vite'
 import { ElementPlusResolver, NaiveUiResolver } from 'unplugin-vue-components/resolvers'
 import Icons from 'unplugin-icons/vite';
 import IconsResolver from 'unplugin-icons/resolver';
-import obfuscatorPlugin from 'rollup-plugin-javascript-obfuscator'
 import vueJsx from '@vitejs/plugin-vue-jsx'
 import vue from '@vitejs/plugin-vue'
 import { fileURLToPath } from 'node:url';
@@ -16,10 +15,28 @@ import { fileURLToPath } from 'node:url';
 export default defineConfig(() => {
   return {
     main: {
-      plugins: [bytecodePlugin({ protectedStrings: ["https://tinywebdb.appinventor.space/api"] }), externalizeDepsPlugin()]
+      plugins: [bytecodePlugin({ protectedStrings: ["https://tinywebdb.appinventor.space/api"] }), externalizeDepsPlugin()],
+      // build: {
+      //   terserOptions: {
+      //     compress: {
+      //       drop_console: true,
+      //       drop_debugger: true,
+      //     },
+      //   },
+      //   minify: "terser",
+      // }
     },
     preload: {
-      plugins: [bytecodePlugin({ protectedStrings: ["https://tinywebdb.appinventor.space/api"] }), externalizeDepsPlugin()]
+      plugins: [bytecodePlugin({ protectedStrings: ["https://tinywebdb.appinventor.space/api"] }), externalizeDepsPlugin()],
+      build: {
+        terserOptions: {
+          compress: {
+            drop_console: true,
+            drop_debugger: true,
+          },
+        },
+        minify: "terser",
+      }
     },
     renderer: defineViteConfig({
       define: {
@@ -42,40 +59,6 @@ export default defineConfig(() => {
       },
       plugins: [
         {
-          ...obfuscatorPlugin({
-            options: {
-              rotateUnicodeArray: true,
-              compact: true,
-              controlFlowFlattening: false,
-              controlFlowFlatteningThreshold: 0.8,
-              deadCodeInjection: false,
-              deadCodeInjectionThreshold: 0.5,
-              debugProtection: false,
-              debugProtectionInterval: false,
-              disableConsoleOutput: true,
-              domainLock: [],
-              identifierNamesGenerator: 'hexadecimal',
-              identifiersPrefix: '',
-              inputFileName: '',
-              log: false,
-              renameGlobals: false,
-              reservedNames: [],
-              reservedStrings: [],
-              rotateStringArray: true,
-              seed: 0,
-              selfDefending: false,
-              sourceMap: false,
-              sourceMapBaseUrl: '',
-              sourceMapFileName: '',
-              sourceMapMode: 'separate',
-              stringArray: true,
-              stringArrayEncoding: ["RC4"],
-              stringArrayThreshold: 0.8,
-              target: 'browser',
-              transformObjectKeys: true,
-              unicodeEscapeSequence: true,
-            }
-          }),
           apply: 'build' // 仅在生产环境下使用
         },
         vue(),
@@ -104,14 +87,23 @@ export default defineConfig(() => {
       css: {
         postcss: {
           plugins: [
+            tailwindcss(tailwindcssConfig),
             postCssPxToRem({
               rootValue: 16,
               propList: ["*"], 
             }),
-            tailwindcss(tailwindcssConfig)
           ]
         }
       }
-    })
+    }),
+    build: {
+      terserOptions: {
+        compress: {
+          drop_console: true,
+          drop_debugger: true,
+        },
+      },
+      minify: "terser",
+    }
   }
 })

@@ -38,6 +38,7 @@ declare module 'vue' {
     ElText: typeof import('element-plus/es')['ElText']
     ElTreeV2: typeof import('element-plus/es')['ElTreeV2']
     ElUpload: typeof import('element-plus/es')['ElUpload']
+    IEpChatRound: typeof import('~icons/ep/chat-round')['default']
     IEpCheck: typeof import('~icons/ep/check')['default']
     IEpClose: typeof import('~icons/ep/close')['default']
     IEpCloseBold: typeof import('~icons/ep/close-bold')['default']

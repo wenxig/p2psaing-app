@@ -19,14 +19,11 @@ const routes: RouteRecordRaw[] = [
   },
   {
     path: "/main",
-    component: () => import("@p/home/index.vue"),
-    // children: [{
-    //   path: "link/oao",
-    //   component: () => import("@p/home/linker/oao.vue")
-    // }, {
-    //   path: "link/group",
-    //   component: () => import("@p/home/linker/group.vue")
-    // }]
+    component: () => import("@p/home/index.vue")
+  },
+  {
+    path: "/main/address",
+    component: () => import("@p/address/index.vue")
   },
   {
     path: "/p",
@@ -34,7 +31,7 @@ const routes: RouteRecordRaw[] = [
   },
   {
     path: "/main/userSetting",
-    component: () => import("@p/home/userSetting/index.vue")
+    component: () => import("@p/setting/index.vue")
   }
 ];
 export default routes;

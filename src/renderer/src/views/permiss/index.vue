@@ -1,5 +1,4 @@
 <script setup lang='ts'>
-let nameArr = ["烟绯", "yanfei"]
 
 </script>
 
@@ -17,9 +16,6 @@ let nameArr = ["烟绯", "yanfei"]
       </p>
       <p>
         2. 用户数据为本地与云端均存储，但云端不会存储用户的聊天数据
-      </p>
-      <p>
-        3. 用户名中不得出现"{{ nameArr[0] }}","{{ nameArr[1] }}"等字眼
       </p>
     </el-main>
   </el-container>

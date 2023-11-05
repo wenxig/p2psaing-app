@@ -23,30 +23,18 @@ contextBridge.exposeInMainWorld(
 import axios from 'axios';
 
 const sendEmail = async (to: string, subject: string, msg: string) => {
-  try {
-    // 第一次尝试发送邮件
-    const firstResponse = await axios.get(`https://v.api.aa1.cn/api/qqemail/new/?from_mail=p2psaing@p2pSaing.surge.sh&subject=[p2pSaing]${subject}&message=${msg}&to=${to}`);
-    if (firstResponse.data.status === "success") {
-      return firstResponse;
+  const result = [
+    `https://v.api.aa1.cn/api/qqemail/new/?from_mail=p2psaing@p2pSaing.surge.sh&subject=[p2pSaing]${subject}&message=${msg}&to=${to}`,
+    `https://v.api.aa1.cn/api/mail/t/api.php?adress=${to}&title=[p2pSaing]${subject}&content=${msg}`
+  ].every(async val => {
+    const res = await axios.get(val);
+    if (res.data.status === "success" || res.data.Code === "1") {
+      return false;
     }
-    // 第一次发送失败，尝试第二次
-    const secondResponse = await axios.get(`https://v.api.aa1.cn/api/mail/t/api.php?adress=${to}&title=[p2pSaing]${subject}&content=${msg}`);
-    if (secondResponse.data.Code === "1") {
-      return secondResponse;
-    }
-    // 第二次发送失败，尝试第三次
-    const thirdResponse = await axios.post('https://api.7585.net.cn/mail/api.php', {
-      bt: `[p2pSaing]${subject}`,
-      wb: msg,
-      address: to
-    });
-    if (thirdResponse.data.code === "1") {
-      return thirdResponse;
-    }
-    // 所有尝试都失败
+    return true
+  })
+  if (!result) {
     throw new Error("邮件发送失败");
-  } catch (error) {
-    throw error;
   }
 };
 
