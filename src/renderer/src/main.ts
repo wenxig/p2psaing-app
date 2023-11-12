@@ -4,6 +4,7 @@ import { createApp } from 'vue'
 import router from './router';
 import { createPinia } from 'pinia';
 import 'element-plus/es/components/message/style/css'
+import 'element-plus/es/components/loading/style/css'
 import axios from 'axios';
 const app = createApp(App)
 const pinia = createPinia()

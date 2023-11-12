@@ -18,7 +18,6 @@ namespace User {
     uid: number;
     id: string;
     img: string;
-    link: MsgSave
   }
   interface WebDbSaveDeep extends UserObj {
     id: string;
@@ -28,10 +27,8 @@ namespace User {
     link: {
       group: {
         linkId: string;
-        msg?: never[]
       }[];
       chat: {
-        msg?: never[]
         to: string;
         name?: string;
       }[]
@@ -83,4 +80,15 @@ type UserCodeMsg = {
 type UserEquationMsg = {
   type: "equation";
   main: string;
+}
+
+namespace RouterData {
+  interface SignUp extends EmailCode {
+    code: string
+  }
+  interface EmailCode {
+    name: string;
+    password: string;
+    email: string;
+  }
 }

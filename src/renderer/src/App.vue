@@ -1,7 +1,7 @@
 <script setup lang="ts">
 //@ts-ignore
 import elZhCn from 'element-plus/dist/locale/zh-cn';
-import { zhCN as nZhCn, dateZhCN as nDateZhCN } from 'naive-ui'
+import { zhCN as nZhCn, dateZhCN as nDateZhCN, type GlobalThemeOverrides } from 'naive-ui'
 import { reactive } from 'vue';
 
 import katex from 'katex'
@@ -11,7 +11,8 @@ import hljs from 'highlight.js';
 import 'highlight.js/scss/atom-one-light.scss';
 
 
-const cssVarName = ["--el-font-family",
+const cssVarName = [
+  "--el-font-family",
   "--el-font-family",
   "--el-font-weight-primary",
   "--el-font-weight-primary",
@@ -110,10 +111,11 @@ const styleName = [
   "boxShadow2",
   "boxShadow3"
 ]
-const theme: any = reactive({
+const theme: GlobalThemeOverrides = reactive({
   common: {}
 })
 styleName.forEach((tag, index) => {
+  //@ts-ignore
   theme.common[tag] = getComputedStyle(document.documentElement).getPropertyValue(cssVarName[index]).trim()
 })
 </script>

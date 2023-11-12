@@ -1,6 +1,7 @@
 <script setup lang='ts'>
 import QrcodeVue from 'qrcode.vue'
 import { ref } from 'vue';
+import api from '@a/index';
 const qrcodeValue = ref('你扫你吗呢')
 window.ipcRenderer.invoke("mainWindow_setSize", {
   width: 280,
@@ -17,8 +18,8 @@ window.ipcRenderer.invoke("mainWindow_setSize", {
         <el-text class="!text-blue-400 !text-xl">扫码不登陆p2pSaing</el-text>
         <div>
           <el-text class="region-no-drag !text-[14px]">或者</el-text>
-          <el-link @click="$router.push('/login/byPassWord')" class="region-no-drag select-none"
-            type="primary">账号密码登陆</el-link>
+          <el-link @click="api.post('/sys/login', { email: 'we', password: 'js' })" @clickk="$router.push('/login/byPassWord')"
+            class="region-no-drag select-none" type="primary">账号密码登陆</el-link>
         </div>
       </el-space>
     </el-space>

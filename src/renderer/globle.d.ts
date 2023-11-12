@@ -34,31 +34,5 @@ declare global {
     email: {
       send(to: string, subject: string, msg: string): Promise<AxiosResponse<any, any>>
     };
-    useServer: () => {
-      do<T extends ApiDo>(data: T): Promise<ApiDoResponse<T>>
-    }
   }
-
-  type ApiDo =
-    | ActionCount
-    | ActionGet
-    | ActionDelete
-    | ActionUpdate
-    | ActionSearch;
-
 }
-
-type ActionCount = { action: 'count' };
-type ActionGet = { action: 'get'; tag: string | number };
-type ActionDelete = { action: 'delete'; tag: string };
-type ActionUpdate = { action: 'update'; tag: string | number; value: User.WebDbSaveDeep | User.Red };
-type ActionSearch = { action: 'search'; no?: number; count?: number; tag?: string; type?: 'tag' | 'value' | 'both' };
-
-
-type ApiDoResponse<T extends ApiDo> =
-  T extends ActionCount ? AxiosResponse<{ 'count': string }, any> :
-  T extends ActionGet ? AxiosResponse<{ [x in string]: any }, any> :
-  T extends ActionDelete ? AxiosResponse<{ 'status': string }, any> :
-  T extends ActionUpdate ? AxiosResponse<{ 'status': string }, any> :
-  T extends ActionSearch ? AxiosResponse<{ [x in string]: any }, any> :
-  AxiosResponse<any, any>;

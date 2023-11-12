@@ -29,9 +29,13 @@ function login() {
   }).then(val => {
     isPage1.value = false
     ret = val
-    window.email.send(email.value, `登陆验证`, `你的验证码：${passCode}`).catch(()=>{
+    if (import.meta.env.DEV) {
+      lastLogin(true)
+      return
+    }
+    window.email.send(email.value, `登陆验证`, `你的验证码：${passCode}`).catch(() => {
       ElMessage.error('邮件发送失败')
-    }).then(()=>{
+    }).then(() => {
       console.log(`你的验证码：${passCode}`);
     })
   })
@@ -39,8 +43,8 @@ function login() {
     .finally(() => loading.close())
 }
 
-function lastLogin() {
-  if (inputPassCode.value == passCode) {
+function lastLogin(jump: boolean = false) {
+  if (jump || inputPassCode.value == passCode) {
     auth.login_saveDb(...ret)
     router.replace('/main')
   } else {
@@ -69,7 +73,7 @@ function lastLogin() {
     <el-main class="w-full h-full mt-2 !flex justify-center items-center !flex-col !pt-0" v-else>
       <plus-input class="!mt-[-9rem]" v-model="inputPassCode" lable="验证码" type="text" :alert="passCodeTrue" />
       <el-text class=" !w-full" type="primary" size="small">验证码已经发送至你的邮箱</el-text>
-      <el-button type="primary" class="region-no-drag w-1/2 hover:w-2/3 mt-3" @click="lastLogin">登入</el-button>
+      <el-button type="primary" class="region-no-drag w-1/2 hover:w-2/3 mt-3" @click="lastLogin()">登入</el-button>
     </el-main>
     <el-footer class="!absolute w-full !flex justify-center items-end !pb-1 bottom-0 region-no-drag select-none text-sm">
       还没有账号?<el-link type="primary" @click="$router.push('/login/signup')">注册</el-link>

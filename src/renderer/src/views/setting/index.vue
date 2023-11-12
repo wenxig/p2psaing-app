@@ -6,7 +6,6 @@ import { useUserStore } from '@s/index';
 const route = useRoute()
 const windowName = route.query.name as string
 const userStoer = useUserStore()
-const db = window.useDatabase(userStoer.user.value.id)
 const isEditName = ref(false)
 const ipc = window.ipcRenderer
 const userName = ref(userStoer.user.value.name)
@@ -31,11 +30,7 @@ function resetName() {
     <el-main @click="resetName() && (isEditName = false)">
       <SetUser v-model:is-edit-name="isEditName" v-model:user-name="userName" :resetName="resetName" />
       <el-divider />
-      <el-button @click="() => {
-        db.clear()
-        $ipc.invoke('app_quit')
-      }
-        " type="danger">退出登陆</el-button>
+      <el-button @click="$ipc.invoke('app_quit')" type="danger">退出登陆</el-button>
     </el-main>
     <control class="absolute top-0 left-0" :maxsize="false" :for="windowName">
     </control>

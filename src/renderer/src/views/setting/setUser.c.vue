@@ -33,6 +33,7 @@ const imageUrl = ref(userStoer.user.value.img)
 let reloadTimes = 0
 
 const upload: UploadProps['beforeUpload'] = async (rawFile) => {
+  console.log('load');
   isUploadErr.value = false
   reloadTimes = 0
   progressFlag.value = true;
@@ -41,6 +42,8 @@ const upload: UploadProps['beforeUpload'] = async (rawFile) => {
   try {
     value = await uploader.titleImg(rawFile);
   } catch (err) {
+    console.error(err);
+    
     isUploadErr.value = true
     throw false
   }
@@ -70,8 +73,8 @@ const reload = () => {
           </el-icon>
         </n-spin>
       </el-upload>
-      <n-collapse-transition :show="progressFlag">
-        <el-progress :percentage="loadProgress"
+      <n-collapse-transition :show="progressFlag" class=" w-[50%]">
+        <el-progress class=" w-full" :percentage="loadProgress"
           :status="isUploadErr ? 'exception' : loadProgress == 100 ? 'success' : ''"></el-progress>
       </n-collapse-transition>
     </template>

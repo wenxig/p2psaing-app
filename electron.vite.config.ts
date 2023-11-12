@@ -12,23 +12,17 @@ import vueJsx from '@vitejs/plugin-vue-jsx'
 import vue from '@vitejs/plugin-vue'
 import { fileURLToPath } from 'node:url';
 
-export default defineConfig(() => {
+export default defineConfig(({ mode }) => {
+  function onlyBuild(val: any) {
+    if (mode == 'build') {
+      return val
+    }
+    return {}
+  }
   return {
     main: {
       plugins: [bytecodePlugin({ protectedStrings: ["https://tinywebdb.appinventor.space/api"] }), externalizeDepsPlugin()],
-      // build: {
-      //   terserOptions: {
-      //     compress: {
-      //       drop_console: true,
-      //       drop_debugger: true,
-      //     },
-      //   },
-      //   minify: "terser",
-      // }
-    },
-    preload: {
-      plugins: [bytecodePlugin({ protectedStrings: ["https://tinywebdb.appinventor.space/api"] }), externalizeDepsPlugin()],
-      build: {
+      build: onlyBuild({
         terserOptions: {
           compress: {
             drop_console: true,
@@ -36,7 +30,19 @@ export default defineConfig(() => {
           },
         },
         minify: "terser",
-      }
+      })
+    },
+    preload: {
+      plugins: [bytecodePlugin({ protectedStrings: ["https://tinywebdb.appinventor.space/api"] }), externalizeDepsPlugin()],
+      build: onlyBuild({
+        terserOptions: {
+          compress: {
+            drop_console: true,
+            drop_debugger: true,
+          },
+        },
+        minify: "terser",
+      })
     },
     renderer: defineViteConfig({
       define: {
@@ -58,9 +64,6 @@ export default defineConfig(() => {
         }
       },
       plugins: [
-        {
-          apply: 'build' // 仅在生产环境下使用
-        },
         vue(),
         vueJsx(),
         AutoImport({
@@ -90,7 +93,7 @@ export default defineConfig(() => {
             tailwindcss(tailwindcssConfig),
             postCssPxToRem({
               rootValue: 16,
-              propList: ["*"], 
+              propList: ["*"],
             }),
           ]
         }

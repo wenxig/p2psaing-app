@@ -4,7 +4,7 @@ import linkList from './linkList.c.vue';
 import { useAppStore, useUserStore } from '@s/index';
 import { ElLoading } from 'element-plus';
 import Layout from '@l/base.vue';
-
+import MainLayout from '@l/rightBase.vue';
 const appStore = useAppStore()
 const user = useUserStore()
 const server = window.useServer()
@@ -36,24 +36,18 @@ setTimeout(() => {
 
 <template>
   <Layout>
-    <el-container class=" w-[calc(100% - 3.75rem)] flex-none">
-      <el-container class=" !shrink-0 w-[16.3rem] border-r-[1px] border-r-[#DCDFE6] border-solid">
-        <el-header class=" bg-[#fff] shrink-0 region-drag flex items-center">
-          <search-box></search-box>
-        </el-header>
-        <el-main class=" shrink-0 !p-0 overflow-none">
-          <link-list></link-list>
-        </el-main>
-      </el-container>
-      <el-container class="w-full">
-        <el-header class="region-drag w-full border-b flex items-center text-xl">
-          {{ appStore.topBar.text }}
-        </el-header>
-        <el-main class="w-full">
-          <router-view></router-view>
-        </el-main>
-      </el-container>
-    </el-container>
+    <MainLayout>
+      <template #aside-header>
+        <search-box></search-box>
+      </template>
+      <template #aside-main>
+        <link-list></link-list>
+      </template>
+      <template #main-header>
+        {{ appStore.topBar.text }}
+      </template>
+      <router-view></router-view>
+    </MainLayout>
   </Layout>
 </template>
 
