@@ -1,5 +1,5 @@
-appId: com.p2psaing.app
-productName: p2psaing
+appId: com.__APP_NAME__.app
+productName: __APP_NAME__
 directories:
   buildResources: build
 files:
@@ -14,7 +14,7 @@ asarUnpack:
 afterSign: build/notarize.js
 win:
   icon: resources/icon.png
-  executableName: p2psaing-app
+  executableName: __APP_NAME__-app
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}
@@ -38,7 +38,7 @@ linux:
     - AppImage
     - snap
     - deb
-  maintainer: p2psaing.com
+  maintainer: __APP_NAME__.com
   category: Utility
 appImage:
   artifactName: ${name}-${version}.${ext}

@@ -7,7 +7,7 @@ import { random } from 'lodash-es';
 import { InfoFilled } from '@element-plus/icons-vue';
 const emailPass = ref("")
 const auth = useAuth()
-window.ipcRenderer.invoke("mainWindow_setSize", {
+window.electronAPI.ipcRenderer.invoke("mainWindow_setSize", {
   width: 650,
   height: 460
 })
@@ -174,7 +174,7 @@ const sendEmail = () => {
             同意
           </el-checkbox>
           <n-button quaternary type="primary" class="region-no-drag !pl-0 !pr-0"
-            @click.stop="$ipc.send('createChildWindow', { width: 300, height: 300, url: '/p', name: `userp`, more: false })"
+            @click.stop="$electron.ipcRenderer.send('createChildWindow', { width: 300, height: 300, url: '/p', name: `userp`, more: false })"
             size="small">《用户许可》</n-button>
         </el-form-item>
         <el-form-item class="!w-full !mb-0">

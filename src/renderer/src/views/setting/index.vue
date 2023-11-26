@@ -7,7 +7,7 @@ const route = useRoute()
 const windowName = route.query.name as string
 const userStoer = useUserStore()
 const isEditName = ref(false)
-const ipc = window.ipcRenderer
+const ipc = window.electronAPI.ipcRenderer
 const userName = ref(userStoer.user.value.name)
 
 ipc.invoke(`${windowName}_setSize`, {

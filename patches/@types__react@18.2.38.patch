@@ -1,0 +1,40 @@
+diff --git a/.vscode/settings.json b/.vscode/settings.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..1f2b05ce103aad1f1a0ed4da279c2396dff22d65
+--- /dev/null
++++ b/.vscode/settings.json
+@@ -0,0 +1,3 @@
++{
++  "nuxt.isNuxtApp": false
++}
+\ No newline at end of file
+diff --git a/index.d.ts b/index.d.ts
+index 4abaf149e18d164e6ff7a4000acd9f967c7567ac..d66b95af404d1844bc463f72024c5bdb37b30705 100644
+--- a/index.d.ts
++++ b/index.d.ts
+@@ -3289,7 +3289,9 @@ declare global {
+         //  reduce the work of the type-checker.
+         // TODO: Check impact of making React.ElementType<P = any> = React.JSXElementConstructor<P>
+         type ElementType = string | React.JSXElementConstructor<any>;
+-        interface Element extends React.ReactElement<any, any> {}
++      interface Element extends React.ReactElement<any, any> { 
++        [k: string]: any
++       }
+         interface ElementClass extends React.Component<any> {
+             render(): React.ReactNode;
+         }
+@@ -3309,8 +3311,12 @@ declare global {
+             : ReactManagedAttributes<T, P>
+             : ReactManagedAttributes<C, P>;
+ 
+-        interface IntrinsicAttributes extends React.Attributes {}
+-        interface IntrinsicClassAttributes<T> extends React.ClassAttributes<T> {}
++      interface IntrinsicAttributes extends React.Attributes { 
++        [k: string]: any
++       }
++      interface IntrinsicClassAttributes<T> extends React.ClassAttributes<T> { 
++        [k: string]: any 
++      }
+ 
+         interface IntrinsicElements {
+             // HTML

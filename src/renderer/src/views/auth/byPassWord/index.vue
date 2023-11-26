@@ -5,7 +5,7 @@ import { random } from 'lodash-es';
 import router from '@/router';
 import { useAuth } from '@h/useAuth';
 import { ElLoading } from 'element-plus';
-window.ipcRenderer.invoke("mainWindow_setSize", {
+window.electronAPI.ipcRenderer.invoke("mainWindow_setSize", {
   width: 280,
   height: 400
 })
@@ -17,6 +17,7 @@ const isPage1 = ref(true)
 const inputPassCode = ref('')
 const passCodeTrue = ref(false)
 let ret: [User.WebDbSaveDeep, string]
+let next: Function
 function login() {
   const loading = ElLoading.service({
     lock: true,
@@ -28,7 +29,8 @@ function login() {
     password: password.value
   }).then(val => {
     isPage1.value = false
-    ret = val
+    ret = [val[0], val[1]]
+    next = val[2]
     if (import.meta.env.DEV) {
       lastLogin(true)
       return
@@ -45,7 +47,7 @@ function login() {
 
 function lastLogin(jump: boolean = false) {
   if (jump || inputPassCode.value == passCode) {
-    auth.login_saveDb(...ret)
+    next(...ret)
     router.replace('/main')
   } else {
     passCodeTrue.value = true
@@ -65,15 +67,14 @@ function lastLogin(jump: boolean = false) {
       <plus-input v-model="email" lable="邮箱" type="email" inspect class="mt-[-3rem]" />
       <plus-input v-model="password" lable="密码" type="email" class="mt-4" />
       <div class="grid mt-5 content-center justify-items-center w-full">
-        <el-button type="primary" class="region-no-drag w-1/2 hover:w-2/3" @click="login">登入</el-button>
-        <el-button plain class="region-no-drag w-1/2 mt-2 !ml-0 hover:w-3/5"
-          @click="$router.push('/login')">返回二维码登陆</el-button>
+        <el-button type="primary" class="region-no-drag w-2/3" @click="login">登入</el-button>
+        <el-button plain class="region-no-drag w-2/3 mt-2 !ml-0" @click="$router.push('/login')">返回二维码登陆</el-button>
       </div>
     </el-main>
     <el-main class="w-full h-full mt-2 !flex justify-center items-center !flex-col !pt-0" v-else>
       <plus-input class="!mt-[-9rem]" v-model="inputPassCode" lable="验证码" type="text" :alert="passCodeTrue" />
       <el-text class=" !w-full" type="primary" size="small">验证码已经发送至你的邮箱</el-text>
-      <el-button type="primary" class="region-no-drag w-1/2 hover:w-2/3 mt-3" @click="lastLogin()">登入</el-button>
+      <el-button type="primary" class="region-no-drag w-2/3 mt-3" @click="lastLogin()">登入</el-button>
     </el-main>
     <el-footer class="!absolute w-full !flex justify-center items-end !pb-1 bottom-0 region-no-drag select-none text-sm">
       还没有账号?<el-link type="primary" @click="$router.push('/login/signup')">注册</el-link>

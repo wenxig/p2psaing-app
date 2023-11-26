@@ -1,10 +1,10 @@
 import { isEmpty } from 'lodash-es';
 import { defineStore } from 'pinia';
 import { reactive, watch } from 'vue';
-const ipc = window.ipcRenderer
+const ipc = window.electronAPI.ipcRenderer
 export const useUserStore = defineStore("user", () => {
   const user = reactive<{ value: User.DbSave }>({
-    value: isEmpty(ipc.send(`getState`)) ? {
+    value: isEmpty(ipc.sendSync(`getState`)) ? {
       email: '',
       id: '',
       uid: NaN,
@@ -15,11 +15,9 @@ export const useUserStore = defineStore("user", () => {
       },
       name: '',
       password: ''
-    } : JSON.parse(ipc.send(`getState`))
+    } : JSON.parse(ipc.sendSync(`getState`))
   })
   watch(user, val => {
-    const db = window.useDatabase(val.value.id)
-    db.set("user", JSON.stringify(val.value.link))
     ipc.send(`setState`, JSON.stringify(val.value))
   })
   return { user }

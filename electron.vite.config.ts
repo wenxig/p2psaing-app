@@ -1,55 +1,70 @@
-import { resolve } from 'path'
+import path, { resolve } from 'path'
 import { defineConfig, externalizeDepsPlugin, bytecodePlugin, defineViteConfig } from 'electron-vite'
 import tailwindcss from 'tailwindcss';
-import tailwindcssConfig from './tailwind.config';
 import postCssPxToRem from "postcss-pxtorem";
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
 import { ElementPlusResolver, NaiveUiResolver } from 'unplugin-vue-components/resolvers'
 import Icons from 'unplugin-icons/vite';
 import IconsResolver from 'unplugin-icons/resolver';
-import vueJsx from '@vitejs/plugin-vue-jsx'
-import vue from '@vitejs/plugin-vue'
+import veauryVitePlugins from 'veaury/vite/index.js'
 import { fileURLToPath } from 'node:url';
-
-export default defineConfig(({ mode }) => {
-  function onlyBuild(val: any) {
+import package_json from './package.json';
+import fs from "fs"
+import { createHtmlPlugin } from 'vite-plugin-html'
+import inspect from 'vite-plugin-inspect';
+export default defineConfig(({ command: mode }) => {
+  function onlyBuild(buildValue: any, defaultValue?: any) {
     if (mode == 'build') {
-      return val
+      if (buildValue instanceof Function && defaultValue instanceof Array) {
+        return buildValue(...defaultValue)
+      }
+      return buildValue
     }
-    return {}
+    if (defaultValue instanceof Array) {
+      return defaultValue[0]
+    }
+    return defaultValue
   }
+  onlyBuild(() => [path.join(__dirname, './electron-builder.yml'), path.join(__dirname, './dev-app-update.yml')].forEach(val => fs.writeFileSync(val, fs.readFileSync(val).toString().replace(/__APP_NAME__/g, package_json.name))))
   return {
     main: {
       plugins: [bytecodePlugin({ protectedStrings: ["https://tinywebdb.appinventor.space/api"] }), externalizeDepsPlugin()],
-      build: onlyBuild({
-        terserOptions: {
-          compress: {
-            drop_console: true,
-            drop_debugger: true,
+      build: {
+        ...onlyBuild({
+          terserOptions: {
+            compress: {
+              drop_console: true,
+              drop_debugger: true,
+            },
           },
-        },
-        minify: "terser",
-      })
+          minify: "terser",
+        }, {}),
+        outDir: 'dist/main'
+      }
     },
     preload: {
       plugins: [bytecodePlugin({ protectedStrings: ["https://tinywebdb.appinventor.space/api"] }), externalizeDepsPlugin()],
-      build: onlyBuild({
-        terserOptions: {
-          compress: {
-            drop_console: true,
-            drop_debugger: true,
+      build: {
+        ...onlyBuild({
+          terserOptions: {
+            compress: {
+              drop_console: true,
+              drop_debugger: true,
+            },
           },
-        },
-        minify: "terser",
-      })
+          minify: "terser",
+        }, {}),
+        outDir: 'dist/preload'
+      }
     },
     renderer: defineViteConfig({
       define: {
         'process.env': {
           NODE_ENV: import.meta.env,
-          APP_NAME: 'p2psaing-app',
         },
+        '__APP_NAME__': `"${package_json.name}"`,
+        '__APP_VERSION__': `"${package_json.version}"`
       },
       resolve: {
         alias: {
@@ -64,8 +79,29 @@ export default defineConfig(({ mode }) => {
         }
       },
       plugins: [
-        vue(),
-        vueJsx(),
+        inspect(),
+        createHtmlPlugin({
+          minify: true,
+          entry: 'src/main.ts',
+          inject: {
+            data: {
+              title: package_json.name,
+            },
+            tags: [
+              {
+                injectTo: 'body-prepend',
+                tag: 'div',
+                attrs: {
+                  id: 'app',
+                  style:'height: 100vh;z'
+                },
+              },
+            ],
+          },
+        }),
+        veauryVitePlugins({
+          type: 'react'
+        }),
         AutoImport({
           resolvers: [
             ElementPlusResolver(),
@@ -90,23 +126,21 @@ export default defineConfig(({ mode }) => {
       css: {
         postcss: {
           plugins: [
-            tailwindcss(tailwindcssConfig),
-            postCssPxToRem({
-              rootValue: 16,
-              propList: ["*"],
-            }),
+            tailwindcss,
+            postCssPxToRem,
           ]
         }
-      }
-    }),
-    build: {
-      terserOptions: {
-        compress: {
-          drop_console: true,
-          drop_debugger: true,
-        },
       },
-      minify: "terser",
-    }
+      build: {
+        terserOptions: {
+          compress: {
+            drop_console: true,
+            drop_debugger: true,
+          },
+        },
+        minify: "terser",
+        outDir: 'dist/renderer'
+      },
+    }),
   }
 })

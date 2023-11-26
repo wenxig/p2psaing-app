@@ -6,7 +6,6 @@ import useUploader from '@h/useUploader';
 import { ref } from 'vue'
 import { storeToRefs } from 'pinia';
 import { useAppStore, useUserStore } from '@s/index';
-import { watchOnce } from '@vueuse/core';
 
 defineProps<{
   isEditName: boolean,
@@ -22,10 +21,7 @@ defineEmits<{
 const appStoreValue = storeToRefs(useAppStore())
 const userStoer = useUserStore()
 const canves = ref<HTMLCanvasElement>()
-let uploader :ReturnType<typeof useUploader>
-watchOnce(canves, el => {
-  uploader = useUploader(el as HTMLCanvasElement)
-})
+const uploader = useUploader()
 const progressFlag = ref(false)
 const isUploadErr = ref(false)
 const loadProgress = appStoreValue.loadProgress
@@ -43,7 +39,6 @@ const upload: UploadProps['beforeUpload'] = async (rawFile) => {
     value = await uploader.titleImg(rawFile);
   } catch (err) {
     console.error(err);
-    
     isUploadErr.value = true
     throw false
   }

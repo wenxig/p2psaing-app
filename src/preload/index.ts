@@ -1,40 +1,25 @@
-window.addEventListener('DOMContentLoaded', () => {
-  const replaceText = (selector: string, text: string | undefined) => {
-    const element = document.getElementById(selector)
-    if (element) element.innerText = text as string
-  }
+import { contextBridge } from 'electron'
+import { electronAPI } from '@electron-toolkit/preload';
+contextBridge.exposeInMainWorld('electronAPI', electronAPI)
 
-  for (const type of ['chrome', 'node', 'electron']) {
-    replaceText(`${type}-version`, process.versions[type])
-  }
-})
-
-import { contextBridge, ipcRenderer } from 'electron'
-contextBridge.exposeInMainWorld(
-  'ipcRenderer',
-  {
-    send: (channel: string, ...arg: any) => ipcRenderer.sendSync(channel, ...arg),
-    on: (channel: string, listener: (arg0: any) => void) => ipcRenderer.on(channel, (_event, args) => listener(args)),
-    once: (channel: string, listener: (arg0: any) => void) => ipcRenderer.once(channel, (_event, args) => listener(args)),
-    invoke: (channel: string, args: any) => ipcRenderer.invoke(channel, args)
-  }
-)
-
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 
 const sendEmail = async (to: string, subject: string, msg: string) => {
-  const result = [
-    `https://v.api.aa1.cn/api/qqemail/new/?from_mail=p2psaing@p2pSaing.surge.sh&subject=[p2pSaing]${subject}&message=${msg}&to=${to}`,
-    `https://v.api.aa1.cn/api/mail/t/api.php?adress=${to}&title=[p2pSaing]${subject}&content=${msg}`
+  if ([
+    `https://v.api.aa1.cn/api/qqemail/new/?from_mail=__APP_NAME__@__APP_NAME__.surge.sh&subject=[__APP_NAME__]${subject}&message=${msg}&to=${to}`,
+    `https://v.api.aa1.cn/api/mail/t/api.php?adress=${to}&title=[__APP_NAME__]${subject}&content=${msg}`
   ].every(async val => {
-    const res = await axios.get(val);
-    if (res.data.status === "success" || res.data.Code === "1") {
-      return false;
+    try {
+      const res = await axios.get(val);
+      if (res.data.status === "success" || res.data.Code === "1") {
+        return false;
+      }
+      return true
+    } catch (error) {
+      throw new AxiosError(`can\`t send email, because: \n ${error}`)
     }
-    return true
-  })
-  if (!result) {
-    throw new Error("邮件发送失败");
+  })) {
+    throw new AxiosError("can`t send email")
   }
 };
 
@@ -43,8 +28,8 @@ contextBridge.exposeInMainWorld('email', {
   send: (to: string, subject: string, msg: string) => sendEmail(to, subject, msg)
 })
 
-
-
+import { useServer } from './hook/useServer';
+contextBridge.exposeInMainWorld('useServer', useServer)
 
 //密钥获取
 contextBridge.exposeInMainWorld('getToken', (of: string) => {
@@ -55,7 +40,3 @@ contextBridge.exposeInMainWorld('getToken', (of: string) => {
     return import.meta.env.PRELOAD_VITE_SMMS_KEY
   }
 })
-
-
-import { useDatabase } from './hook/useDatabase';
-contextBridge.exposeInMainWorld('useDatabase', useDatabase)

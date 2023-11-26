@@ -3,13 +3,11 @@
 import elZhCn from 'element-plus/dist/locale/zh-cn';
 import { zhCN as nZhCn, dateZhCN as nDateZhCN, type GlobalThemeOverrides } from 'naive-ui'
 import { reactive } from 'vue';
-
 import katex from 'katex'
 import 'katex/dist/katex.css'
 
 import hljs from 'highlight.js';
 import 'highlight.js/scss/atom-one-light.scss';
-
 
 const cssVarName = [
   "--el-font-family",
@@ -122,7 +120,7 @@ styleName.forEach((tag, index) => {
 
 <template>
   <n-config-provider :locale="nZhCn" :date-locale="nDateZhCN" class="w-full h-full" :theme-overrides="theme"
-    :katex="katex" :hljs="hljs">
+    :katex="(katex as any)" :hljs="hljs">
     <n-global-style />
     <el-config-provider :locale="elZhCn">
       <router-view></router-view>

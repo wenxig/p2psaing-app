@@ -14,18 +14,17 @@ const loding = ElLoading.service({
   background: 'rgba(255, 255, 255, 0.7)',
 })
 
-window.ipcRenderer.invoke("mainWindow_setSize", {
+window.electronAPI.ipcRenderer.invoke("mainWindow_setSize", {
   width: 900,
   height: 770
 })
-window.ipcRenderer.invoke("mainWindow_resize", true)
+window.electronAPI.ipcRenderer.invoke("mainWindow_resize", true)
 
 setTimeout(() => {
   server.do({
     action: "get",
     tag: user.user.value.id
-  }).catch(() => {
-    window.useDatabase(user.user.value.id).clear()
+  }).catch(async () => {
     ElMessage.error('请求服务器错误')
   }).finally(() => {
     loding.close()
@@ -46,7 +45,9 @@ setTimeout(() => {
       <template #main-header>
         {{ appStore.topBar.text }}
       </template>
-      <router-view></router-view>
+      <template #default>
+        <router-view></router-view>
+      </template>
     </MainLayout>
   </Layout>
 </template>

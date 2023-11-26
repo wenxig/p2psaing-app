@@ -63,6 +63,7 @@
     "src/main/**/*",
     "electron.vite.config.*",
     "tailwind.config.*",
-    "src/renderer/user.d.ts"
+    "src/renderer/user.d.ts",
+    "./package.json"
   ]
 }

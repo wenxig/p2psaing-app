@@ -17,10 +17,10 @@ const props = withDefaults(defineProps<Props>(), {
 let isFocus = ref(true)
 let isHover = ref(false)
 let isMaxSize = ref(false)
-window.ipcRenderer.on(`${props.for}_focus`, () => {
+window.electronAPI.ipcRenderer.on(`${props.for}_focus`, () => {
   isFocus.value = true
 })
-window.ipcRenderer.on(`${props.for}_blur`, () => {
+window.electronAPI.ipcRenderer.on(`${props.for}_blur`, () => {
   isFocus.value = false
 })
 
@@ -28,28 +28,22 @@ const mainClass = `flex items-center justify-around rounded-full h-3 w-3 border-
 const ifClass = [!isFocus ? '!bg-[#C0C4CC]' : '']
 const classes = reactive([
   [
-    ...mainClass,
-    ...ifClass,
     'bg-red-500',
     'active:bg-red-700'
   ], [
-    ...mainClass,
-    ...ifClass,
     'bg-yellow-400',
     "active:bg-yellow-700"
   ], [
-    ...mainClass,
-    ...ifClass,
     'bg-green-500',
     'active:bg-green-700'
   ]
 ])
 
 const clickEvent = reactive([
-  () => window.ipcRenderer.invoke(props.type == 'haid' ? `${props.for}_close` : 'app_quit'),
-  () => window.ipcRenderer.invoke(`${props.for}_minimize`),
-  () => window.ipcRenderer.invoke(`${props.for}_maximize`, (isMaxSize.value = true)),
-  () => window.ipcRenderer.invoke(`${props.for}_unmaximize`, (isMaxSize.value = false))
+  () => window.electronAPI.ipcRenderer.invoke(props.type == 'haid' ? `${props.for}_close` : 'app_quit'),
+  () => window.electronAPI.ipcRenderer.invoke(`${props.for}_minimize`),
+  () => window.electronAPI.ipcRenderer.invoke(`${props.for}_maximize`, (isMaxSize.value = true)),
+  () => window.electronAPI.ipcRenderer.invoke(`${props.for}_unmaximize`, (isMaxSize.value = false))
 ])
 const ifShow = reactive([
   props.exit,
@@ -74,7 +68,7 @@ const IconElements = [
   <el-space class="region-no-drag !w-[3.75rem] h-5 !pl-1 !pr-1" @mouseenter="isHover = true"
     @mouseleave="isHover = false">
     <template v-for="(show, index) of ifShow">
-      <div :class="classes[index == 3 ? 2 : index]"
+      <div :class="[...mainClass, ...ifClass, ...classes[index == 3 ? 2 : index]]"
         v-if="show && ((index == 0 || index == 1) || (!isMaxSize && index == 2) || (isMaxSize && index == 3))">
         <el-icon size="0.5rem" v-if="isHover" @click="clickEvent[index]">
           <component :is="IconElements[index]" />

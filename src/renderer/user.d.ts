@@ -50,12 +50,15 @@ namespace User {
     name: string;
     password: string;
     email: string;
-    introduction?: string
+    introduction?: string;
+    lid: string;
   }
-
-  type loginArg = {
-    password: string;
-    email: string;
+  namespace arg {
+    type login = {
+      email: string,
+      password: string
+    }
+    type sigeup = Omit<User.UserObj,"lid">
   }
 }
 

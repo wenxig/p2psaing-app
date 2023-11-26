@@ -1,9 +1,7 @@
 import { app, BrowserWindow, ipcMain } from 'electron'
 import { electronApp, optimizer } from '@electron-toolkit/utils'
-import ElectronStore from 'electron-store';
 import { WindowControl } from './hook/useWindow';
-import { UserDataStore } from './class/state';
-ElectronStore.initRenderer()
+import { UserDataStore } from './temp/state';
 
 const { createChildWindow, createMainWindow } = WindowControl
 

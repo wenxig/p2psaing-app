@@ -4,9 +4,11 @@ import Peer, { type DataConnection } from 'peerjs'
 import { defineStore } from 'pinia'
 import { reactive } from 'vue'
 import { Server } from '@a/server'
+//@ts-ignore
+import type { ArgumentMap } from '.pnpm/eventemitter3@4.0.7/node_modules/eventemitter3';
 const db = window.useDatabase('')
 const user = JSON.parse(db.get<string>('user', "{}" as any)) as User.DbSave
-export const useLinkUser = defineStore('link', () => {
+export default defineStore('link', () => {
   const userList: Link.RoomListType[] = reactive([])
   const roomList: Room.RoomListType[] = reactive([])
   const peerObj = reactive(new Peer(user.id))
@@ -70,7 +72,7 @@ export const useLinkUser = defineStore('link', () => {
         const ser = new Server(() => {
           ser.otherServer = ser.peerObj.connect(connForThey.peer)
           ser.otherServer.on('open', () => {
-            ser.otherServer?.on('data', (d) => {
+            ser.otherServer?.on('data', () => {
               ser.otherServer?.send({ online: true })
             })
 

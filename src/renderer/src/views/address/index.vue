@@ -38,9 +38,9 @@ interface listItem {
           </div>
         </el-tree-v2>
       </template>
-      <template #main-header>
+      <template #default>
+        <router-view></router-view>
       </template>
-      <router-view></router-view>
     </MainLayout>
   </Layout>
 </template>

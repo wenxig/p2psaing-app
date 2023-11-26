@@ -1,2 +1,2 @@
-# p2psaing-app
+# __APP_NAME__-app
 electron is good
