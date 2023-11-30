@@ -16,10 +16,9 @@
   "dependencies": {
     "@electron-toolkit/preload": "^2.0.0",
     "@electron-toolkit/utils": "^2.0.1",
-    "@vitejs/plugin-react": "^4.2.0",
-    "@vue/tsconfig": "^0.4.0",
     "@vueuse/core": "^10.6.1",
     "axios": "^1.6.2",
+    "colors-console": "^1.0.3",
     "crypto-js": "^4.2.0",
     "electron-updater": "^6.1.7",
     "electron-vite": "^1.0.29",
@@ -32,11 +31,9 @@
     "peerjs": "^1.5.1",
     "pinia": "^2.1.7",
     "qrcode.vue": "^3.4.1",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "veaury": "^2.3.12",
     "vite-plugin-inspect": "^0.7.42",
     "vue": "^3.3.9",
+    "vue-cropper": "^1.1.1",
     "vue-router": "^4.2.5"
   },
   "devDependencies": {
@@ -52,8 +49,6 @@
     "@types/lodash-es": "^4.17.12",
     "@types/node": "^20.10.0",
     "@types/postcss-pxtorem": "^6.0.3",
-    "@types/react": "^18.2.38",
-    "@types/react-dom": "^18.2.17",
     "@vitejs/plugin-vue": "^4.5.0",
     "@vitejs/plugin-vue-jsx": "^3.1.0",
     "autoprefixer": "^10.4.16",
@@ -71,15 +66,10 @@
     "unplugin-icons": "^0.17.4",
     "unplugin-vue-components": "^0.25.2",
     "vite": "^5.0.2",
+    "@rollup/plugin-replace": "^5.0.5",
+    "@vue/tsconfig": "^0.4.0",
     "vite-plugin-html": "^3.2.0",
     "vue-tsc": "^1.8.22"
   },
-  "license": "MIT",
-  "pnpm": {
-    "patchedDependencies": {
-      "@types/react@18.2.38": "patches/@types__react@18.2.38.patch",
-      "vue@3.3.9": "patches/vue@3.3.9.patch",
-      "veaury@2.3.12": "patches/veaury@2.3.12.patch"
-    }
-  }
+  "license": "MIT"
 }

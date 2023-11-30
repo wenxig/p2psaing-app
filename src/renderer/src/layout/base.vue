@@ -19,7 +19,7 @@ const titleImg = ref("/userIcon.png")
       <el-space direction='vertical' class=" w-full h-full">
         <el-avatar shape="square" :size="40"
           :src="userVal.user.value.value.img == '' ? titleImg : userVal.user.value.value.img" class="region-no-drag"
-          @click="$ipc.send('createChildWindow', { width: 450, height: 650, url: '/main/userSetting', name: `userSetting`, more: false })" />
+          @click="$electron.ipcRenderer.send('createChildWindow', { width: 450, height: 650, url: '/main/userSetting', name: `userSetting`, more: false })" />
         <AsideButton :primary="$route.path == '/main'" @click="$router.push('/main')">
           <i-ep-ChatRound />
         </AsideButton>

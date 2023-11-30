@@ -2,7 +2,9 @@ import { app, BrowserWindow, ipcMain } from 'electron'
 import { electronApp, optimizer } from '@electron-toolkit/utils'
 import { WindowControl } from './hook/useWindow';
 import { UserDataStore } from './temp/state';
-
+import { createVueDevtool } from './plugin/createVueDevtool';
+import colors from 'colors-console';
+// import { createReactDevtool } from './plugin/createReactDevtools';
 const { createChildWindow, createMainWindow } = WindowControl
 
 app.commandLine.appendSwitch('disable-features', 'OutOfBlinkCors');
@@ -31,17 +33,19 @@ app.whenReady().then(() => {
   })
 
   // 应用状态管理
-  ipcMain.on('getState', (event) => {
-    console.log(UserDataStore);
-    
-    event.returnValue = UserDataStore.data
+  ipcMain.on('getState', (event, key: string) => {
+    console.log(colors('bright', `---------${new Date()}---------`));
+    console.log(colors('green', 'setState==> '), key, ':', UserDataStore.getData(key));
+    event.returnValue = UserDataStore.getData(key)
   })
-  ipcMain.on('setState', (event, value) => {
-    UserDataStore.data = value
+  ipcMain.on('setState', (event, key: string, value) => {
+    console.log(colors('bright', `---------${new Date()}---------`));
+    console.log(colors('yellow', 'getState<== '), key, ':', value);
+    UserDataStore.setData(key, value)
     event.returnValue = undefined
   })
-
-  
+  // createReactDevtool()
+  createVueDevtool()
   createMainWindow()
 })
 

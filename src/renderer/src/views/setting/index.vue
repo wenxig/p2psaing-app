@@ -1,25 +1,16 @@
 <script setup lang='ts'>
 import { useRoute } from 'vue-router';
-import { ref } from 'vue'
-import SetUser from './setUser.c.vue';
-import { useUserStore } from '@s/index';
+import User from './user.b.vue';
+import { useUserStore, useAppStore } from '@s/index';
 const route = useRoute()
 const windowName = route.query.name as string
 const userStoer = useUserStore()
-const isEditName = ref(false)
 const ipc = window.electronAPI.ipcRenderer
-const userName = ref(userStoer.user.value.name)
-
+const appStore = useAppStore()
 ipc.invoke(`${windowName}_setSize`, {
   height: 500,
   width: 800
 })
-
-function resetName() {
-  userName.value = userStoer.user.value.name
-  return true
-}
-
 </script>
 
 <template>
@@ -27,13 +18,13 @@ function resetName() {
     <el-header class="region-drag !bg-[var(--el-color-info-light-7)] flex justify-center items-center !text-xl"
       height="25px">
     </el-header>
-    <el-main @click="resetName() && (isEditName = false)">
-      <SetUser v-model:is-edit-name="isEditName" v-model:user-name="userName" :resetName="resetName" />
+    <el-main
+      @click="(appStore.settingPage.name = userStoer.user.value.name) && (appStore.settingPage.isEditName = false)">
+      <User />
       <el-divider />
-      <el-button @click="$ipc.invoke('app_quit')" type="danger">退出登陆</el-button>
+      <el-button @click="$electron.ipcRenderer.invoke('app_quit')" type="danger">退出登陆</el-button>
     </el-main>
     <control class="absolute top-0 left-0" :maxsize="false" :for="windowName">
     </control>
   </el-container>
 </template>
-

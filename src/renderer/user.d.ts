@@ -1,35 +1,35 @@
 namespace User {
-  interface DbSave extends WebDbSaveDeep extends IndexUser {
-    email: string
+  type Base = {
+    name: string;
+    password: string;
+    email: string;
+  }
+  type Ids = {
+    pid: string;
+    uid: number;
+    lid: string;
   }
   interface MsgSave {
     group: {
-      linkId: string;
+      lid: Pick<Ids, "lid">;
       msg: (Msg | never)[]
     }[];
     chat: {
-      to: string;
+      lid: Pick<Ids, "lid">;
       name?: string;
       msg: (Msg | never)[]
     }[]
   }
-  type IndexUser = {
-    name: string;
-    uid: number;
-    id: string;
+  interface WebDbSaveDeep extends Base, Ids {
     img: string;
-  }
-  interface WebDbSaveDeep extends UserObj {
-    id: string;
-    uid: number;
-    img: string;
+    introduction?: string;
     delImg?: string;
     link: {
       group: {
-        linkId: string;
+        lid: Pick<Ids, 'lid'>;
       }[];
       chat: {
-        to: string;
+        lid: Pick<Ids, 'lid'>;
         name?: string;
       }[]
     }
@@ -38,28 +38,24 @@ namespace User {
     name: string;
     img: string;
     email: string;
-    id: string;
+    introduction?: string;
+    lid: string;
+    uid: number
   }
   type Msg = {
     from: string;
     time: Date;
-    uid: number;
-  } & Omit<WebDbSave, "img"> & (UserTextMsg | UserFileMsg | UserAppMsg | UserCodeMsg | UserEquationMsg)
-
-  type UserObj = {
-    name: string;
-    password: string;
-    email: string;
-    introduction?: string;
-    lid: string;
-  }
-  namespace arg {
+  } & (UserTextMsg | UserFileMsg | UserAppMsg | UserCodeMsg | UserEquationMsg) & Omit<Ids, "pid">
+  namespace Arg {
     type login = {
       email: string,
       password: string
     }
-    type sigeup = Omit<User.UserObj,"lid">
+    type sigeup = Base
   }
+  type LastLogin = {
+    img: string;
+  } & Base
 }
 
 type UserTextMsg = {

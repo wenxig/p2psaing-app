@@ -1,7 +1,6 @@
-import { is } from "@electron-toolkit/utils";
+import { is, ipcHelper } from "@electron-toolkit/utils";
 import { BrowserWindow, app, ipcMain, shell } from "electron";
 import { join } from "path";
-
 export namespace WindowControl {
   const childWindowUrlList: string[] = []
   const childWindowObjList: BrowserWindow[] = []
@@ -17,7 +16,8 @@ export namespace WindowControl {
         nodeIntegration: true,
         contextIsolation: true,
         spellcheck: false,
-        webSecurity: false
+        webSecurity: false,
+        nodeIntegrationInWorker: true
       },
       frame: false,
       resizable: false,
@@ -47,7 +47,6 @@ export namespace WindowControl {
     mainWindow.on("blur", () => {
       mainWindow.webContents.send("mainWindow_blur", "blur")
     })
-
     ipcMain.handle('mainWindow_close', () => {
       if (process.platform == 'darwin') {
         mainWindow.hide()

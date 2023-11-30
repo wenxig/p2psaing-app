@@ -1,11 +1,8 @@
-import axios from 'axios';
-//@ts-ignore
+import axios, { AxiosError } from 'axios';
 axios.defaults.retry = 3; //重试次数
-//@ts-ignore
 axios.defaults.retryDelay = 1000;//重试延时
-//@ts-ignore
-axios.defaults.shouldRetry = (error) => true;//重试条件，默认只要是错误都需要重试
-axios.interceptors.response.use(undefined, (err) => {
+axios.defaults.shouldRetry = () => true;//重试条件，默认只要是错误都需要重试
+axios.interceptors.response.use(undefined, (err: AxiosError) => {
   const config = err.config;
   if (!config || !config.retry || !config.shouldRetry || typeof config.shouldRetry != 'function' || !config.shouldRetry(err)) {
     return Promise.reject(err);

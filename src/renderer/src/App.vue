@@ -1,7 +1,6 @@
 <script setup lang="ts">
-//@ts-ignore
 import elZhCn from 'element-plus/dist/locale/zh-cn';
-import { zhCN as nZhCn, dateZhCN as nDateZhCN, type GlobalThemeOverrides } from 'naive-ui'
+import { zhCN as nZhCn, dateZhCN as nDateZhCN } from 'naive-ui'
 import { reactive } from 'vue';
 import katex from 'katex'
 import 'katex/dist/katex.css'
@@ -109,12 +108,11 @@ const styleName = [
   "boxShadow2",
   "boxShadow3"
 ]
-const theme: GlobalThemeOverrides = reactive({
-  common: {}
+const theme = reactive({
+  common: <Record<string,string>>{}
 })
 styleName.forEach((tag, index) => {
-  //@ts-ignore
-  theme.common[tag] = getComputedStyle(document.documentElement).getPropertyValue(cssVarName[index]).trim()
+  theme.common[tag] = (getComputedStyle(document.documentElement).getPropertyValue(cssVarName[index]).trim())
 })
 </script>
 
@@ -123,7 +121,9 @@ styleName.forEach((tag, index) => {
     :katex="(katex as any)" :hljs="hljs">
     <n-global-style />
     <el-config-provider :locale="elZhCn">
-      <router-view></router-view>
+      <Suspense>
+        <router-view></router-view>
+      </Suspense>
     </el-config-provider>
   </n-config-provider>
 </template>

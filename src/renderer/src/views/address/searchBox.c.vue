@@ -1,7 +1,7 @@
 <script setup lang='ts'>
 import { type ElAutocomplete, type AutocompleteFetchSuggestionsCallback, ElLoading } from 'element-plus';
 import { nextTick, ref } from 'vue';
-const api = window.useServer()
+import * as api from '@/db/network';
 const emit = defineEmits<{
   'select': [value: any]
 }>()
@@ -28,10 +28,7 @@ function getLisetData(keyword: string, cb: AutocompleteFetchSuggestionsCallback)
       const loading = ElLoading.service({
         text: '查询数据中...'
       })
-      const result = await api.do({
-        action: 'get',
-        tag: data
-      })
+      const result = await api.get(data)
       loading.close()
       emit('select', result)
     }
@@ -42,10 +39,7 @@ function getLisetData(keyword: string, cb: AutocompleteFetchSuggestionsCallback)
       const loading = ElLoading.service({
         text: '查询数据中...'
       })
-      const result = await api.do({
-        action: 'get',
-        tag: data
-      })
+      const result = await api.get(data)
       loading.close()
       emit('select', result)
     }

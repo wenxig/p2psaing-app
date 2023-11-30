@@ -3,21 +3,20 @@ import { ref } from 'vue';
 import plusInput from '@/components/plusInput.vue';
 import { random } from 'lodash-es';
 import router from '@/router';
-import { useAuth } from '@h/useAuth';
+import { useAuth,type NextLoginFunction } from '@h/useAuth';
 import { ElLoading } from 'element-plus';
 window.electronAPI.ipcRenderer.invoke("mainWindow_setSize", {
   width: 280,
   height: 400
 })
 const auth = useAuth()
-const passCode = `${random(9)}${random(9)}${random(9)}${random(9)}${random(9)}${random(9)}`
+const passCode = `${random(100000,999999)}`
 const email = ref("")
 const password = ref("")
 const isPage1 = ref(true)
 const inputPassCode = ref('')
 const passCodeTrue = ref(false)
-let ret: [User.WebDbSaveDeep, string]
-let next: Function
+let next: NextLoginFunction
 function login() {
   const loading = ElLoading.service({
     lock: true,
@@ -29,7 +28,6 @@ function login() {
     password: password.value
   }).then(val => {
     isPage1.value = false
-    ret = [val[0], val[1]]
     next = val[2]
     if (import.meta.env.DEV) {
       lastLogin(true)
@@ -47,7 +45,7 @@ function login() {
 
 function lastLogin(jump: boolean = false) {
   if (jump || inputPassCode.value == passCode) {
-    next(...ret)
+    next()
     router.replace('/main')
   } else {
     passCodeTrue.value = true

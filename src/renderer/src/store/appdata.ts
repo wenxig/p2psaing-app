@@ -1,9 +1,13 @@
 import { defineStore } from 'pinia';
-import { reactive, ref } from 'vue';
+import { reactive } from 'vue';
 export const useAppStore = defineStore("app", () => {
-  const loadProgress=ref(0)
-  const topBar=reactive({
-    text:""
+  const topBar = reactive({
+    text: ""
   })
-  return { loadProgress, topBar }
+  const settingPage = reactive({
+    name: '',
+    isEditName: false,
+    loadProgress: 0
+  })
+  return { topBar, settingPage }
 })

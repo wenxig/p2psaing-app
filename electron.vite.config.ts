@@ -7,12 +7,14 @@ import Components from 'unplugin-vue-components/vite'
 import { ElementPlusResolver, NaiveUiResolver } from 'unplugin-vue-components/resolvers'
 import Icons from 'unplugin-icons/vite';
 import IconsResolver from 'unplugin-icons/resolver';
-import veauryVitePlugins from 'veaury/vite/index.js'
+import vue from '@vitejs/plugin-vue'
+import vueJsx from '@vitejs/plugin-vue-jsx'
 import { fileURLToPath } from 'node:url';
 import package_json from './package.json';
 import fs from "fs"
 import { createHtmlPlugin } from 'vite-plugin-html'
 import inspect from 'vite-plugin-inspect';
+import replace from '@rollup/plugin-replace';
 export default defineConfig(({ command: mode }) => {
   function onlyBuild(buildValue: any, defaultValue?: any) {
     if (mode == 'build') {
@@ -59,13 +61,6 @@ export default defineConfig(({ command: mode }) => {
       }
     },
     renderer: defineViteConfig({
-      define: {
-        'process.env': {
-          NODE_ENV: import.meta.env,
-        },
-        '__APP_NAME__': `"${package_json.name}"`,
-        '__APP_VERSION__': `"${package_json.version}"`
-      },
       resolve: {
         alias: {
           '@t': resolve('src/renderer/src/types'),
@@ -80,6 +75,13 @@ export default defineConfig(({ command: mode }) => {
       },
       plugins: [
         inspect(),
+        replace({
+          'process.env': JSON.stringify({
+            NODE_ENV: import.meta.env,
+          }),
+          '__APP_NAME__': `${package_json.name}`,
+          '__APP_VERSION__': `${package_json.version}`
+        }),
         createHtmlPlugin({
           minify: true,
           entry: 'src/main.ts',
@@ -93,15 +95,14 @@ export default defineConfig(({ command: mode }) => {
                 tag: 'div',
                 attrs: {
                   id: 'app',
-                  style:'height: 100vh;z'
+                  style: 'height: 100vh;z'
                 },
               },
             ],
           },
         }),
-        veauryVitePlugins({
-          type: 'react'
-        }),
+        vue(),
+        vueJsx(),
         AutoImport({
           resolvers: [
             ElementPlusResolver(),
@@ -141,6 +142,7 @@ export default defineConfig(({ command: mode }) => {
         minify: "terser",
         outDir: 'dist/renderer'
       },
+
     }),
   }
 })

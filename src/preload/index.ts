@@ -28,8 +28,6 @@ contextBridge.exposeInMainWorld('email', {
   send: (to: string, subject: string, msg: string) => sendEmail(to, subject, msg)
 })
 
-import { useServer } from './hook/useServer';
-contextBridge.exposeInMainWorld('useServer', useServer)
 
 //密钥获取
 contextBridge.exposeInMainWorld('getToken', (of: string) => {

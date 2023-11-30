@@ -5,25 +5,22 @@ import { useAppStore } from '@/store';
 import { storeToRefs } from 'pinia';
 import { isUndefined } from 'lodash-es';
 const appStoreValue = storeToRefs(useAppStore())
-const loadProgress = appStoreValue.loadProgress
 
-
-
+const useCanvas = () => {
+  const canvas = document.createElement("canvas")
+  return {
+    canvas,
+    [Symbol.dispose]() {
+      document.body.appendChild(canvas)
+      document.body.removeChild(canvas)
+    }
+  }
+}
 
 type GithubApikey = string; type SmmsApikey = string
 namespace imgUploder {
-  const useCanvas = () => {
-    const canvas = document.createElement("canvas")
-    return {
-      canvas,
-      [Symbol.dispose]() {
-        document.body.appendChild(canvas)
-        document.body.removeChild(canvas)
-      }
-    }
-  }
-  using canvas = useCanvas()
-  const db = "https://api.github.com/repos/wenxig/__APP_NAME__-app-db/contents"
+
+  const db = `https://api.github.com/repos/wenxig/__APP_NAME__-app-db/contents`
   const db2 = "https://sm.ms/api/v2"
   let apiKey: [GithubApikey, SmmsApikey] = [window.getToken("github"), window.getToken("smms")]
   async function img_smms(file: File, imgName: string): Promise<[string, string?]> {
@@ -35,9 +32,9 @@ namespace imgUploder {
         },
         timeout: 5000
       })
-      loadProgress.value = 35
+      appStoreValue.settingPage.value.loadProgress = 35
     }
-    const smfile = new File([file], `${user.user.value.id}.${imgName}`)
+    const smfile = new File([file], `${user.user.value.pid}.${imgName}`)
     try {
       await axios.post(`https://sm.ms/api/v2/token`, {
         "username": 'wenxig',
@@ -48,7 +45,7 @@ namespace imgUploder {
         },
         timeout: 5000
       })
-      loadProgress.value = 40
+      appStoreValue.settingPage.value.loadProgress = 40
       const { data: imgData } = await axios.post(`${db2}/upload`, {
         smfile
       }, {
@@ -58,7 +55,7 @@ namespace imgUploder {
         },
         timeout: 5000
       })
-      loadProgress.value = 60
+      appStoreValue.settingPage.value.loadProgress = 60
       return [imgData.data.url, imgData.data.delete]
     } catch (err: any) {
       throw false
@@ -66,7 +63,7 @@ namespace imgUploder {
   }
   async function img_github(base64: string, imgName: string): Promise<[string]> {
     let putData
-    const { data: { sha } } = await axios.get(`${db}/${user.user.value.id}/img/${imgName}`, {
+    const { data: { sha } } = await axios.get(`${db}/${user.user.value.pid}/img/${imgName}`, {
       headers: {
         "Authorization": apiKey[0],
         "Content-Type": "application/json; charset=utf-8",
@@ -77,12 +74,12 @@ namespace imgUploder {
     putData = {
       branch: "master",
       content: base64,
-      message: "add img by __APP_NAME__ api",
+      message: `add img by __APP_NAME__ api`,
       sha
     }
-    loadProgress.value = 40
+    appStoreValue.settingPage.value.loadProgress = 40
     try {
-      await axios.put(`${db}/${user.user.value.id}/img/${imgName}`, putData, {
+      await axios.put(`${db}/${user.user.value.pid}/img/${imgName}`, putData, {
         headers: {
           "Authorization": apiKey[0],
           "Content-Type": "application/json; charset=utf-8",
@@ -93,14 +90,14 @@ namespace imgUploder {
     } catch {
       throw false
     };
-    loadProgress.value = 60
-    return [`https://cdn.staticaly.com/gh/wenxig/__APP_NAME__-app-db@master/${user.user.value.id}/img/${imgName}`]
+    appStoreValue.settingPage.value.loadProgress = 60
+    return [`https://cdn.staticaly.com/gh/wenxig/__APP_NAME__-app-db@master/${user.user.value.pid}/img/${imgName}`]
   }
   export async function uploadImg(file: File, name: string): Promise<[string, string?]> {
     file = (await compressionFile(file))[0]
-    loadProgress.value = 10
+    appStoreValue.settingPage.value.loadProgress = 10
     const url = await fileToDataURL(file)
-    loadProgress.value = 30
+    appStoreValue.settingPage.value.loadProgress = 30
     const base64 = url.substring(url.indexOf(',') == -1 ? 0 : url.indexOf(',') + 1)
     let imgUrl: [string, string?]
     try {
@@ -113,14 +110,15 @@ namespace imgUploder {
         throw new Error('false')
       }
     }
-    loadProgress.value = 80
+    appStoreValue.settingPage.value.loadProgress = 80
     if (!isUndefined(imgUrl[1])) {
       return imgUrl as [string, string]
     }
     return imgUrl as [string]
   }
 
-  async function compressionFile(file: Blob, type = 'image/jpeg', quality = 0.5, name?: string): Promise<[File, Blob]> {
+  async function compressionFile(file: File, type = 'image/jpeg', quality = 0.5, name?: string): Promise<[File, Blob]> {
+    const canvas = useCanvas()
     const fileName = name ?? file.name;
     const context = canvas.canvas.getContext('2d') as CanvasRenderingContext2D;
     const base64 = await fileToDataURL(file);
@@ -131,6 +129,7 @@ namespace imgUploder {
     context.drawImage(img, 0, 0, img.width, img.height);
     const blob = await canvastoFile(canvas.canvas, type, quality) as Blob; // quality:0.5可根据实际情况计算
     const newFile = new File([blob], fileName, { type });
+    canvas[Symbol.dispose]()
     return [newFile, blob];
   }
 }
@@ -174,16 +173,11 @@ namespace Uploader {
     } catch (err) {
       throw err
     }
-    user.user.value = {
-      ...user.user.value,
-      img: imgUrl[0],
-      delImg: imgUrl[1] ?? undefined
-    }
-    loadProgress.value = 80
+    appStoreValue.settingPage.value.loadProgress = 80
 
     user.user.value.img = imgUrl[0]
     user.user.value.delImg = imgUrl[1]
-    loadProgress.value = 100
+    appStoreValue.settingPage.value.loadProgress = 100
     return imgUrl
   }
 }
