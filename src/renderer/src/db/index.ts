@@ -13,10 +13,12 @@ namespace db {
     return new Promise<void>(resolve => {
       if (isReady.value) {
         resolve()
+        console.log('ready');
         return
       }
       watchOnce(isReady, () => {
         resolve()
+        console.log('ready');
       })
     })
   }
@@ -26,7 +28,10 @@ namespace db {
   }
   export async function setLastLogin() {
     const { user: { value: user } } = useUserStore()
+    console.log(user);
+
     await whenReady()
+
     return await base.setItem<User.LastLogin>('user.LastLogin', {
       'email': user.email,
       img: user.img,

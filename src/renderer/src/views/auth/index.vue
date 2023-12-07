@@ -2,13 +2,19 @@
 import QrcodeVue from 'qrcode.vue'
 import db from '@/db';
 import { useAuth } from '@/hook/useAuth';
+import { useRouter } from 'vue-router';
+import { ElLoading, ElMessage } from 'element-plus'
 const qrcodeValue = '你扫你吗呢'
 const lastLogin = await db.getLastLogin()
+const router = useRouter()
 window.electronAPI.ipcRenderer.invoke("mainWindow_setSize", {
   width: 280,
   height: 400
 })
 function login() {
+  const loading = ElLoading.service({
+    text: '登陆中'
+  })
   if (!lastLogin)
     return
   const auth = useAuth()
@@ -16,16 +22,20 @@ function login() {
     ...lastLogin
   }).then(val => {
     val[2]()
-  })
+    router.replace('/main')
+  }).catch(() => {
+    ElMessage.error('网络错误')
+  }).finally(() => loading.close())
 }
 </script>
 
 <template>
   <el-container class="region-drag !h-full flex justify-center items-center !flex-col">
     <control class="absolute top-0 left-0" type="quit" :minsize="false" :maxsize="false"></control>
-    <el-space direction="vertical" :size="32">
+    <el-space direction="vertical" :size="10">
       <template v-if="!!lastLogin">
-        <el-image :src="lastLogin.img" class="!w-[150px] !h-[150px]" :alt="lastLogin.name"></el-image>
+        <el-image :src="lastLogin.img || '/userIcon.png'" class="!w-[150px] !h-[150px]" :alt="lastLogin.name"></el-image>
+        <el-text size="large" type="primary">{{ lastLogin.name }}</el-text>
         <el-button type="primary" @click="login()" class="region-no-drag">进入__APP_NAME__</el-button>
       </template>
       <template v-else>
