@@ -4,23 +4,21 @@ import db from '@/db';
 import { useAuth } from '@/hook/useAuth';
 import { useRouter } from 'vue-router';
 import { ElLoading, ElMessage } from 'element-plus'
+import { toRef } from 'vue'
 const qrcodeValue = '你扫你吗呢'
-const lastLogin = await db.getLastLogin()
+let lastLogin = toRef<false | User.LastLogin>(await db.getLastLogin())
 const router = useRouter()
 window.electronAPI.ipcRenderer.invoke("mainWindow_setSize", {
   width: 280,
   height: 400
 })
 function login() {
+  if (!lastLogin.value) return
   const loading = ElLoading.service({
     text: '登陆中'
   })
-  if (!lastLogin)
-    return
   const auth = useAuth()
-  auth.login({
-    ...lastLogin
-  }).then(val => {
+  auth.login(lastLogin.value).then(val => {
     val[2]()
     router.replace('/main')
   }).catch(() => {
@@ -36,7 +34,8 @@ function login() {
       <template v-if="!!lastLogin">
         <el-image :src="lastLogin.img || '/userIcon.png'" class="!w-[150px] !h-[150px]" :alt="lastLogin.name"></el-image>
         <el-text size="large" type="primary">{{ lastLogin.name }}</el-text>
-        <el-button type="primary" @click="login()" class="region-no-drag">进入__APP_NAME__</el-button>
+        <el-button type="primary" @click="login()" class="!w-full">进入__APP_NAME__</el-button>
+        <el-link type="primary" class="!-mt-2" @click="lastLogin = false">通过其他方式</el-link>
       </template>
       <template v-else>
         <qrcode-vue :value="qrcodeValue" :size="150"></qrcode-vue>
@@ -44,8 +43,7 @@ function login() {
           <el-text class="!text-blue-400 !text-xl">扫码登陆__APP_NAME__</el-text>
           <div>
             <el-text class="!text-[14px]">或者</el-text>
-            <el-link @click="$router.push('/login/byPassWord')" class="region-no-drag select-none"
-              type="primary">账号密码登陆</el-link>
+            <el-link @click="$router.push('/login/byPassWord')" class=" select-none" type="primary">账号密码登陆</el-link>
           </div>
         </el-space>
       </template>

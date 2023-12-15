@@ -34,9 +34,10 @@ async function signUp(val: User.Arg.sigeup) {
     pid,
     password: val.password
   }
-  userStore.user.value = userSave
-  await userStore.update()
-  await db.setLastLogin()
+  userStore.$setUser({
+    user: userSave
+  })
+  await userStore.commit()
   return true
 }
 async function login(val: User.Arg.login): Promise<[data: User.WebDbSaveDeep, pid: string, next: NextLoginFunction]> {
@@ -56,7 +57,10 @@ async function login(val: User.Arg.login): Promise<[data: User.WebDbSaveDeep, pi
       pid,
       link
     }
-    userStore.user.value = dbSaveData
+    console.log(dbSaveData);
+    userStore.$setUser({
+      user: dbSaveData
+    })
     db.setLastLogin()
     return true
   }]

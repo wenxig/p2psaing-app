@@ -5,6 +5,8 @@ import { random } from 'lodash-es';
 import router from '@/router';
 import { useAuth,type NextLoginFunction } from '@h/useAuth';
 import { ElLoading } from 'element-plus';
+import { useAppStore } from '@s/appdata';
+const app = useAppStore()
 window.electronAPI.ipcRenderer.invoke("mainWindow_setSize", {
   width: 280,
   height: 400
@@ -21,7 +23,7 @@ function login() {
   const loading = ElLoading.service({
     lock: true,
     text: '查询数据中',
-    background: 'rgba(255, 255, 255, 0.7)',
+    background: !app.isDark ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
   })
   auth.login({
     email: email.value,
@@ -65,14 +67,14 @@ function lastLogin(jump: boolean = false) {
       <plus-input v-model="email" lable="邮箱" type="email" inspect class="mt-[-3rem]" />
       <plus-input v-model="password" lable="密码" type="email" class="mt-4" />
       <div class="grid mt-5 content-center justify-items-center w-full">
-        <el-button type="primary" class="region-no-drag w-2/3" @click="login">登入</el-button>
-        <el-button plain class="region-no-drag w-2/3 mt-2 !ml-0" @click="$router.push('/login')">返回二维码登陆</el-button>
+        <el-button type="primary" class="w-2/3" @click="login">登入</el-button>
+        <el-button plain class="w-2/3 mt-2 !ml-0" @click="$router.push('/login')">返回二维码登陆</el-button>
       </div>
     </el-main>
     <el-main class="w-full h-full mt-2 !flex justify-center items-center !flex-col !pt-0" v-else>
       <plus-input class="!mt-[-9rem]" v-model="inputPassCode" lable="验证码" type="text" :alert="passCodeTrue" />
       <el-text class=" !w-full" type="primary" size="small">验证码已经发送至你的邮箱</el-text>
-      <el-button type="primary" class="region-no-drag w-2/3 mt-3" @click="lastLogin()">登入</el-button>
+      <el-button type="primary" class="w-2/3 mt-3" @click="lastLogin()">登入</el-button>
     </el-main>
     <el-footer class="!absolute w-full !flex justify-center items-end !pb-1 bottom-0 region-no-drag select-none text-sm">
       还没有账号?<el-link type="primary" @click="$router.push('/login/signup')">注册</el-link>

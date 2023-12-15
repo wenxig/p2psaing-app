@@ -1,6 +1,7 @@
-import { is, ipcHelper } from "@electron-toolkit/utils";
+import { is } from "@electron-toolkit/utils";
 import { BrowserWindow, app, ipcMain, shell } from "electron";
 import { join } from "path";
+import { useReload } from './useReload';
 export namespace WindowControl {
   const childWindowUrlList: string[] = []
   const childWindowObjList: BrowserWindow[] = []
@@ -27,7 +28,7 @@ export namespace WindowControl {
     mainWindow.once('ready-to-show', () => {
       mainWindow.show()
     })
-
+    useReload(mainWindow.webContents)
     mainWindow.webContents.setWindowOpenHandler((details) => {
       shell.openExternal(details.url)
       return { action: 'deny' }
@@ -54,6 +55,7 @@ export namespace WindowControl {
           mainWindow.show()
         })
       } else {
+        mainWindow.webContents.removeAllListeners()
         app.quit()
       }
     })
@@ -108,6 +110,7 @@ export namespace WindowControl {
     })
     childWindowObjList[index] = childWin
     childWindowUrlList[index] = param.url
+    useReload(childWin.webContents)
     if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
       childWin.loadURL(join(process.env['ELECTRON_RENDERER_URL'], '#', param.url, `?name=${param.name}`))
     } else {
@@ -128,7 +131,7 @@ export namespace WindowControl {
       [`${param.name}_minimize`, `${param.name}_maximize`, `${param.name}_unmaximize`, `${param.name}_setSize`].forEach(v => {
         ipcMain.removeHandler(v)
       });
-      childWin.removeAllListeners() //结束监听事件
+      childWin.webContents.removeAllListeners() //结束监听事件
       childWin.close()
     })
     ipcMain.handle(`${param.name}_minimize`, () => {

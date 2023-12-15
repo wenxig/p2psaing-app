@@ -1,21 +1,21 @@
 <script setup lang='ts'>
 import NameEdit from './nameEdit.c.vue';
 import { Plus } from '@element-plus/icons-vue'
-import type { UploadProps } from 'element-plus'
 import useUploader from '@h/useUploader';
 import { ref } from 'vue'
 import { storeToRefs } from 'pinia';
-import { useAppStore, useUserStore } from '@s/index';
+import { useUserStore } from '@s/user';
+import { useAppStore } from '@s/appdata';
 import CoverEdit from './coverEdit.c.vue';
 const appStoreValue = storeToRefs(useAppStore())
 const userStoer = useUserStore()
 const uploader = useUploader()
 const progressFlag = ref(false)
 const isUploadErr = ref(false)
-const imageUrl = ref(userStoer.user.value.img)
+const imageUrl = ref(userStoer.user.img)
 const showSetUserImage = ref(false)
 let reloadTimes = 0
-const upload: UploadProps['beforeUpload'] = async (rawFile) => {
+async function upload(rawFile: File) {
   isUploadErr.value = false
   reloadTimes = 0
   progressFlag.value = true;
@@ -46,16 +46,16 @@ const reload = () => {
 <template>
   <n-thing class="!relative">
     <template #avatar>
-      <el-upload accept="image/*" :before-upload="upload" action="https://example.com/" :progressFlag="false"
-        :show-file-list="false" @click.prevent.stop.capture="showSetUserImage = true">
-        <n-spin :show="progressFlag">
-          <el-image v-if="imageUrl" :src="imageUrl" class="!w-[90px] !h-[90px] block;" fit="cover" @error="reload" />
-          <el-icon v-else size="30" class=" text-[#8c939d] !w-[90px] !h-[90px] text-center;">
+      <el-upload :auto-upload="false" :progressFlag="false" :show-file-list="false"
+        @click.prevent.stop.capture="showSetUserImage = true">
+        <n-spin :show="progressFlag" class="!w-[90px] !h-[90px]">
+          <el-image v-if="imageUrl" :src="imageUrl" class="!w-full !h-full block;" fit="cover" @error="reload" />
+          <el-icon v-else size="30" class=" text-[#8c939d] !w-[90px] !h-[90px]">
             <Plus />
           </el-icon>
         </n-spin>
       </el-upload>
-      <n-collapse-transition :show="progressFlag" class=" w-[50%]">
+      <n-collapse-transition :show="progressFlag" class=" w-[300px] absolute">
         <el-progress class=" w-full" :percentage="appStoreValue.settingPage.value.loadProgress"
           :status="isUploadErr ? 'exception' : appStoreValue.settingPage.value.loadProgress == 100 ? 'success' : ''"></el-progress>
       </n-collapse-transition>
@@ -64,11 +64,11 @@ const reload = () => {
       <NameEdit />
     </template>
     <template #description>
-      <el-text class="!relative !top-7 left-3" type="info">uid: {{ userStoer.user.value.uid }}</el-text>
+      <el-text class="!relative !top-7 left-3" type="info">uid: {{ userStoer.user.uid }}</el-text>
     </template>
   </n-thing>
   <n-modal v-model:show="showSetUserImage" overlay-style="">
-    <CoverEdit />
+    <CoverEdit v-model="showSetUserImage" :upload="upload" />
   </n-modal>
 </template>
 

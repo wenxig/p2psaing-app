@@ -17,6 +17,9 @@
     "@i": "${workspaceRoot}/src/renderer/src/i18n",
     "@p": "${workspaceRoot}/src/renderer/src/views",
     "@a": "${workspaceRoot}/src/renderer/src/api",
+    "@@p": "${workspaceRoot}/src/preload",
+    "@@b": "${workspaceRoot}/build",
+    "@@r": "${workspaceRoot}/src/renderer"
   },
   "nuxt.isNuxtApp": false
 }

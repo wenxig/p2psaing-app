@@ -2,7 +2,8 @@ import axios, { AxiosError } from 'axios';
 axios.defaults.retry = 3; //重试次数
 axios.defaults.retryDelay = 1000;//重试延时
 axios.defaults.shouldRetry = () => true;//重试条件，默认只要是错误都需要重试
-axios.interceptors.response.use(undefined, (err: AxiosError) => {
+axios.defaults.timeout = 5000
+export const handleError = (err: AxiosError) => {
   const config = err.config;
   if (!config || !config.retry || !config.shouldRetry || typeof config.shouldRetry != 'function' || !config.shouldRetry(err)) {
     return Promise.reject(err);
@@ -18,4 +19,5 @@ axios.interceptors.response.use(undefined, (err: AxiosError) => {
   }).then(() => {
     return axios(config);
   });
-});
+}
+axios.interceptors.response.use(undefined, handleError);

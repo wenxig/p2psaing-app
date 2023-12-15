@@ -23,7 +23,11 @@ const routes: RouteRecordRaw[] = [
   },
   {
     path: "/main/address",
-    component: () => import("@p/address/index.vue")
+    component: () => import("@p/address/index.vue"),
+    children: [{
+      path: ':uid',
+      component: () => import("@p/address/index/index.vue")
+    }]
   },
   {
     path: "/p",

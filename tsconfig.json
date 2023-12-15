@@ -46,6 +46,15 @@
       ],
       "@a/*": [
         "./src/renderer/src/api/*"
+      ],
+      "@@b/*": [
+        "./build/*"
+      ],
+      "@@p/*": [
+        "./src/preload/*"
+      ],
+      "@@r/*": [
+        "./src/renderer/*"
       ]
     },
     "types": [

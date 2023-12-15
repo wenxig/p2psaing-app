@@ -1,5 +1,6 @@
 <script setup lang='tsx'>
 import { reactive, ref } from 'vue';
+import { CloseBold, Minus, DCaret } from '@element-plus/icons-vue'
 interface Props {
   exit?: boolean
   minsize?: boolean
@@ -24,8 +25,6 @@ window.electronAPI.ipcRenderer.on(`${props.for}_blur`, () => {
   isFocus.value = false
 })
 
-const mainClass = `flex items-center justify-around rounded-full h-3 w-3 border-[0.1px] border-[#909399] border-solid`.split(" ")
-const ifClass = [!isFocus ? '!bg-[#C0C4CC]' : '']
 const classes = reactive([
   [
     'bg-red-500',
@@ -53,9 +52,9 @@ const ifShow = reactive([
 ])
 
 const IconElements = [
-  <i-ep-CloseBold></i-ep-CloseBold>,
-  <i-ep-Minus></i-ep-Minus>,
-  <i-ep-DCaret class="rotate-[-45deg]"></i-ep-DCaret>,
+  <CloseBold></CloseBold>,
+  <Minus></Minus>,
+  <DCaret class="rotate-[-45deg]"></DCaret>,
   (<svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" class="rotate-[-45deg]">
     <path
       d="m524.3337,447.3337l285.99972,-319.3337l-596,0l310.00028,319.3337zm-303.33425,444.6663l621.66823,1l-318.0011,-356.0011l-303.66713,355.0011z"
@@ -68,7 +67,8 @@ const IconElements = [
   <el-space class="region-no-drag !w-[3.75rem] h-5 !pl-1 !pr-1" @mouseenter="isHover = true"
     @mouseleave="isHover = false">
     <template v-for="(show, index) of ifShow">
-      <div :class="[...mainClass, ...ifClass, ...classes[index == 3 ? 2 : index]]"
+      <div :class="[(!isFocus ? '!bg-[#C0C4CC]' : ''), ...classes[index == 3 ? 2 : index]]"
+        class="flex items-center justify-around rounded-full h-3 w-3 border-[0.1px] border-[#909399] border-solid"
         v-if="show && ((index == 0 || index == 1) || (!isMaxSize && index == 2) || (isMaxSize && index == 3))">
         <el-icon size="0.5rem" v-if="isHover" @click="clickEvent[index]">
           <component :is="IconElements[index]" />

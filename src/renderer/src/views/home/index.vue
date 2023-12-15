@@ -1,7 +1,7 @@
 <script setup lang='ts'>
 import searchBox from './searchBox.c.vue';
 import linkList from './linkList.c.vue';
-import { useAppStore } from '@s/index';``
+import { useAppStore } from '@s/appdata';
 import Layout from '@l/base.vue';
 import MainLayout from '@l/rightBase.vue';
 const appStore = useAppStore()

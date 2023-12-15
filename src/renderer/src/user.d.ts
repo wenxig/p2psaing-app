@@ -11,13 +11,13 @@ namespace User {
   }
   interface MsgSave {
     group: {
-      lid: Pick<Ids, "lid">;
-      msg: (Msg | never)[]
+      uid: Pick<Ids, "uid">;
+      msg: (Peer.Msg.index | never)[]
     }[];
     chat: {
-      lid: Pick<Ids, "lid">;
+      uid: Pick<Ids, "uid">;
       name?: string;
-      msg: (Msg | never)[]
+      msg: (Peer.Msg.index | never)[]
     }[]
   }
   interface WebDbSaveDeep extends Base, Ids {
@@ -26,11 +26,10 @@ namespace User {
     delImg?: string;
     link: {
       group: {
-        lid: Pick<Ids, 'lid'>;
+        uid: number;
       }[];
       chat: {
-        lid: Pick<Ids, 'lid'>;
-        name?: string;
+        cid?: string;
       }[]
     }
   }
@@ -42,10 +41,6 @@ namespace User {
     lid: string;
     uid: number
   }
-  type Msg = {
-    from: string;
-    time: Date;
-  } & (UserTextMsg | UserFileMsg | UserAppMsg | UserCodeMsg | UserEquationMsg) & Omit<Ids, "pid">
   namespace Arg {
     type login = {
       email: string,
@@ -56,30 +51,9 @@ namespace User {
   type LastLogin = {
     img: string;
   } & Base
+
 }
 
-type UserTextMsg = {
-  main: string;
-  type: "text";
-}
-type UserFileMsg = {
-  blob: Blob;
-  md5: string;
-  type: "img" | "file" | "video"
-}
-type UserAppMsg = {
-  type: "appFunction";
-  action: any
-}
-type UserCodeMsg = {
-  type: "code";
-  main: string;
-  is: string
-}
-type UserEquationMsg = {
-  type: "equation";
-  main: string;
-}
 
 namespace RouterData {
   interface SignUp extends EmailCode {

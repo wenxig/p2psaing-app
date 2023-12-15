@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
-import { reactive } from 'vue';
+import { reactive, ref, watchEffect } from 'vue';
+
 export const useAppStore = defineStore("app", () => {
   const topBar = reactive({
     text: ""
@@ -9,5 +10,9 @@ export const useAppStore = defineStore("app", () => {
     isEditName: false,
     loadProgress: 0
   })
-  return { topBar, settingPage }
+  const isDark = ref(false)
+  watchEffect(() => {
+    document.querySelectorAll('html')[0].className = isDark.value ? 'dark' : 'light'
+  })
+  return { topBar, settingPage, isDark }
 })

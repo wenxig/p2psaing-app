@@ -1,12 +1,11 @@
-import path, { resolve } from 'path'
+/// <reference types="vitest" />
+import path from 'path'
 import { defineConfig, externalizeDepsPlugin, bytecodePlugin, defineViteConfig } from 'electron-vite'
 import tailwindcss from 'tailwindcss';
 import postCssPxToRem from "postcss-pxtorem";
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
 import { ElementPlusResolver, NaiveUiResolver } from 'unplugin-vue-components/resolvers'
-import Icons from 'unplugin-icons/vite';
-import IconsResolver from 'unplugin-icons/resolver';
 import vue from '@vitejs/plugin-vue'
 import vueJsx from '@vitejs/plugin-vue-jsx'
 import { fileURLToPath } from 'node:url';
@@ -31,7 +30,17 @@ export default defineConfig(({ command: mode }) => {
   onlyBuild(() => [path.join(__dirname, './electron-builder.yml'), path.join(__dirname, './dev-app-update.yml')].forEach(val => fs.writeFileSync(val, fs.readFileSync(val).toString().replace(/__APP_NAME__/g, package_json.name))))
   return {
     main: {
-      plugins: [bytecodePlugin({ protectedStrings: ["https://tinywebdb.appinventor.space/api"] }), externalizeDepsPlugin()],
+      plugins: [
+
+        replace({
+          '@@b': fileURLToPath(new URL('./build', import.meta.url)),
+          '@@p': fileURLToPath(new URL('./src/preload', import.meta.url)),
+          '@@r': fileURLToPath(new URL('./src/renderer', import.meta.url)),
+          ".ts?$": '.js'
+        }),
+        bytecodePlugin({ protectedStrings: ["https://tinywebdb.appinventor.space/api"] }),
+        externalizeDepsPlugin(),
+      ],
       build: {
         ...onlyBuild({
           terserOptions: {
@@ -42,7 +51,7 @@ export default defineConfig(({ command: mode }) => {
           },
           minify: "terser",
         }, {}),
-        outDir: 'dist/main'
+        outDir: 'dist/main',
       }
     },
     preload: {
@@ -60,10 +69,11 @@ export default defineConfig(({ command: mode }) => {
         outDir: 'dist/preload'
       }
     },
+    //@ts-ignore
     renderer: defineViteConfig({
       resolve: {
         alias: {
-          '@t': resolve('src/renderer/src/types'),
+          '@t': fileURLToPath(new URL('./src/renderer/src/types', import.meta.url)),
           '@': fileURLToPath(new URL('./src/renderer/src', import.meta.url)),
           '@h': fileURLToPath(new URL('./src/renderer/src/hook', import.meta.url)),
           '@l': fileURLToPath(new URL('./src/renderer/src/layout', import.meta.url)),
@@ -105,29 +115,23 @@ export default defineConfig(({ command: mode }) => {
         vueJsx(),
         AutoImport({
           resolvers: [
-            ElementPlusResolver(),
-            IconsResolver({
-              prefix: "Icon"
-            })
+            ElementPlusResolver()
           ],
         }),
         Components({
           resolvers: [
             ElementPlusResolver(),
             NaiveUiResolver(),
-            IconsResolver({
-              enabledCollections: ["ep"]
-            })
           ],
-        }),
-        Icons({
-          autoInstall: true
         })
       ],
+      //@ts-ignore
       css: {
         postcss: {
           plugins: [
+          //@ts-ignore
             tailwindcss,
+            //@ts-ignore
             postCssPxToRem,
           ]
         }
@@ -142,7 +146,9 @@ export default defineConfig(({ command: mode }) => {
         minify: "terser",
         outDir: 'dist/renderer'
       },
-
+      test:{
+        
+      }
     }),
   }
 })

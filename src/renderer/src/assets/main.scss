@@ -22,3 +22,32 @@
   font-family: var(--el-font-family) !important;
   user-select: none;
 }
+
+body,
+html,
+#app {
+  background-color: var(--el-bg-color) !important;
+  transition:
+    background 90ms ease-out,
+    background-color 90ms ease-out !important;
+}
+.el-tree {
+  background: transparent !important;
+
+  transition:
+    background 90ms ease-out,
+    background-color 90ms ease-out !important;
+}
+
+button,
+input,
+textarea,
+.el-link,
+.el-button,
+.el-input,
+.el-checkbox,
+.el-avatar,
+.el-autocomplete,
+.n-button {
+  -webkit-app-region: no-drag;
+}

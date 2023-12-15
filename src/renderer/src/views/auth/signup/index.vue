@@ -5,8 +5,10 @@ import { ElLoading, ElMessage, type FormInstance, type FormRules } from 'element
 import { useAuth } from '@h/useAuth';
 import { random } from 'lodash-es';
 import { InfoFilled } from '@element-plus/icons-vue';
+import { useAppStore } from '@s/appdata'
 const emailPass = ref("")
 const auth = useAuth()
+const app = useAppStore()
 window.electronAPI.ipcRenderer.invoke("mainWindow_setSize", {
   width: 650,
   height: 460
@@ -97,7 +99,7 @@ const submitForm = (formEl: FormInstance | undefined) => {
     const loading = ElLoading.service({
       lock: true,
       text: '上传数据中',
-      background: 'rgba(255, 255, 255, 0.7)',
+      background: !app.isDark ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
     })
     auth.signUp(ruleForm).then(ret => {
       if (ret) {
@@ -142,27 +144,27 @@ const sendEmail = () => {
       <el-form :inline="true" ref="ruleFormRef" :model="ruleForm" status-icon class=" !p-4 !pt-1 mt-6" :rules="rules"
         label-position="top">
         <el-form-item label="用户名" class=" w-full" prop="name">
-          <el-input v-model="ruleForm.name" class="region-no-drag" maxlength="10" show-word-limit></el-input>
+          <el-input v-model="ruleForm.name" maxlength="10" show-word-limit></el-input>
         </el-form-item>
         <el-row class="w-full">
           <el-col :span="12">
             <el-form-item label="密码" prop="password">
-              <el-input v-model="ruleForm.password" class="region-no-drag" type="password" show-password maxlength="10"
+              <el-input v-model="ruleForm.password" type="password" show-password maxlength="10"
                 show-word-limit></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="重复密码" prop="password2">
-              <el-input v-model="ruleForm.password2" class="region-no-drag" type="password" show-password maxlength="10"
+              <el-input v-model="ruleForm.password2" type="password" show-password maxlength="10"
                 show-word-limit></el-input>
             </el-form-item>
           </el-col>
         </el-row>
         <el-form-item label="邮箱" class="w-full" prop="email">
-          <el-input v-model="ruleForm.email" class="region-no-drag" type="email"></el-input>
+          <el-input v-model="ruleForm.email" type="email"></el-input>
         </el-form-item>
         <el-form-item label="邮箱验证码" class="w-full !mb-0" prop="emailPass">
-          <el-input v-model="ruleForm.emailPass" class="region-no-drag" maxlength="6" minlength="6">
+          <el-input v-model="ruleForm.emailPass" maxlength="6" minlength="6">
             <template #append>
               <el-button plain @click="sendEmail" :disabled="ruleForm.emailButtonText != '发送验证码'">
                 {{ ruleForm.emailButtonText }}</el-button>
@@ -170,29 +172,29 @@ const sendEmail = () => {
           </el-input>
         </el-form-item>
         <el-form-item class="!w-full !mb-0">
-          <el-checkbox v-model="allowUserPer" size="large" class="region-no-drag">
+          <el-checkbox v-model="allowUserPer" size="large">
             同意
           </el-checkbox>
-          <n-button quaternary type="primary" class="region-no-drag !pl-0 !pr-0"
+          <n-button quaternary type="primary" class=" !pl-0 !pr-0"
             @click.stop="$electron.ipcRenderer.send('createChildWindow', { width: 300, height: 300, url: '/p', name: `userp`, more: false })"
             size="small">《用户许可》</n-button>
         </el-form-item>
         <el-form-item class="!w-full !mb-0">
-          <el-button type="primary" @click="submitForm(ruleFormRef)" class="region-no-drag">提交</el-button>
-          <el-button @click="$router.back()" class="region-no-drag">取消</el-button>
+          <el-button type="primary" @click="submitForm(ruleFormRef)">提交</el-button>
+          <el-button @click="$router.back()">取消</el-button>
         </el-form-item>
       </el-form>
       <el-popover placement="top-start" title="关于邮件" :width="200" trigger="click"
         content="这个人，把自己邮箱唯一的smtp功能密钥忘了，导致它要上网上找api用">
         <template #reference>
-          <el-button class="m-2 region-no-drag !fixed right-1 bottom-1 !text-lg" text size="small"
+          <el-button class="m-2 !fixed right-1 bottom-1 !text-lg" text size="small"
             :icon="InfoFilled"></el-button>
         </template>
       </el-popover>
     </el-main>
     <el-result icon="success" title="成功" sub-title="点击确定将登陆" class="!fixed w-full h-full bg-white z-10" v-if="showResult">
       <template #extra>
-        <el-button type="primary" @click="$router.replace('/main')" class="region-no-drag">确定</el-button>
+        <el-button type="primary" @click="$router.replace('/main')">确定</el-button>
       </template>
     </el-result>
     <control class="absolute top-0 left-0 z-20" type="quit" :minsize="false" :maxsize="false"></control>

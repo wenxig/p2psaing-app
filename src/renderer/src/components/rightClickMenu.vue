@@ -1,5 +1,5 @@
 <template>
-  <slot :handleContextMenu="{ handleContextMenu, onClickoutside }"></slot>
+  <slot :handleContextMenu="{ handleContextMenu }"></slot>
   <n-dropdown placement="bottom-start" trigger="manual" :x="x" :y="y" :options="totels" :show="showDropdown"
     :on-clickoutside="onClickoutside" @select="_handleSelect" />
 </template>

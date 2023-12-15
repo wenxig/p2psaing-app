@@ -1,14 +1,17 @@
 import { isEmpty } from 'lodash-es';
 import { defineStore } from 'pinia';
-import { reactive, watch } from 'vue';
+import { ref, watch } from 'vue';
 import * as server from '@/db/network'
-
+import db from '@/db';
+import { toUserWebSave } from '@/utils/user'
 const ipc = window.electronAPI.ipcRenderer
-export const useUserStore = defineStore("user", () => {
-  const user = reactive<{ value: User.WebDbSaveDeep }>({
-    value: isEmpty(ipc.sendSync(`getState`, 'user')) ? {
+const reload = (): User.WebDbSaveDeep => {
+  const appState = ipc.sendSync(`getState`, 'user')
+  if (isEmpty(appState)) {
+    return {
       email: '',
-      id: '',
+      pid: '',
+      lid: '',
       uid: NaN,
       img: '',
       link: {
@@ -17,26 +20,32 @@ export const useUserStore = defineStore("user", () => {
       },
       name: '',
       password: ''
-    } : JSON.parse(ipc.sendSync(`getState`, 'user'))
-  })
-  async function update() {
-    await server.uploadByTag(user.value, user.value.pid)
-    await server.uploadByTag({
-      name: user.value.name,
-      email: user.value.email,
-      img: user.value.img,
-      lid: user.value.lid,
-      uid: user.value.uid,
-      introduction: user.value.introduction
-    }, `uid-${user.value.uid}|email-${user.value.email}`)
+    }
   }
-  let latestData: typeof user['value'] = user.value
+  return JSON.parse(appState)
+}
+export const useUserStore = defineStore("user", () => {
+  const user = ref(reload())
+  ipc.on('reload_store_user', () => user.value = reload())
+  async function commit() {
+    ipc.send(`setState`, 'user', JSON.stringify(user.value))
+    await server.createUpdate().commit(user.value)
+    await server.createUpdate().commit(toUserWebSave(user.value))
+    await server.createUpdate().commit(new Date().getTime())
+    await db.setLastLogin()
+    await ipc.invoke('reload_store_user')
+  }
+  let latestData = user.value
   watch(user, val => {
-    if (JSON.stringify(latestData) == JSON.stringify(val.value)) {
+    if (JSON.stringify(latestData) == JSON.stringify(val)) {
       return
     }
-    ipc.send(`setState`, 'user', JSON.stringify(val.value))
+    ipc.send(`setState`, 'user', JSON.stringify(val))
     return
   }, { deep: true })
-  return { user, update }
+  function $setUser(value: { user: User.WebDbSaveDeep }) {
+    user.value = value.user
+  }
+  ipc.on('reload_store_user', () => user.value = reload())
+  return { user, commit, $setUser }
 })

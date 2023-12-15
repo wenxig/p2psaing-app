@@ -1,184 +1,123 @@
-import { useUserStore } from '@/store';
+import { useUserStore } from '@s/user';
 import axios from 'axios';
+import { useAppStore } from '@s/appdata';
+import { handleError } from '@/utils/axios';
+import { compressionFile, fileToDataURL } from '@/utils/image';
+const appStoreValue = useAppStore()
 const user = useUserStore()
-import { useAppStore } from '@/store';
-import { storeToRefs } from 'pinia';
-import { isUndefined } from 'lodash-es';
-const appStoreValue = storeToRefs(useAppStore())
 
-const useCanvas = () => {
-  const canvas = document.createElement("canvas")
-  return {
-    canvas,
-    [Symbol.dispose]() {
-      document.body.appendChild(canvas)
-      document.body.removeChild(canvas)
-    }
-  }
-}
-
-type GithubApikey = string; type SmmsApikey = string
 namespace imgUploder {
-
-  const db = `https://api.github.com/repos/wenxig/__APP_NAME__-app-db/contents`
-  const db2 = "https://sm.ms/api/v2"
-  let apiKey: [GithubApikey, SmmsApikey] = [window.getToken("github"), window.getToken("smms")]
-  async function img_smms(file: File, imgName: string): Promise<[string, string?]> {
-    if (user.user.value.delImg) {
-      await axios.get(user.user.value.delImg as string, {
-        headers: {
-          "Authorization": apiKey[1],
-          "Content-Type": "multipart/form-data;charset=UTF-8"
-        },
-        timeout: 5000
-      })
-      appStoreValue.settingPage.value.loadProgress = 35
+  const github = axios.create({
+    baseURL: `https://api.github.com/repos/wenxig/__APP_NAME__-app-db/contents`,
+    headers: {
+      "Authorization": window.getToken("github"),
+      "Content-Type": "application/json; charset=utf-8",
+      "Accept": "application/vnd.github.v3+json"
     }
-    const smfile = new File([file], `${user.user.value.pid}.${imgName}`)
+  })
+  const smms = axios.create({
+    baseURL: "https://sm.ms/api/v2",
+    headers: {
+      "Authorization": window.getToken("smms"),
+      "Content-Type": "multipart/form-data;charset=UTF-8"
+    }
+  })
+  github.interceptors.response.use(undefined, handleError)
+  smms.interceptors.response.use(undefined, handleError)
+  async function* img_smms(file: File | Blob, imgName: string): AsyncGenerator<boolean | [string, string]> { //? 使用迭代器控制进度
+    if (user.user.delImg) {
+      await axios.get(user.user.delImg!)
+    }
+    yield true
+    const smfile = new File([file], `${user.user.pid}.${imgName}`)
     try {
-      await axios.post(`https://sm.ms/api/v2/token`, {
-        "username": 'wenxig',
-        "password": 'hb094263'
-      }, {
-        headers: {
-          "Content-Type": "multipart/form-data;charset=UTF-8"
-        },
-        timeout: 5000
-      })
-      appStoreValue.settingPage.value.loadProgress = 40
-      const { data: imgData } = await axios.post(`${db2}/upload`, {
-        smfile
-      }, {
-        headers: {
-          "Content-Type": "multipart/form-data;charset=utf-8",
-          "Authorization": apiKey[1]
-        },
-        timeout: 5000
-      })
-      appStoreValue.settingPage.value.loadProgress = 60
-      return [imgData.data.url, imgData.data.delete]
-    } catch (err: any) {
+      const { data: imgData } = await smms.post(`/upload`, { smfile })
+      yield [imgData.data.url, imgData.data.delete]
+      return
+    } catch {
       throw false
     }
   }
-  async function img_github(base64: string, imgName: string): Promise<[string]> {
-    let putData
-    const { data: { sha } } = await axios.get(`${db}/${user.user.value.pid}/img/${imgName}`, {
-      headers: {
-        "Authorization": apiKey[0],
-        "Content-Type": "application/json; charset=utf-8",
-        "Accept": "application/vnd.github.v3+json"
-      },
-      timeout: 5000
-    })
-    putData = {
-      branch: "master",
-      content: base64,
-      message: `add img by __APP_NAME__ api`,
-      sha
-    }
-    appStoreValue.settingPage.value.loadProgress = 40
+  async function* img_github(base64: string, imgName: string): AsyncGenerator<boolean | [string]> { //? 使用迭代器控制进度
+    const { data: { sha } } = await github.get(`/${user.user.pid}/img/${imgName}`)
+    yield true
+    appStoreValue.settingPage.loadProgress = 40
     try {
-      await axios.put(`${db}/${user.user.value.pid}/img/${imgName}`, putData, {
-        headers: {
-          "Authorization": apiKey[0],
-          "Content-Type": "application/json; charset=utf-8",
-          "Accept": "application/vnd.github.v3+json"
-        },
-        timeout: 5000
+      await github.put(`/${user.user.pid}/img/${imgName}`, {
+        branch: "master",
+        content: base64,
+        message: `add img by __APP_NAME__ api`,
+        sha
       })
+      yield [`https://cdn.staticaly.com/gh/wenxig/__APP_NAME__-app-db@master/${user.user.pid}/img/${imgName}`]
+      return
     } catch {
       throw false
     };
-    appStoreValue.settingPage.value.loadProgress = 60
-    return [`https://cdn.staticaly.com/gh/wenxig/__APP_NAME__-app-db@master/${user.user.value.pid}/img/${imgName}`]
   }
-  export async function uploadImg(file: File, name: string): Promise<[string, string?]> {
+  export async function* uploadImg(file: File | Blob, name: string): AsyncGenerator<boolean | [string, string?]> { //? 使用迭代器控制进度
     file = (await compressionFile(file))[0]
-    appStoreValue.settingPage.value.loadProgress = 10
+    yield true
     const url = await fileToDataURL(file)
-    appStoreValue.settingPage.value.loadProgress = 30
+    yield true
     const base64 = url.substring(url.indexOf(',') == -1 ? 0 : url.indexOf(',') + 1)
-    let imgUrl: [string, string?]
     try {
-      imgUrl = await img_github(base64, name)
+      for await (const val of img_github(base64, name)) {
+        yield true
+        if (typeof val === 'boolean') {
+          if (val == false) {
+            throw false
+          }
+          continue
+        }
+        yield val
+        return
+      } //? 运行2次 
     } catch {
       try {
-        imgUrl = await img_smms(file, name)
+        for await (const val of img_smms(file, name)) {
+          yield true
+          if (typeof val === 'boolean') {
+            if (val == false) {
+              throw false
+            }
+            continue
+          }
+          yield val
+          return
+        } //? 运行2次 
       } catch (err) {
         console.log(err);
-        throw new Error('false')
+        throw false
       }
     }
-    appStoreValue.settingPage.value.loadProgress = 80
-    if (!isUndefined(imgUrl[1])) {
-      return imgUrl as [string, string]
-    }
-    return imgUrl as [string]
-  }
-
-  async function compressionFile(file: File, type = 'image/jpeg', quality = 0.5, name?: string): Promise<[File, Blob]> {
-    const canvas = useCanvas()
-    const fileName = name ?? file.name;
-    const context = canvas.canvas.getContext('2d') as CanvasRenderingContext2D;
-    const base64 = await fileToDataURL(file);
-    const img = await dataURLToImage(base64);
-    canvas.canvas.width = img.width;
-    canvas.canvas.height = img.height;
-    context.clearRect(0, 0, img.width, img.height);
-    context.drawImage(img, 0, 0, img.width, img.height);
-    const blob = await canvastoFile(canvas.canvas, type, quality) as Blob; // quality:0.5可根据实际情况计算
-    const newFile = new File([blob], fileName, { type });
-    canvas[Symbol.dispose]()
-    return [newFile, blob];
-  }
+  }// todo 迭代4次
 }
 
-const fileToDataURL = (file: Blob): Promise<string> => {
-  return new Promise((resolve) => {
-    const reader = new FileReader()
-    reader.onloadend = (e) => resolve((() => {
-      if (e.target && e.target.result) {
-        if (typeof e.target.result === "string") {
-          return e.target.result
-        }
-        if (e.target.result instanceof ArrayBuffer) {
-          return String.fromCharCode.apply(null, Array.from(new Uint8Array(e.target.result)))
-        }
-      }
-      return ""
-    })())
-    reader.readAsDataURL(file)
-  })
-}
-const dataURLToImage = (dataURL: string): Promise<HTMLImageElement> => {
-  return new Promise((resolve) => {
-    const img = new Image()
-    img.onload = () => resolve(img)
-    img.src = dataURL
-  })
-}
-
-const canvastoFile = (canvas: HTMLCanvasElement, type: string, quality: number): Promise<Blob | null> => {
-  return new Promise((resolve) => canvas.toBlob((blob) => resolve(blob), type, quality))
-}
 
 namespace Uploader {
   export async function titleImg(file: File | undefined) {
-    if (!file) return ""
+    if (!file) return ['', '']
     let imgName = `usertitle.title${file.name.slice(file.name.lastIndexOf('.'))}`
-    let imgUrl: [string, string?]
     try {
-      imgUrl = await imgUploder.uploadImg(file, imgName)
+      for await (const val of imgUploder.uploadImg(file, imgName)) {
+        appStoreValue.settingPage.loadProgress += 20
+        if (typeof val == 'boolean') {
+          if (val == false) {
+            throw false
+          }
+          continue
+        }
+        user.user.img = val[0]
+        user.user.delImg = val[1]
+        await user.commit()
+        appStoreValue.settingPage.loadProgress = 100
+        return val
+      }
     } catch (err) {
       throw err
     }
-    appStoreValue.settingPage.value.loadProgress = 80
-
-    user.user.value.img = imgUrl[0]
-    user.user.value.delImg = imgUrl[1]
-    appStoreValue.settingPage.value.loadProgress = 100
-    return imgUrl
+    return ['', '']
   }
 }
 

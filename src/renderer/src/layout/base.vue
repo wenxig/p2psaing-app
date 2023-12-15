@@ -1,7 +1,8 @@
 <script setup lang='ts'>
+import { ChatRound } from "@element-plus/icons-vue";
 import control from '@/components/control.vue';
 import { ref } from 'vue';
-import { useUserStore } from '@s/index';
+import { useUserStore } from '@s/user';
 import { storeToRefs } from 'pinia';
 import AsideButton from './asideButton.c.vue';
 
@@ -17,11 +18,10 @@ const titleImg = ref("/userIcon.png")
       class="relative region-drag !w-[3.75rem] bg-[var(--el-color-info-light-7)] !pt-20 !h-full flex justify-center">
       <control class="absolute top-0 left-0"></control>
       <el-space direction='vertical' class=" w-full h-full">
-        <el-avatar shape="square" :size="40"
-          :src="userVal.user.value.value.img == '' ? titleImg : userVal.user.value.value.img" class="region-no-drag"
+        <el-avatar shape="square" :size="40" :src="userVal.user.value.img == '' ? titleImg : userVal.user.value.img"
           @click="$electron.ipcRenderer.send('createChildWindow', { width: 450, height: 650, url: '/main/userSetting', name: `userSetting`, more: false })" />
         <AsideButton :primary="$route.path == '/main'" @click="$router.push('/main')">
-          <i-ep-ChatRound />
+          <ChatRound />
         </AsideButton>
         <AsideButton :primary="$route.path == '/main/address'" @click="$router.push('/main/address')">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">

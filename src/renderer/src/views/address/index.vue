@@ -1,10 +1,8 @@
 <script setup lang='ts'>
 import Layout from '@l/base.vue';
 import MainLayout from '@l/rightBase.vue';
-// import { useUserStore } from '@/store';
 import { ref } from 'vue'
 import SearchBox from './searchBox.c.vue';
-// const user = useUserStore()
 let height = ref(window.innerHeight)
 window.onresize = () => {
   height.value = window.innerHeight;
