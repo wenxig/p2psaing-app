@@ -4,7 +4,7 @@ import plusInput from '@/components/plusInput.vue';
 import { random } from 'lodash-es';
 import router from '@/router';
 import { useAuth,type NextLoginFunction } from '@h/useAuth';
-import { ElLoading } from 'element-plus';
+import { ElLoading, ElMessage } from 'element-plus';
 import { useAppStore } from '@s/appdata';
 const app = useAppStore()
 window.electronAPI.ipcRenderer.invoke("mainWindow_setSize", {

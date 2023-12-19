@@ -1,5 +1,4 @@
 <script setup lang='ts'>
-import QrcodeVue from 'qrcode.vue'
 import db from '@/db';
 import { useAuth } from '@/hook/useAuth';
 import { useRouter } from 'vue-router';
@@ -38,7 +37,7 @@ function login() {
         <el-link type="primary" class="!-mt-2" @click="lastLogin = false">通过其他方式</el-link>
       </template>
       <template v-else>
-        <qrcode-vue :value="qrcodeValue" :size="150"></qrcode-vue>
+        <n-qr-code :value="qrcodeValue" :size="150"></n-qr-code>
         <el-space direction="vertical" :size="0">
           <el-text class="!text-blue-400 !text-xl">扫码登陆__APP_NAME__</el-text>
           <div>

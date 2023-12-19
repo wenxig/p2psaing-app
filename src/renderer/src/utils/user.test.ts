@@ -13,7 +13,7 @@ test('fun:isUserWebSave', () => {
 
 test('fun:toUserWebSave', () => {
   assertType<User.WebDbSave>(toUserWebSave({
-    'name': 'a',
+    'name': 'a', 
     'email': 'a',
     'img': 'asd',
     'lid': '1',

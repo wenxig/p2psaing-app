@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useUserStore } from '@s/user';
-import { isEmpty, isUndefined, isNumber, isObject } from "lodash-es";
+import { isEmpty, isUndefined, isNumber, isObject, isString } from "lodash-es";
 import { isUserWebSaveDeep } from "@/utils/user";
 import { handleError } from "@/utils/axios";
 const base = axios.create({
@@ -140,9 +140,9 @@ export async function delUser() {
 }
 export async function search(tag: string | number, type: "tag", no?: number, count?: number): Promise<string[]>
 export async function search(tag: string | number, type: "value", no?: number, count?: number): Promise<User.WebDbSave[]>
-export async function search(tag: string | number, type: "both", no?: number, count?: number): Promise<Record<string, User.WebDbSave>>
-export async function search(tag: string | number, type: "value" | "tag" | "both" = "both", no = 1, count = 100,): Promise<string[] | User.WebDbSave[] | Record<string, User.WebDbSave>> {
-  const result = await base({
+export async function search(tag: string | number, type: "both", no?: number, count?: number): Promise<{ tag: string, value: User.WebDbSave }[]>
+export async function search(tag: string | number, type: "value" | "tag" | "both" = "both", no = 1, count = 100,): Promise<string[] | User.WebDbSave[] | { tag: string, value: User.WebDbSave }[]> {
+  const { data: result } = await base({
     data: {
       tag,
       action: 'search',
@@ -151,28 +151,27 @@ export async function search(tag: string | number, type: "value" | "tag" | "both
       type
     }
   })
-  let results: any
-  if (result.data?.tag instanceof Array || result.data instanceof Array) {
-    results = result.data.tag[Object.keys(result.data)[0]]
-  }
-  results = result.data
-
-  if (type == 'value' && results instanceof Array) {
-    results = results.filter(val => {
-      if (typeof val == 'string') {
-        return JSON.parse(val)
-      }
-      return val
+  const allKeys = Object.keys(result)
+  if (allKeys.length > 1) {
+    return allKeys.map((tag) => {
+      return {
+        value: ((): User.WebDbSave => {
+          if (isString(result[tag])) {
+            return JSON.parse(result[tag])
+          }
+          return result[tag]
+        })(),
+        tag
+      };
     })
   }
-  if (type == 'both' && isObject(results)) {
-    Object.keys(results).forEach(key => {
-      if (typeof results[key] === 'string') {
-        results[key] = JSON.parse(results[key])
-      }
-    });
-  }
-  return results
+  result[allKeys[0]] = (<any[]>result[allKeys[0]]).map((value) => {
+    if (isString(value)) {
+      return JSON.parse(value)
+    }
+    return value
+  })
+  return result[allKeys[0]]
 }
 export async function count(): Promise<number> {
   const result = await base({

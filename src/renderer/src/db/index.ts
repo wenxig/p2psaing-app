@@ -3,11 +3,13 @@ import { watchOnce } from "@vueuse/core";
 import localforage from "localforage";
 import { ref } from "vue";
 import * as server from '@/db/network'
+import { MD5 } from "crypto-js";
 
 namespace db {
+  const driver = (import.meta.env.DEV ? localforage.LOCALSTORAGE : localforage.INDEXEDDB)
   export const base = localforage.createInstance({
     name: '__APP_NAME__',
-    driver: localforage.INDEXEDDB
+    driver
   })
   let isReady = ref(false)
   base.ready().then(() => isReady.value = true)
@@ -15,12 +17,10 @@ namespace db {
     return new Promise<void>(resolve => {
       if (isReady.value) {
         resolve()
-        console.log('ready');
         return
       }
       watchOnce(isReady, () => {
         resolve()
-        console.log('ready');
       })
     })
   }
@@ -83,6 +83,14 @@ namespace db {
       return newData
     }
     return saveData.user
+  }
+  export async function addMsg(uid: number, body: Peer.Msg.index) {
+    await whenReady()
+    await base.setItem(uid.toString(), ((await base.getItem<Peer.Msg.index[]>(uid.toString())) ?? [])?.concat(body))
+  }
+  export async function getMsgs(uid: number): Promise<Peer.Msg.index[]> {
+    await whenReady()
+    return await base.getItem<Peer.Msg.index[]>(uid.toString()) ?? []
   }
   interface DataWithTime<T> {
     time: number,

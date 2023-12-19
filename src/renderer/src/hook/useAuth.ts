@@ -57,7 +57,6 @@ async function login(val: User.Arg.login): Promise<[data: User.WebDbSaveDeep, pi
       pid,
       link
     }
-    console.log(dbSaveData);
     userStore.$setUser({
       user: dbSaveData
     })

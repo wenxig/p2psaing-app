@@ -20,7 +20,7 @@
 }
 * {
   font-family: var(--el-font-family) !important;
-  user-select: none;
+  // user-select: none;
 }
 
 body,
@@ -42,12 +42,14 @@ html,
 button,
 input,
 textarea,
-.el-link,
-.el-button,
-.el-input,
-.el-checkbox,
-.el-avatar,
-.el-autocomplete,
-.n-button {
+.n-a,
+.n-button,
+.n-input,
+.n-checkbox,
+.n-avatar,
+.n-autocomplete,
+.n-button,
+a {
+  outline:none;
   -webkit-app-region: no-drag;
 }

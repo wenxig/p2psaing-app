@@ -51,7 +51,7 @@ const ifShow = reactive([
   props.maxsize
 ])
 
-const IconElements = [
+const IconNements = [
   <CloseBold></CloseBold>,
   <Minus></Minus>,
   <DCaret class="rotate-[-45deg]"></DCaret>,
@@ -64,16 +64,15 @@ const IconElements = [
 </script>
 
 <template>
-  <el-space class="region-no-drag !w-[3.75rem] h-5 !pl-1 !pr-1" @mouseenter="isHover = true"
-    @mouseleave="isHover = false">
+  <wl-space class="region-no-drag !w-[3.75rem] h-5 !pl-1 !pr-1" @mouseenter="isHover = true" @mouseleave="isHover = false">
     <template v-for="(show, index) of ifShow">
       <div :class="[(!isFocus ? '!bg-[#C0C4CC]' : ''), ...classes[index == 3 ? 2 : index]]"
         class="flex items-center justify-around rounded-full h-3 w-3 border-[0.1px] border-[#909399] border-solid"
         v-if="show && ((index == 0 || index == 1) || (!isMaxSize && index == 2) || (isMaxSize && index == 3))">
         <el-icon size="0.5rem" v-if="isHover" @click="clickEvent[index]">
-          <component :is="IconElements[index]" />
+          <component :is="IconNements[index]" />
         </el-icon>
       </div>
     </template>
-  </el-space>
+  </wl-space>
 </template>

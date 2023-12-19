@@ -24,7 +24,8 @@ window.electronAPI.ipcRenderer.invoke("mainWindow_resize", true)
         <link-list></link-list>
       </template>
       <template #main-header>
-        {{ appStore.topBar.text }}
+        <component v-if="(typeof appStore.topBar.value) != 'string'" :is="appStore.topBar.value"></component>
+        <span v-else>{{ appStore.topBar.value }}</span>
       </template>
       <template #default>
         <router-view></router-view>

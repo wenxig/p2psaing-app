@@ -44,11 +44,12 @@ function inspectText(str: string) {
 <template>
   <div class="region-no-drag h-10 relative w-full">
     <input :type="type" v-model="value" @focus="isInputFocus = true"
-      @blur="trim(value) == '' ? isInputFocus= inputError = false : inspectText(value)"
+      @blur="trim(value) == '' ? isInputFocus = inputError = false : inspectText(value)"
       class="border-solid border-b-2 h-7 w-full absolute bottom-0 !outline-0 transition-all"
-      :class="[(alert||inputError) ? 'border-b-[var(--el-color-danger)]' : 'border-b-[var(--el-color-primary-light-5)]']">
-    <span class="absolute transition-all top-[0.8rem] text-[var(--el-color-primary-light-5)] left-0 select-none pointer-events-none"
-      :class="[isInputFocus ? focusClass : '', (alert||inputError) ? '!text-[var(--el-color-danger)]' : 'text-[var(--el-color-primary-light-5)]']">{{
-        lable }}{{ (alert||inputError) ? ' *' : '' }}</span>
+      :class="[(alert || inputError) ? 'border-b-[var(--n-color-danger)]' : 'border-b-[var(--n-color-primary-light-5)]']">
+    <el-text
+      class="absolute transition-all top-[0.8rem] text-[var(--n-color-primary-light-5)] left-0 select-none pointer-events-none"
+      :class="[isInputFocus ? focusClass : '', (alert || inputError) ? '!text-[var(--n-color-danger)]' : 'text-[var(--n-color-primary-light-5)]']">{{
+        lable }}{{ (alert || inputError) ? ' *' : '' }}</el-text>
   </div>
 </template>

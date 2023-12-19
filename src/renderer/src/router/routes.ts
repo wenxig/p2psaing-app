@@ -19,7 +19,11 @@ const routes: RouteRecordRaw[] = [
   },
   {
     path: "/main",
-    component: () => import("@p/home/index.vue")
+    component: () => import("@p/home/index.vue"),
+    children: [{
+      path: "chat/:type/:uid",
+      component: () => import("@p/chat/index.vue")
+    }]
   },
   {
     path: "/main/address",
