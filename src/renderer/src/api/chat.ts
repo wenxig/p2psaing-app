@@ -1,46 +1,47 @@
 import db from "@/db";
 import { getTimeByUid, searchByUid } from "@/db/network";
 import { useUserStore } from "@/store/user";
-import { DefaultOnLinkHandle, isHandShake, isHandShakeHeader } from ".";
+import { isHandShake, isHandShakeHeader, P2P } from ".";
 import { toUserWebSave } from "@/utils/user";
 import { isEmpty, isNumber, random } from "lodash-es";
 import { ref } from "vue";
-import { Peer as Peerjs } from 'peerjs'
 import { useAppStore } from "@/store/appdata";
-
+import { Connection } from './connection';
 
 
 const chat_ref = ref<Chat>()
-export class Chat {
+const isReady = ref(false)
+export class Chat extends P2P {
   public linkList = <Record<number, {
-    connection: Peer.Connection;
+    connection: Connection;
     number: number
   }>>{}
-  public async setup(lid?: string) {
-    this.me = useUserStore().user
-    console.log('setup');
-    const peer = await this.listenOnce('open', new Peerjs(lid ?? this.me.lid))
-    console.log('ready');
-
-    this.peer = peer
-    chat_ref.value = this
-    this.isReady = true
-    peer.on('disconnected', () => {
-      if (this.isCloseing)
-        return
-      peer.reconnect()
-    })
-    return this
-  }
+  me: User.WebDbSave
+  isCloseing = false
   public static get ref() {
     return chat_ref.value!
   }
-  constructor() {
-    super()
-    Chat.default.onLink.unshift((connection) => {
+  public async setup() {
+    console.log('setup');
+    await this.whenReady()
+    console.log('ready');
+    chat_ref.value = this
+    isReady.value = true
+    this.peer.on('disconnected', () => {
+      if (this.isCloseing)
+        return
+      this.peer.reconnect()
+    })
+    return this
+  }
+  constructor(lid?: string) {
+    const user = useUserStore().user
+    super(lid ?? user.lid)
+    this.me = user
+    this.listen('connection', (connection) => {
       return new Promise(resolve => {
         console.log('first handshake');
-        this.onPost(connection, '/handshake', (req) => {
+        connection.onData('/handshake', (req) => {
           if (!isHandShake(req.body) || !isHandShakeHeader(req.headers)) {
             resolve(false)
             return false
@@ -69,11 +70,10 @@ export class Chat {
             resolve(false)
             return false
           }
-          this.onDislink(connection, (conn) => {
-            if (!isEmpty(this.linkList[conn.metadata[1]]))
-              delete this.linkList[conn.metadata[1]]
+          connection.listen('close', () => {
+            if (!isEmpty(this.linkList[connection.metadata[1]]))
+              delete this.linkList[connection.metadata[1]]
           })
-          console.log('second handshake', connection.metadata);
           this.linkList[connection.metadata[1]] = {
             connection,
             number: random(0, 10000)
@@ -92,23 +92,16 @@ export class Chat {
       })
     })
   }
-  public async onDislink(conn: Peer.Connection, handles: ((conn: Peer.Connection, ...props: any[]) => Promise<void> | void), ...props: any[]) {
-    await this.whenReady()
-    conn.on('close', async () => {
-      await handles(conn, ...props)
-    })
-    return () => conn.off('close')
-  }
-  public async create(uid: number, config: Peer.CreateConfig): Promise<[connection: Peer.Connection, ok: true] | [connection: undefined, ok: false]> {
+  public async connect(uid: number, config: Peer.CreateConfig): Promise<[connection: Connection, ok: true] | [connection: undefined, ok: false]> {
     await this.whenReady()
     console.log('search user');
     const user = await searchByUid(uid)
-    const connection = this.peer.connect(user.lid, {
+    const connection = new Connection(this.peer.connect(user.lid, {
       reliable: true,
-      label: 'client',
+      label: 'chat',
       metadata: [toUserWebSave(this.me), this.me.uid]
-    })
-    await this.listenOnce('open', connection)
+    }) as Peer.Connection)
+    await this.whenReady()
     console.log('connection opened');
     if (!await this.handShake(connection, config))
       return [undefined, false]
@@ -121,7 +114,8 @@ export class Chat {
     }
     return [connection, true]
   }
-  private async handShake(connection: Peer.Connection, config: Peer.CreateConfig): Promise<boolean> {
+  
+  private async handShake(connection: Connection, config: Peer.CreateConfig): Promise<boolean> {
     //todo 首次握手
     const body1: Peer.Handshake = {
       from: toUserWebSave(this.me),
@@ -135,9 +129,7 @@ export class Chat {
     }
 
     console.log('before first handshaked');
-    const { body: res1_body, headers: res1_headers } = await this.post('/handshake', {
-      connection,
-      body: body1,
+    const { body: res1_body, headers: res1_headers } = await connection.send('/handshake', body1, {
       header: header1
     })
     console.log('first handshaked', res1_body, isHandShake(res1_body), res1_headers, isHandShakeHeader(res1_headers));
@@ -153,9 +145,7 @@ export class Chat {
 
     //todo 三次握手
     console.log('before handshake');
-    const { body: res2_body } = await this.post('/handshake', {
-      connection,
-      body: body1,
+    const { body: res2_body } = await connection.send('/handshake', body1, {
       header: <Peer.HandshakeHeader>{
         ack: _res1_headers.ack,
         _ack: _res1_headers.seq + 1
@@ -174,18 +164,6 @@ export class Chat {
     }
     console.log('handshaked ok');
     return true
-  }
-  public async onLink(...handle: DefaultOnLinkHandle[]) {
-    await this.whenReady()
-    console.log(this);
-
-    this.peer.on('connection', (connection: Peer.Connection) => {
-      const isAllow = Chat.default.onLink.concat(handle).every(async fn => await fn(connection))
-      if (!isAllow) {
-        connection.close()
-        return
-      }
-    })
   }
 }
 

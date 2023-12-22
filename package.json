@@ -17,6 +17,7 @@
   "dependencies": {
     "@electron-toolkit/preload": "^2.0.0",
     "@electron-toolkit/utils": "^2.0.1",
+    "@types/watermark-dom": "^2.3.4",
     "@vant/use": "^1.6.0",
     "@vicons/carbon": "^0.12.0",
     "@vicons/fluent": "^0.12.0",
@@ -39,6 +40,7 @@
     "vue": "^3.3.9",
     "vue-picture-cropper": "^0.7.0",
     "vue-router": "^4.2.5",
+    "watermark-dom": "^2.3.0",
     "zod": "^3.22.4"
   },
   "devDependencies": {

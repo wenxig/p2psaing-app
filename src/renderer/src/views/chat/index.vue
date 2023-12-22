@@ -10,7 +10,7 @@ import type { MentionOption, VirtualListInst } from 'naive-ui'
 import { ElIcon, ElSpace } from 'element-plus'
 import { useUserStore } from '@/store/user';
 import db from '@/db';
-import { isMsg } from '@/utils/peer';
+import { isMsg } from '@/api';
 const app = useAppStore()
 const user = useUserStore()
 const route = useRoute()
@@ -54,14 +54,11 @@ class SendMsg {
       main: tempMsg.text,
       time: new Date().getTime()
     }
-    await Chat.ref.post(`/msg`, {
-      connection,
-      body
-    })
+    await connection.send(`/msg`, body)
     msgs.value.push(body)
   }
 }
-Chat.ref.onPost(connection, `/msg`, async (data) => {
+connection.onData(`/msg`, async (data) => {
   if (!isMsg(data.body)) {
     return false
   }

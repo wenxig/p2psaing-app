@@ -7,7 +7,9 @@ import hljs from 'highlight.js';
 import 'highlight.js/scss/atom-one-light.scss';
 import { useLightTheme } from '@h/useTheme';
 import { useThemeVars } from 'naive-ui';
+import { useUserStore } from './store/user';
 useLightTheme(useThemeVars())
+const user = useUserStore()
 </script>
 
 <template>
@@ -19,4 +21,16 @@ useLightTheme(useThemeVars())
       </Suspense>
     </el-config-provider>
   </n-config-provider>
+  <Teleport to="body">
+    <!-- 水印 -->
+    <div class="opacity-5 fixed top-1 left-1/2 -translate-x-1/2  pointer-events-none text-[--el-bg-color]">
+      <template v-if="!!user.user.name">
+        name:{{ user.user.name }}<br>
+        uid:{{ user.user.uid }}
+      </template>
+      <template v-else>
+        user not login
+      </template>
+    </div>
+  </Teleport>
 </template>

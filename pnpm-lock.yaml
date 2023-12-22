@@ -11,6 +11,9 @@ dependencies:
   '@electron-toolkit/utils':
     specifier: ^2.0.1
     version: 2.0.1(electron@28.0.0)
+  '@types/watermark-dom':
+    specifier: ^2.3.4
+    version: 2.3.4
   '@vant/use':
     specifier: ^1.6.0
     version: 1.6.0(vue@3.3.9)
@@ -77,6 +80,9 @@ dependencies:
   vue-router:
     specifier: ^4.2.5
     version: 4.2.5(vue@3.3.9)
+  watermark-dom:
+    specifier: ^2.3.0
+    version: 2.3.0
   zod:
     specifier: ^3.22.4
     version: 3.22.4
@@ -1511,6 +1517,10 @@ packages:
     requiresBuild: true
     dev: true
     optional: true
+
+  /@types/watermark-dom@2.3.4:
+    resolution: {integrity: sha512-4f2yWdOfLCL4Fr4YJVRkN9m7Y+q2anConqzWbv1albdQEf6zuTZa5QtMzstINW5JHEKysgfrziPk6WH+OaACQQ==}
+    dev: false
 
   /@types/web-bluetooth@0.0.16:
     resolution: {integrity: sha512-oh8q2Zc32S6gd/j50GowEjKLoOVOwHP/bWVjKJInBwQqdOYMdPrf1oVlelTlyfFK3CKxL1uahMDAr+vy8T7yMQ==}
@@ -6197,6 +6207,10 @@ packages:
       vdirs: 0.1.8(vue@3.3.9)
       vooks: 0.2.12(vue@3.3.9)
       vue: 3.3.9(typescript@5.3.2)
+    dev: false
+
+  /watermark-dom@2.3.0:
+    resolution: {integrity: sha512-2++fJESs8ULlrOPHEJGi72UxcDmVTsJDZ3kMa5umU6IWc78A4g1kOAqh1k6FEQhrq9QpkV7wzuoUeMhvFlWGWg==}
     dev: false
 
   /wcwidth@1.0.1:

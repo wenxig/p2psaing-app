@@ -1,8 +1,8 @@
 import { defineStore } from 'pinia';
-import { reactive, ref, watchEffect, VNode, Component } from 'vue';
+import { reactive, ref, shallowRef, watchEffect, VNode, Component } from 'vue';
 import type * as _ from '.pnpm/@vue+shared@3.3.9/node_modules/@vue/shared'
 export const useAppStore = defineStore("app", () => {
-  const topBar = ref<{ value: VNode | Component | string }>({ value: '' })
+  const topBar = shallowRef<{ value: VNode | Component | string }>({ value: '' })
   const settingPage = reactive({
     name: '',
     isEditName: false,

@@ -5,7 +5,7 @@ import tailwindcss from 'tailwindcss';
 import postCssPxToRem from "postcss-pxtorem";
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
-import {  NaiveUiResolver } from 'unplugin-vue-components/resolvers'
+import { ElementPlusResolver, NaiveUiResolver } from 'unplugin-vue-components/resolvers'
 import vue from '@vitejs/plugin-vue'
 import vueJsx from '@vitejs/plugin-vue-jsx'
 import { fileURLToPath } from 'node:url';
@@ -115,12 +115,14 @@ export default defineConfig(({ command: mode }) => {
         vueJsx(),
         AutoImport({
           resolvers: [
-            NaiveUiResolver()
+            NaiveUiResolver(),
+            ElementPlusResolver()
           ],
         }),
         Components({
           resolvers: [
             NaiveUiResolver(),
+            ElementPlusResolver()
           ],
         })
       ],

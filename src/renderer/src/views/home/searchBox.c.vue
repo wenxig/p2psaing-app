@@ -2,7 +2,7 @@
 import { Plus, Search } from '@element-plus/icons-vue'
 import { ref, reactive } from 'vue'
 import { isEmpty, toNumber } from "lodash-es";
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElLoading } from 'element-plus'
 import { z } from 'zod'
 import { searchByEmail } from '@/db/network';
 import { useRouter } from 'vue-router'
@@ -16,7 +16,7 @@ const fastlink = reactive({
   data: ""
 })
 async function link() {
-  const loading = NLoading.service({
+  const loading = ElLoading.service({
     text: '发起中...'
   })
   if (isEmpty(fastlink.data)) {
@@ -41,8 +41,8 @@ async function link() {
     }
     try {
       console.log('before create');
-      const link = await Chat.ref.create(uid, {
-        type: 'client',
+      const link = await Chat.ref.connect(uid, {
+        type: 'chat',
       })
       console.log('after create');
       if (link[1]) {
@@ -61,36 +61,36 @@ async function link() {
 </script>
 
 <template>
-  <n-autocomplete popper-class="autocomplete-pop" placeholder="搜索" class=" h-auto" clearable>
+  <el-autocomplete popper-class="autocomplete-pop" placeholder="搜索" class=" h-auto" clearable>
     <template #prefix>
-      <n-icon class="n-input__icon">
+      <el-icon class="el-input__icon">
         <Search />
-      </n-icon>
+      </el-icon>
     </template>
     <template #default="{ item }">
       <div class="value">{{ item.value }}</div>
       <!-- <el-text class="link">{{ item.link }}</el-text> -->
     </template>
-  </n-autocomplete>
-  <n-popover :visible="showMenu" placement="bottom" :width="200" trigger="click">
+  </el-autocomplete>
+  <el-popover :visible="showMenu" placement="bottom" :width="200" trigger="click">
     <template #reference>
-      <n-button class=" ml-2 !w-8" @click="showMenu = !showMenu">
-        <n-icon>
+      <el-button class=" ml-2 !w-8" @click="showMenu = !showMenu">
+        <el-icon>
           <Plus></Plus>
-        </n-icon>
-      </n-button>
+        </el-icon>
+      </el-button>
     </template>
     <template #default>
-      <n-button class="!w-full !h-10 !border-none" @click="(showMenu = false) || (fastlink.show = true)"
-        quaternary>发起快速连接</n-button>
-      <NDivider class="!my-1"></NDivider>
+      <el-button class="!w-full !h-10 !border-none" @click="(showMenu = false) || (fastlink.show = true)"
+        quaternary>发起快速连接</el-button>
+      <ElDivider class="!my-1"></ElDivider>
     </template>
-  </n-popover>
+  </el-popover>
   <n-modal v-model:show="fastlink.show" preset="card" size="small" class="!w-1/2 !h-[50vh]">
     <template #default>
       <div>
-        <NInput placeholder="uid/email" v-model="fastlink.data"></NInput>
-        <NButton @click="link()">确定</NButton>
+        <ElInput placeholder="uid/email" v-model="fastlink.data"></ElInput>
+        <ElButton @click="link()">确定</ElButton>
       </div>
     </template>
   </n-modal>
@@ -119,7 +119,7 @@ async function link() {
   }
 }
 
-:global(.n-dialog__body) {
+:global(.el-dialog__body) {
   padding-top: 10px !important;
   height: 100%;
 }

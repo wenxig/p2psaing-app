@@ -22,12 +22,13 @@ namespace Peer {
   }
   interface Connection extends _DataConnection {
     metadata: [starterData: User.WebDbSave, starterUid: number];
+    // label: 'chat' | 'server'
     send: <Tbody = Msg.index | Handshake>(data: Request<Tbody> | isResponse, chunked?: boolean | undefined) => void | Promise<void>
   }
   type CreateConfig = {
     useEncrypt?: Handshake['encrypt'],
     lid?: string,
-    type: 'server' | 'client'
+    type: 'server' | 'chat'
   }
   namespace Msg {
     type index = {
@@ -63,3 +64,4 @@ namespace Peer {
     }
   }
 }
+type Connection = import("@/api/connection.ts").Connection
