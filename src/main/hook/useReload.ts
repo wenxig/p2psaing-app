@@ -3,17 +3,17 @@ const program = [
   'page',
   'store_user'
 ]
-const deal: {
+const deals: {
   name: string
-  method: () => void
-}[] = [
+  method: () => void,
+  window: string
+}[] = []
+deals.forEach(deal => program.forEach(program => ipcMain.handle(`reload_${program}_${deal.window}`, () => deals.filter(val => val['name'] == `reload_${program}_${deal.window}`).forEach(val => val.method()))))
 
-  ]
-program.forEach(program => ipcMain.handle(`reload_${program}`, () => deal.filter(val => val['name'] == `reload_${program}`).forEach(val => val['method']())))
-
-export function useReload(ipc: Electron.WebContents) {
-  program.forEach(program => deal.push({
-    name: `reload_${program}`,
-    method: () => ipc.send(`reload_${program}`)
+export function useReload(ipc: Electron.WebContents, name: string = 'index') {
+  program.forEach(program => deals.push({
+    name: `reload_${program}_${name}`,
+    method: () => ipc.send(`reload_${program}_${name}`),
+    window: name
   }))
 }

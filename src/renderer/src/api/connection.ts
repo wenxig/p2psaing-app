@@ -22,17 +22,20 @@ export class Connection {
       watchOnce(this.isOpen, () => resolve())
     })
   }
-  public async send(path: `/${string}`, data: Peer.Msg.index | Peer.Handshake, config?: { header: Peer.HandshakeHeader | Record<string, string> }): Promise<Peer.Request> {
+  public async send<TReturn = Peer.Request.All>(request: Peer.Request.All): Promise<TReturn>
+  public async send<TReturn = Peer.Request.All>(path: string, data: Peer.Request.All['body'], config?: { header: Peer.Request.All['headers'] }): Promise<TReturn>
+  public async send<TReturn = Peer.Request.All>(value: string | Peer.Request.All, data?: Peer.Request.All['body'], config?: { header: Peer.Request.All['headers'] }): Promise<TReturn> {
     await this.whenReady()
     console.log('post');
+    const request = isRequest(value) ? value : {
+      path: value,
+      body: data,
+      headers: config?.header ?? {}
+    }
     setTimeout(async () => {
-      await this.conn.send({
-        path,
-        body: data,
-        headers: config?.header ?? {}
-      })
+      await this.conn.send(request)
     }, 0)
-    return this.listenOnce('data', path)
+    return this.listenOnce('data', request.path) as TReturn
   }
   private default: Record<"data" | "open" | "error" | "close", [fn: Function, tag: symbol][]> & {
     onData: PeerOnPostHandleFn[]
@@ -51,8 +54,8 @@ export class Connection {
   public listen(event: "close", fn: () => any): () => void
   public listen(event: "open", fn: () => any): () => void
   public listen(event: "error", fn: (err: PeerError<string>) => any): () => void
-  public listen(event: "data", fn: (data: Peer.Request) => any): () => void
-  public listen(event: "data" | "open" | "error" | "close", fn: ((data: Peer.Request) => any) | (() => any) | ((err: PeerError<string>) => any)): () => void {
+  public listen(event: "data", fn: (data: Peer.Request.All) => any): () => void
+  public listen(event: "data" | "open" | "error" | "close", fn: ((data: Peer.Request.All) => any) | (() => any) | ((err: PeerError<string>) => any)): () => void {
     const tag = Symbol(event)
     this.default[event].push([fn, tag])
     return () => void remove(this.default[event], raw => raw[1] == tag)
@@ -60,8 +63,8 @@ export class Connection {
   public listenOnce(event: "close"): Promise<void>
   public listenOnce(event: "open"): Promise<void>
   public listenOnce(event: "error"): Promise<PeerError<string>>
-  public listenOnce(event: "data", path: string): Promise<Peer.Request>
-  public listenOnce(event: "data" | "error" | "open" | "close", path?: string): Promise<void | PeerError<string> | Peer.Request> {
+  public listenOnce(event: "data", path: string): Promise<Peer.Request.All>
+  public listenOnce(event: "data" | "error" | "open" | "close", path?: string): Promise<void | PeerError<string> | Peer.Request.All> {
     return new Promise((resolve) => {
       switch (event) {
         case "data": {
@@ -97,7 +100,7 @@ export class Connection {
       }
     })
   }
-  public onData(path: `/${string}`, ...handles: PeerOnPostHandleFn[]): () => void {
+  public onData(path: string, ...handles: PeerOnPostHandleFn[]): () => void {
     const _next = Symbol('next')
     return this.listen('data', async (data) => {
       await this.whenReady()
@@ -123,6 +126,7 @@ export class Connection {
           break;
         }
         if (ret == true) {
+          this.conn.send(null)
           break;
         }
         throw new TypeError('void is not a res')

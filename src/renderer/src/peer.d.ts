@@ -1,41 +1,34 @@
 namespace Peer {
   type _DataConnection = import('peerjs').DataConnection
-  type Request<Tbody = Msg.index | Handshake> = {
-    path: `/${string}`;
-    headers: HandshakeHeader | Record<string, string>;
-    body: Tbody;
+  namespace Request {
+    type Handshake = {
+      path: string;
+      headers: Handshake.Header & BaseHeader
+      body: Handshake.Body;
+    }
+    type Msg = {
+      path: string;
+      headers: BaseHeader;
+      body: Msg.index;
+    }
+    type All = Msg | Handshake
+
+    type BaseHeader = {
+      time: number,
+      from: User.WebDbSave | number,
+    }
   }
   interface Response {
     ok: boolean
   }
-  interface Handshake {
-    time: number,
-    from: User.WebDbSave,
-    encrypt: false | 'base',
-    ok: boolean,
-  }
-  interface HandshakeHeader {
-    syn?: number,
-    seq?: number,
-    ack?: number,
-    _ack?: number
-  }
   interface Connection extends _DataConnection {
     metadata: [starterData: User.WebDbSave, starterUid: number];
-    // label: 'chat' | 'server'
-    send: <Tbody = Msg.index | Handshake>(data: Request<Tbody> | isResponse, chunked?: boolean | undefined) => void | Promise<void>
-  }
-  type CreateConfig = {
-    useEncrypt?: Handshake['encrypt'],
-    lid?: string,
-    type: 'server' | 'chat'
+    send: <Tbody = Msg.index | Handshake.Body>(data: Request<Tbody> | isResponse, chunked?: boolean | undefined) => void | Promise<void>
   }
   namespace Msg {
     type index = {
-      from: number; //uid 
-      time: number;
-    } & (UserTextMsg | UserFileMsg | UserAppMsg | UserCodeMsg | UserEquationMsg | CallBask)
 
+    } & (UserTextMsg | UserFileMsg | UserAppMsg | UserCodeMsg | UserEquationMsg | CallBask)
     type UserTextMsg = {
       main: string;
       type: "text";
@@ -61,6 +54,18 @@ namespace Peer {
     type CallBask = {
       type: "callback";
       main: true
+    }
+  }
+  namespace Handshake {
+    interface Body {
+      encrypt: false | 'base',
+      ok: boolean,
+    }
+    interface Header {
+      syn?: number,
+      seq?: number,
+      ack?: number,
+      _ack?: number
     }
   }
 }

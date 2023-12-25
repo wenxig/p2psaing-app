@@ -10,6 +10,8 @@ import { useThemeVars } from 'naive-ui';
 import { useUserStore } from './store/user';
 useLightTheme(useThemeVars())
 const user = useUserStore()
+
+
 </script>
 
 <template>

@@ -60,7 +60,7 @@ async function login(val: User.Arg.login): Promise<[data: User.WebDbSaveDeep, pi
     userStore.$setUser({
       user: dbSaveData
     })
-    db.setLastLogin()
+    db.lastLogin.set()
     return true
   }]
 }

@@ -4,30 +4,13 @@ import linkList from './linkList.c.vue';
 import { useAppStore } from '@s/appdata';
 import Layout from '@l/base.vue';
 import MainLayout from '@l/rightBase.vue';
-import { Chat } from '@/api/chat';
-import { useUserStore } from '@/store/user';
-import { useRouter } from 'vue-router';
 const appStore = useAppStore();
-const user = useUserStore();
-const router = useRouter();
-(async () => {
-  const c = await (new Chat(user.user.lid)).setup()
-  c.listen('connection', conn => {
-    c.linkList[conn.metadata[1]] = {
-      connection: conn,
-      number: NaN
-    }
-    appStore.links.push(conn.metadata[0])
-    router.push(`/main/chat/temp/${conn.metadata[1]}`)
-    return true
-  })
-})()
 
-window.electronAPI.ipcRenderer.invoke("mainWindow_setSize", {
+window.electronAPI.ipcRenderer.invoke(`${window.windowName}_setSize`, {
   width: 900,
   height: 770
 })
-window.electronAPI.ipcRenderer.invoke("mainWindow_resize", true)
+window.electronAPI.ipcRenderer.invoke(`${window.windowName}_resize`, true)
 </script>
 
 <template>

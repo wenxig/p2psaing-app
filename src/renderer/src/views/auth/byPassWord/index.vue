@@ -3,16 +3,16 @@ import { ref } from 'vue';
 import plusInput from '@/components/plusInput.vue';
 import { random } from 'lodash-es';
 import router from '@/router';
-import { useAuth,type NextLoginFunction } from '@h/useAuth';
+import { useAuth, type NextLoginFunction } from '@h/useAuth';
 import { ElLoading, ElMessage } from 'element-plus';
 import { useAppStore } from '@s/appdata';
 const app = useAppStore()
-window.electronAPI.ipcRenderer.invoke("mainWindow_setSize", {
+window.electronAPI.ipcRenderer.invoke(`${window.windowName}_setSize`, {
   width: 280,
   height: 400
 })
 const auth = useAuth()
-const passCode = `${random(100000,999999)}`
+const passCode = `${random(100000, 999999)}`
 const email = ref("")
 const password = ref("")
 const isPage1 = ref(true)

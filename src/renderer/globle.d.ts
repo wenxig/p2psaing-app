@@ -29,6 +29,9 @@ declare global {
     email: {
       send(to: string, subject: string, msg: string): Promise<AxiosResponse<any, any>>
     };
+    windowName: string
+    addWindow(name?: string): void
+    goHome: () => void
   }
 
 }

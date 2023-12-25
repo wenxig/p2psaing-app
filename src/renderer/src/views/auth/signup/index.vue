@@ -8,8 +8,8 @@ import { InfoFilled } from '@element-plus/icons-vue';
 import { useAppStore } from '@s/appdata'
 const emailPass = ref("")
 const auth = useAuth()
-const app = useAppStore()
-window.electronAPI.ipcRenderer.invoke("mainWindow_setSize", {
+const app = useAppStore();
+window.electronAPI.ipcRenderer.invoke(`${window.windowName}_setSize`, {
   width: 650,
   height: 460
 })
@@ -187,8 +187,7 @@ const sendEmail = () => {
       <el-popover placement="top-start" title="关于邮件" :width="200" trigger="click"
         content="这个人，把自己邮箱唯一的smtp功能密钥忘了，导致它要上网上找api用">
         <template #reference>
-          <el-button class="m-2 !fixed right-1 bottom-1 !text-lg" text size="small"
-            :icon="InfoFilled"></el-button>
+          <el-button class="m-2 !fixed right-1 bottom-1 !text-lg" text size="small" :icon="InfoFilled"></el-button>
         </template>
       </el-popover>
     </el-main>

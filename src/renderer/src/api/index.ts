@@ -1,63 +1,10 @@
 import { z } from 'zod'
-import { webSaveRule } from '@/utils/user'
 import { Connection } from './connection'
 import { MediaConnection, Peer, PeerError } from 'peerjs'
 import { remove } from 'lodash-es'
 import { reactive } from 'vue'
 import { watchOnce } from '@vueuse/core'
-export function isHandShake(value: unknown): value is Peer.Handshake {
-  const rule = z.object({
-    from: webSaveRule,
-    encrypt: z.enum(['base']).or(z.boolean()),
-    ok: z.boolean(),
-    time: z.number(),
-  }).strict()
-  return rule.safeParse(value).success
-}
-export function isHandShakeHeader(value: unknown): value is Peer.HandshakeHeader {
-  const rule = z.object({
-    syn: z.number().optional(),
-    seq: z.number().optional(),
-    ack: z.number().optional(),
-    _ack: z.number().optional(),
-  }).strict()
-  return rule.safeParse(value).success
-}
-export function isMsg(value: unknown): value is Peer.Msg.index {
-  const ruls: z.ZodRawShape[] = [{
-    type: z.enum(['text']),
-    main: z.string()
-  }
-    , {
-    type: z.enum(['img', 'file', 'video']),
-    main: z.instanceof(Blob),
-    md5: z.string()
-  }
-    , {
-    type: z.enum(['appFunction']),
-    main: z.any()
-  }
-    , {
-    type: z.enum(['code']),
-    main: z.string(),
-    is: z.string()
-  }
-    , {
-    type: z.enum(['equation']),
-    main: z.string()
-  }, {
-    type: z.enum(['callback']),
-    main: z.boolean()
-  }]
-  const baseMsg = z.object({
-    from: z.number(),
-    time: z.number()
-  })
-  return ruls.some(fn => {
-    return baseMsg.extend(fn).strict().safeParse(value).success
-  })
-}
-export function isRequest(value: unknown): value is Peer.Request {
+export function isRequest(value: unknown): value is Peer.Request.Handshake|Peer.Request.Msg {
   const rule = z.object({
     path: z.string().startsWith('/'),
     headers: z.any(),
@@ -72,12 +19,12 @@ export function isResponse(value: unknown): value is Peer.Response {
   return rule.safeParse(value).success
 }
 export interface PeerPostConfig {
-  useEncrypt?: Peer.Handshake['encrypt'],
+  useEncrypt?: Peer.Handshake.Body['encrypt'],
   connection: Peer.Connection,
   chunk?: boolean
 }
 export type PeerOnPostHandleNextFn = (...value: any[]) => symbol
-export type PeerOnPostHandleFn<T = Peer.Request | symbol | boolean> = (req: Peer.Request, beforeData: any[], next: PeerOnPostHandleNextFn) => Promise<T> | T
+export type PeerOnPostHandleFn<T = Peer.Request.All | symbol | boolean> = (req: Peer.Request.All, beforeData: any[], next: PeerOnPostHandleNextFn) => Promise<T> | T
 export type DefaultOnLinkHandle = (connection: Connection) => boolean | Promise<boolean>
 
 type Event = 'error' | 'call' | 'disconnected' | 'open' | 'close' | 'connection'

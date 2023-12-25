@@ -40,6 +40,10 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/main/userSetting",
     component: () => import("@p/setting/index.vue")
+  },
+  {
+    path: "/main/dev",
+    component: () => import("@p/dev/index.vue")
   }
 ];
 export default routes;

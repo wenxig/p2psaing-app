@@ -2,7 +2,7 @@
 import { type ElAutocomplete, type AutocompleteFetchSuggestionsCallback, ElLoading } from 'element-plus';
 import { nextTick, ref } from 'vue';
 import * as api from '@/db/network';
-import { Plus } from '@element-plus/icons-vue'
+import { Plus, Search } from '@element-plus/icons-vue'
 import router from '@/router';
 const emit = defineEmits<{
   'select': [value: [undefined, false] | [User.WebDbSaveDeep, true]]

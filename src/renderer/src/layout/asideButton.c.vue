@@ -2,7 +2,10 @@
 import { ref } from 'vue';
 
 const props = defineProps<{
-  primary: boolean
+  primary: boolean,
+}>()
+defineEmits<{
+  click: [payload: MouseEvent]
 }>()
 const color = ref(!props.primary ? '#888' : 'var(--el-color-primary)')
 const textColor = ref(!props.primary ? '#666' : 'var(--el-color-primary-light-3)')
@@ -10,8 +13,8 @@ const textColor = ref(!props.primary ? '#666' : 'var(--el-color-primary-light-3)
 </script>
 
 <template>
-  <button
-    class="c !transition backdrop-opacity-5 flex justify-center items-center rounded-md mt-5 !h-[2rem] !w-[2rem]">
+  <button class="c !transition backdrop-opacity-5 bg-[unset] flex justify-center items-center rounded-md mt-5 !h-[2rem] !w-[2rem]"
+    @click="(e) => !primary && $emit('click', e)">
     <el-icon size="1.5rem" :color="color">
       <slot></slot>
     </el-icon>
@@ -25,16 +28,6 @@ const textColor = ref(!props.primary ? '#666' : 'var(--el-color-primary-light-3)
 
 
 html {
-  .c {
-    &:hover {
-      background-color: var(--el-fill-color-light);
-    }
-
-    &:active {
-      background-color: var(--el-fill-color) !important;
-    }
-  }
-
   &.dark {
     .c {
       &:hover {
