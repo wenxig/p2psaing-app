@@ -11,13 +11,13 @@ namespace db {
     driver
   })
   async function setItem<T>(key: string, value: T): Promise<T> {
-    return base.setItem<T>(`${key}_${window.windowName}`, value)
+    return base.setItem<T>(`${key}_${window.instance_name.my}`, value)
   }
   async function getItem<T>(key: string): Promise<T | null> {
-    return base.getItem<T>(`${key}_${window.windowName}`)
+    return base.getItem<T>(`${key}_${window.instance_name.my}`)
   }
   async function removeItem(key: string): Promise<void> {
-    return base.removeItem(`${key}_${window.windowName}`)
+    return base.removeItem(`${key}_${window.instance_name.my}`)
   }
   let isReady = ref(false)
   base.ready().then(() => isReady.value = true)

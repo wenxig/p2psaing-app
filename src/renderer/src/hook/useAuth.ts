@@ -38,6 +38,7 @@ async function signUp(val: User.Arg.sigeup) {
     user: userSave
   })
   await userStore.commit()
+  await userStore.peerSetup()
   return true
 }
 async function login(val: User.Arg.login): Promise<[data: User.WebDbSaveDeep, pid: string, next: NextLoginFunction]> {
@@ -47,22 +48,22 @@ async function login(val: User.Arg.login): Promise<[data: User.WebDbSaveDeep, pi
   if (!user[1]) {
     throw false
   }
-  return [user[0], pid, () => { //next
+  return [user[0], pid, async () => { //next
     if (!user) {
       return false
     }
-    const link = user[0].link
     const dbSaveData: User.WebDbSaveDeep = {
       ...user[0],
       pid,
-      link
+      link: user[0].link
     }
     userStore.$setUser({
       user: dbSaveData
     })
-    db.lastLogin.set()
+    await db.lastLogin.set()
+    await userStore.peerSetup()
     return true
   }]
 }
 
-export type NextLoginFunction = () => boolean
+export type NextLoginFunction = () => Promise<boolean>

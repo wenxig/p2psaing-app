@@ -78,12 +78,19 @@ export function isMsg(value: unknown): value is Peer.Request.Msg {
 
 const chat_ref = ref<Chat>()
 const isReady = ref(false)
+let me: undefined | User.WebDbSaveDeep = undefined
 export class Chat extends P2P {
   public linkList = <Record<number, {
     connection: Connection;
     number: number
   }>>{}
-  me: User.WebDbSave
+  public get me() {
+    if (me) {
+      return me
+    }
+    const user = useUserStore().user
+    return me = user
+  }
   isCloseing = false
   public static get ref() {
     return chat_ref.value!
@@ -105,7 +112,6 @@ export class Chat extends P2P {
   constructor(lid?: string) {
     const user = useUserStore().user
     super(lid ?? user.lid)
-    this.me = user
     this.listen('connection', (connection) => {
       return new Promise(resolve => {
         console.log('first handshake');

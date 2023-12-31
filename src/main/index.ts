@@ -39,12 +39,12 @@ app.whenReady().then(() => {
   ipcMain.on('getState', (event, key: string, wid: string = 'index') => {
     console.log(colors('bright', `---------${new Date()}---------`));
     console.log(colors('green', `getState${colors('white', '(')}${colors('magenta', wid)}${colors('white', ')')}`), colors('green', '<=='), `${key}_${wid}`, ':', UserDataStore.getData(`${key}_${wid}`));
-    event.returnValue = UserDataStore.getData(key)
+    event.returnValue = UserDataStore.getData(`${key}_${wid}`)
   })
   ipcMain.on('setState', (event, key: string, value, wid: string = 'index') => {
     console.log(colors('bright', `---------${new Date()}---------`));
     console.log(colors('yellow', `setState${colors('white', '(')}${colors('magenta', wid)}${colors('white', ')')}`), colors('yellow', '==>'), `${key}_${wid}`, ':', value);
-    UserDataStore.setData(key, value)
+    UserDataStore.setData(`${key}_${wid}`, value)
     event.returnValue = undefined
   })
   // createReactDevtool()

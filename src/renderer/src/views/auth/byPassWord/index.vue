@@ -7,7 +7,7 @@ import { useAuth, type NextLoginFunction } from '@h/useAuth';
 import { ElLoading, ElMessage } from 'element-plus';
 import { useAppStore } from '@s/appdata';
 const app = useAppStore()
-window.electronAPI.ipcRenderer.invoke(`${window.windowName}_setSize`, {
+window.electronAPI.ipcRenderer.invoke(`${window.instance_name.my}_setSize`, {
   width: 280,
   height: 400
 })
@@ -47,8 +47,9 @@ function login() {
 
 function lastLogin(jump: boolean = false) {
   if (jump || inputPassCode.value == passCode) {
-    next()
-    router.replace('/main')
+    next().then(() => {
+      router.replace('/main')
+    })
   } else {
     passCodeTrue.value = true
     setTimeout(() => {

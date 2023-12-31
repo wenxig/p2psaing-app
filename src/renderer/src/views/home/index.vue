@@ -6,11 +6,11 @@ import Layout from '@l/base.vue';
 import MainLayout from '@l/rightBase.vue';
 const appStore = useAppStore();
 
-window.electronAPI.ipcRenderer.invoke(`${window.windowName}_setSize`, {
+window.electronAPI.ipcRenderer.invoke(`${window.instance_name.my}_setSize`, {
   width: 900,
   height: 770
 })
-window.electronAPI.ipcRenderer.invoke(`${window.windowName}_resize`, true)
+window.electronAPI.ipcRenderer.invoke(`${window.instance_name.my}_resize`, true)
 </script>
 
 <template>

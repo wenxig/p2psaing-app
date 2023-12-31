@@ -1,3 +1,4 @@
+import { random } from 'lodash-es'
 import { z } from 'zod'
 export const webSaveRule = z.object({
   email: z.string(),
@@ -51,4 +52,14 @@ export function toUserWebSave(val: unknown): User.WebDbSave {
 }
 export function toUserWebSaveDeep(val: unknown): User.WebDbSaveDeep {
   return webSaveDeepRule.extend(linkRule).parse(val)
+}
+
+export function createRandomUser(): User.WebDbSave {
+  return {
+    email: `${random(0, 100000)}@gmail.com`,
+    lid: `${random(100000, 999999)}${random(100000, 999999)}${random(100000, 999999)}`,
+    uid: random(0, 100000),
+    img: '/userIcon.png',
+    name: `${random(100000, 999999)}`,
+  }
 }

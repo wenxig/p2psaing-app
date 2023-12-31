@@ -2,9 +2,10 @@ import { is } from '@electron-toolkit/utils';
 import { BrowserWindow, app, ipcMain, shell } from 'electron';
 import { join } from 'path';
 import { useReload } from './useReload';
+import appIcon from '../../../resources/icon.png?asset'
+import mainHtml from '../../renderer/index.html?asset'
 export namespace WindowControl {
-  const childWindowUrlList: Record<string, string[]> = {}
-  const childWindowObjList: Record<string, BrowserWindow[]> = {}
+  const childWindows: { window: BrowserWindow, father: string, name: string }[] = []
   export function createindex() {
     const index = new BrowserWindow({
       width: 280,
@@ -22,7 +23,7 @@ export namespace WindowControl {
       },
       frame: false,
       resizable: false,
-      icon: join(__dirname, '../../build/icon.ico'),
+      icon: appIcon,
     })
 
     index.once('ready-to-show', () => {
@@ -35,9 +36,9 @@ export namespace WindowControl {
     })
 
     if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-      index.loadURL(process.env['ELECTRON_RENDERER_URL'])
+      index.loadURL(join(process.env['ELECTRON_RENDERER_URL'],`?{"my":"index"}`))
     } else {
-      index.loadFile(join(__dirname, '../renderer/index.html'))
+      index.loadFile(join(mainHtml, `?{"my":"index"}`))
     }
 
     index.setMenu(null)
@@ -100,7 +101,7 @@ export namespace WindowControl {
       },
       frame: false,
       resizable: false,
-      icon: join(__dirname, '../../build/icon.ico'),
+      icon: appIcon,
     })
 
     mainlessWindow.once('ready-to-show', () => {
@@ -113,9 +114,9 @@ export namespace WindowControl {
     })
 
     if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-      mainlessWindow.loadURL(join(process.env[`ELECTRON_RENDERER_URL`], `?window_base_name=${name}`))
+      mainlessWindow.loadURL(join(process.env['ELECTRON_RENDERER_URL'], `?{"my":"${name}"}`))
     } else {
-      mainlessWindow.loadFile(join(__dirname, `../renderer/index.html`, `?window_base_name=${name}`))
+      mainlessWindow.loadFile(join(mainHtml, `?{"my":"${name}"}`))
     }
 
     mainlessWindow.setMenu(null)
@@ -127,18 +128,9 @@ export namespace WindowControl {
       mainlessWindow.webContents.send(`${name}_blur`, `blur`)
     })
     ipcMain.handle(`${name}_close`, () => {
-      if (process.platform == `darwin`) {
-        mainlessWindow.hide()
-        app.once(`activate`, () => {
-          mainlessWindow.show()
-        })
-      } else {
-        mainlessWindow.webContents.removeAllListeners()
-        childWindowUrlList[name].forEach((_v, i) => {
-          childWindowObjList[name][i].close()
-        })
-        mainlessWindow.close()
-      }
+      mainlessWindow.webContents.removeAllListeners()
+      childWindows.filter(v => v.father == name).forEach(v => v.window.close())
+      mainlessWindow.close()
     })
     // 最小化
     ipcMain.handle(`${name}_minimize`, () => {
@@ -165,18 +157,20 @@ export namespace WindowControl {
     return mainlessWindow
   }
 
-  export function createChildWindow(param: { width: number; height: number; url: string; name: string; more: boolean }, parentWindowName: string): BrowserWindow | boolean {
-    if (!param.more && childWindowUrlList[parentWindowName].includes(param.url)) {
-      const win = childWindowObjList[parentWindowName][childWindowUrlList[parentWindowName].indexOf(param.url)]
-      win.moveTop()
-      win.center()
-      return false
+  export function createChildWindow(options: { width: number; height: number; url: string; name: string; more: boolean }, parentWindowName: string): BrowserWindow | boolean {
+    if (options.more == false) {
+      const _window = childWindows.find(v => v.father == parentWindowName && v.name == options.url)
+      if (!!_window) {
+        const win = _window.window
+        win.moveTop()
+        win.center()
+        return false
+      }
     }
-    let index = childWindowUrlList[parentWindowName].length
     let childWin = new BrowserWindow({
       show: false,
-      width: param.width,
-      height: param.height,
+      width: options.width,
+      height: options.height,
       autoHideMenuBar: true,
       webPreferences: {
         sandbox: false,
@@ -190,47 +184,51 @@ export namespace WindowControl {
       resizable: false,
       icon: join(__dirname, `../../build/icon.ico`)
     })
-    childWindowObjList[parentWindowName][index] = childWin
-    childWindowUrlList[parentWindowName][index] = param.url
-    useReload(childWin.webContents)
+    options.name = `${parentWindowName}_${options.name}`
+
+    childWindows.push({
+      father: parentWindowName,
+      name: options.name,
+      window: childWin
+    })
+    useReload(childWin.webContents)    
     if (is.dev && process.env[`ELECTRON_RENDERER_URL`]) {
-      childWin.loadURL(join(process.env[`ELECTRON_RENDERER_URL`], `#`, param.url, `?&window_base_name=${parentWindowName}_${param.name}`))
+      childWin.loadURL(join(process.env[`ELECTRON_RENDERER_URL`], `?{"parent":"${parentWindowName}","my":"${options.name}"}`, '#', options.url))
     } else {
-      childWin.loadFile(join(__dirname, `../renderer/index.html`, '#', param.url, `?window_base_name=${parentWindowName}_${param.name}`))
+      childWin.loadFile(join(__dirname, `../renderer/index.html`, `?{"parent":"${parentWindowName}","my":"${options.name}"}`, '#', options.url))
     }
     childWin.on(`focus`, () => {
-      childWin.webContents.send(`${param.name}_focus`, `focus`)
+      childWin.webContents.send(`${options.name}_focus`, `focus`)
     })
     childWin.on(`blur`, () => {
-      childWin.webContents.send(`${param.name}_blur`, `blur`)
+      childWin.webContents.send(`${options.name}_blur`, `blur`)
     })
     childWin.once('ready-to-show', () => {
       childWin.show()
     })
-    ipcMain.handleOnce(`${param.name}_close`, () => {
-      delete childWindowUrlList[parentWindowName][index];
-      delete childWindowObjList[parentWindowName][index];
-      [`${param.name}_minimize`, `${param.name}_maximize`, `${param.name}_unmaximize`, `${param.name}_setSize`].forEach(v => {
+    ipcMain.handleOnce(`${options.name}_close`, () => {
+      childWindows.slice(childWindows.findIndex(v => v.father == parentWindowName && v.name == options.name), 1);
+      [`${options.name}_minimize`, `${options.name}_maximize`, `${options.name}_unmaximize`, `${options.name}_setSize`].forEach(v => {
         ipcMain.removeHandler(v)
       });
       childWin.webContents.removeAllListeners() //结束监听事件
       childWin.close()
     })
-    ipcMain.handle(`${param.name}_minimize`, () => {
+    ipcMain.handle(`${options.name}_minimize`, () => {
       childWin.minimize()
     })
-    ipcMain.handle(`${param.name}_maximize`, () => {
+    ipcMain.handle(`${options.name}_maximize`, () => {
       if (process.platform == `darwin`) {
         childWin.setFullScreen(true)
       } else {
         childWin.maximize()
       }
     })
-    ipcMain.handle(`${param.name}_unmaximize`, () => {
+    ipcMain.handle(`${options.name}_unmaximize`, () => {
       childWin.setFullScreen(false)
       childWin.unmaximize()
     });
-    ipcMain.handle(`${param.name}_setSize`, (_event, arg: { width: number, height: number }) => {
+    ipcMain.handle(`${options.name}_setSize`, (_event, arg: { width: number, height: number }) => {
       childWin.setSize(arg.width, arg.height)
     })
     return childWin

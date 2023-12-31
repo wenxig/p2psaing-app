@@ -13,7 +13,6 @@ const props = withDefaults(defineProps<Props>(), {
   minsize: true,
   maxsize: true,
   type: 'haid',
-  for: window.windowName
 })
 let isFocus = ref(true)
 let isHover = ref(false)
@@ -39,10 +38,10 @@ const classes = reactive([
 ])
 
 const clickEvent = reactive([
-  () => window.electronAPI.ipcRenderer.invoke(props.type == 'haid' ? `${props.for}_close` : 'app_quit'),
-  () => window.electronAPI.ipcRenderer.invoke(`${props.for}_minimize`),
-  () => window.electronAPI.ipcRenderer.invoke(`${props.for}_maximize`, (isMaxSize.value = true)),
-  () => window.electronAPI.ipcRenderer.invoke(`${props.for}_unmaximize`, (isMaxSize.value = false))
+  () => window.electronAPI.ipcRenderer.invoke((props.type == 'haid') || (window.instance_name.my != 'index') ? `${props.for ?? window.instance_name.my}_close` : 'app_quit'),
+  () => window.electronAPI.ipcRenderer.invoke(`${props.for ?? window.instance_name.my}_minimize`),
+  () => window.electronAPI.ipcRenderer.invoke(`${props.for ?? window.instance_name.my}_maximize`, (isMaxSize.value = true)),
+  () => window.electronAPI.ipcRenderer.invoke(`${props.for ?? window.instance_name.my}_unmaximize`, (isMaxSize.value = false))
 ])
 const ifShow = reactive([
   props.exit,

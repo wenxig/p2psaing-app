@@ -12,7 +12,7 @@ const user = useUserStore()
 const showMenu = ref(false)
 const router = useRouter()
 const fastlink = reactive({
-  show: false,
+  show: ref(false),
   data: ""
 })
 async function link() {
@@ -48,14 +48,15 @@ async function link() {
       if (link[1]) {
         ElMessage.success('成功')
         router.replace(`/main/chat/temp/${uid}`)
-        return link
-      }
+      } else
+        ElMessage.error('无法连接')
+    } catch (err) {
+      throw (err);
+
       ElMessage.error('无法连接')
-      return link
-    } catch {
-      ElMessage.error('无法连接')
+    } finally {
+      fastlink.show = false
     }
-    fastlink.show = false
   }
 }
 </script>

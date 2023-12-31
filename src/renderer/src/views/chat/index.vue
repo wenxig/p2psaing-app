@@ -4,29 +4,25 @@ import { ConnectionSignal, ConnectionSignalOff } from '@vicons/carbon'
 import { Clock20Regular } from '@vicons/fluent'
 import { useAppStore } from '@/store/appdata';
 import { useRoute } from 'vue-router'
-import { toNumber, filter } from 'lodash-es'
-import { ref, defineComponent, reactive, watch, nextTick, markRaw } from 'vue'
-import type { VirtualListInst } from 'naive-ui'
-import { ElIcon, ElSpace } from 'element-plus'
+import { toNumber, find, isEmpty } from 'lodash-es'
+import { ref, defineComponent, reactive, watch, markRaw } from 'vue'
+import { ElIcon, ElMessage, ElSpace, ElText } from 'element-plus'
 import { useUserStore } from '@/store/user';
 import db from '@/db';
-
+import MsgList from './msgList.c.vue'
 const app = useAppStore()
 const user = useUserStore()
 const route = useRoute()
-const toUser = filter(app.links, { uid: toNumber(route.params.uid) })[0]
+const toUser = find(app.links, { uid: toNumber(route.params.uid) })!
 const connection = Chat.ref.linkList[toUser.uid].connection
 const msgs = ref<Peer.Request.Msg[]>([])
-const isLink = ref(true)
-const msgList = ref<VirtualListInst>()
 db.msg.get(toUser.uid).then((data) => {
   msgs.value = data
   watch(msgs, (msg) => {
-    console.log(msg);
     const data = msg.at(-1)!
     if (data.body.type != 'callback') {
+      console.log(data);
       db.msg.add(toUser.uid, data)
-      nextTick(() => msgList.value?.scrollTo({ position: 'bottom' }))
     }
   })
 })
@@ -37,10 +33,10 @@ const tempMsg = reactive({
 app.topBar.value = markRaw(defineComponent(() => {
   return () => {
     return (<div class=" w-full relative flex items-center">
-      <el-text class='!text-xl !mr-4'>{toUser.name}</el-text>
+      <ElText class='!text-xl !mr-4'>{toUser.name}</ElText>
       <ElSpace size={5}>
-        {route.params.type == 'temp' && <el-icon color={'gray'}><Clock20Regular /></el-icon>}
-        {isLink.value ? <ElIcon><ConnectionSignal /></ElIcon> : <el-icon><ConnectionSignalOff /></el-icon>}
+        {route.params.type == 'temp' && <ElIcon color='gray'><Clock20Regular /></ElIcon>}
+        {connection.isOpen.value ? <ElIcon><ConnectionSignal /></ElIcon> : <ElIcon><ConnectionSignalOff /></ElIcon>}
       </ElSpace>
     </div>)
   }
@@ -48,6 +44,10 @@ app.topBar.value = markRaw(defineComponent(() => {
 
 class SendMsg {
   public static async text() {
+    if (isEmpty(tempMsg.text)) {
+      ElMessage.error('不能发送空消息')
+      return
+    }
     const msg: Peer.Request.Msg = {
       body: {
         type: 'text',
@@ -59,8 +59,9 @@ class SendMsg {
       },
       path: `/msg`
     }
-    await connection.send(msg)
     msgs.value.push(msg)
+    tempMsg.text = ''
+    await connection.send(msg)
   }
 }
 connection.onData(`/msg`, async (data) => {
@@ -83,33 +84,30 @@ connection.onData(`/msg`, async (data) => {
     }
   }
 })
-
-const minPopHeightPx = 30
 </script>
 
 <template>
   <div class=" h-full overflow-hidden">
-    <div class="w-full h-[80%] overflow-y-visible">
-      <n-virtual-list item-resizable :item-size="minPopHeightPx" :item="msgs" class="!h-full !w-full" ref="msgList">
-        <template #default="{ item: msg }: { item: Peer.Request.Msg }">
-          <div :key="msg.headers.time"
-            class="max-w-[40%] inline-block rounded-md p-2 pl-3 pr-3 before:content-[''] before:w-2 before:h-2 before:block before:m-0 before:!absolute before:rotate-45 relative"
-            :style="{
-              minHeight: minPopHeightPx
-            }" :class="{
-  'bg-[var(--n-color-primary-light-5)] before:bg-[var(--n-color-primary-light-5)] right-0 before:right-0 before:translate-x-1/2': msg.headers.from == user.user.uid,
-  'bg-[var(--n-color-primary-light-9)] before:bg-[var(--n-color-primary-light-9)] left-0 before:left-0 before:-translate-x-1/2': msg.headers.from != user.user.uid
-}">
-            {{ msg.body.main || ' ' }}
-          </div>
-        </template>
-      </n-virtual-list>
+    <div class="w-full h-[80%] overflow-y-hidden">
+      <MsgList :msgs="msgs" :users="[user.user, toUser]" :uid="user.user.uid" />
     </div>
     <div class="w-full h-[20%] border-t relative">
-      <el-input type="textarea" clearable class="!h-full !w-full" v-model="tempMsg.text"></el-input>
+      <n-mention type="textarea" :options="[]" class="!h-full !w-full" v-model:value="tempMsg.text"></n-mention>
       <n-button type="primary" class="absolute bottom-1 right-1" plain @click="SendMsg.text()">发送</n-button>
     </div>
   </div>
 </template>
 
-<style scoped lang='scss'></style>
+<style scoped lang='scss'>
+:deep(.n-input--textarea) {
+  --n-height: 100% !important;
+  --n-border: 0px solid #dcdfe6 !important;
+  --n-border-radius: 0% !important;
+  height: var(--n-height);
+  --n-padding-vertical: 1% !important;
+
+  & * {
+    resize: none !important;
+  }
+}
+</style>

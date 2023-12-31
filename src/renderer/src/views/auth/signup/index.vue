@@ -9,7 +9,7 @@ import { useAppStore } from '@s/appdata'
 const emailPass = ref("")
 const auth = useAuth()
 const app = useAppStore();
-window.electronAPI.ipcRenderer.invoke(`${window.windowName}_setSize`, {
+window.electronAPI.ipcRenderer.invoke(`${window.instance_name.my}_setSize`, {
   width: 650,
   height: 460
 })
@@ -176,7 +176,7 @@ const sendEmail = () => {
             同意
           </el-checkbox>
           <n-button quaternary type="primary" class=" !pl-0 !pr-0"
-            @click.stop="$electron.ipcRenderer.send('createChildWindow', { width: 300, height: 300, url: '/p', name: `userp`, more: false })"
+            @click.stop="$electron.ipcRenderer.send('createChildWindow', { width: 300, height: 300, url: '/p', name: `userp`, more: false }, $window.instance_name.my)"
             size="small">《用户许可》</n-button>
         </el-form-item>
         <el-form-item class="!w-full !mb-0">

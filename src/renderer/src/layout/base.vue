@@ -7,8 +7,10 @@ import { storeToRefs } from 'pinia';
 import AsideButton from './asideButton.c.vue';
 import { useRoute } from "vue-router";
 import { Code20Filled } from '@vicons/fluent';
+import { useAppStore } from "@/store/appdata";
 const route = useRoute()
 const user = useUserStore()
+const app = useAppStore()
 const userVal = storeToRefs(user)
 const isOnHomePage = computed(() => {
   return [
@@ -21,13 +23,14 @@ const isOnHomePage = computed(() => {
 
 <template>
   <el-container class=" h-full">
-    <el-aside
-      class="relative region-drag !w-[3.75rem] bg-[var(--el-color-info-light-7)] !pt-20 !h-full flex justify-center">
+    <el-aside class="relative region-drag bg-[var(--el-color-info-light-7)] !pt-20 !h-full flex justify-center" :style="{
+      width: `${app.style.aside.width}px`
+    }">
       <control class="absolute top-0 left-0"></control>
       <el-space direction='vertical' class=" w-full h-full">
         <el-avatar shape="square" class="region-no-drag" :size="40"
           :src="userVal.user.value.img == '' ? '/userIcon.png' : userVal.user.value.img"
-          @click="$electron.ipcRenderer.send('createChildWindow', { width: 450, height: 650, url: '/main/userSetting', name: `userSetting`, more: false }, $window.windowName)" />
+          @click="$electron.ipcRenderer.send('createChildWindow', { width: 450, height: 650, url: '/main/userSetting', name: `userSetting`, more: false }, $window.instance_name.my)" />
         <AsideButton :primary="isOnHomePage" @click="$router.push('/main')">
           <ChatRound />
         </AsideButton>

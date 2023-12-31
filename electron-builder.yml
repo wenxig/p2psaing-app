@@ -1,5 +1,5 @@
-appId: com.__APP_NAME__.app
-productName: __APP_NAME__
+appId: com.wenxin.app
+productName: wenxin
 directories:
   buildResources: build
 files:
@@ -14,7 +14,7 @@ asarUnpack:
 afterSign: build/notarize.js
 win:
   icon: resources/icon.png
-  executableName: __APP_NAME__-app
+  executableName: wenxin-app
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}
@@ -38,7 +38,7 @@ linux:
     - AppImage
     - snap
     - deb
-  maintainer: __APP_NAME__.com
+  maintainer: wenxin.com
   category: Utility
 appImage:
   artifactName: ${name}-${version}.${ext}

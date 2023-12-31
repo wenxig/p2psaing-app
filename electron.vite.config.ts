@@ -69,8 +69,9 @@ export default defineConfig(({ command: mode }) => {
         outDir: 'dist/preload'
       }
     },
-    //@ts-ignore
+    //@ts-ignore  堆栈深度过高
     renderer: defineViteConfig({
+      //@ts-ignore  堆栈深度过高
       resolve: {
         alias: {
           '@t': fileURLToPath(new URL('./src/renderer/src/types', import.meta.url)),
@@ -130,7 +131,7 @@ export default defineConfig(({ command: mode }) => {
       css: {
         postcss: {
           plugins: [
-          //@ts-ignore
+            //@ts-ignore
             tailwindcss,
             //@ts-ignore
             postCssPxToRem,
@@ -147,8 +148,8 @@ export default defineConfig(({ command: mode }) => {
         minify: "terser",
         outDir: 'dist/renderer'
       },
-      test:{
-        
+      test: {
+
       }
     }),
   }

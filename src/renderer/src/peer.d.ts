@@ -8,7 +8,9 @@ namespace Peer {
     }
     type Msg = {
       path: string;
-      headers: BaseHeader;
+      headers: BaseHeader & {
+        from: number
+      };
       body: Msg.index;
     }
     type All = Msg | Handshake
