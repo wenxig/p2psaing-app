@@ -6,18 +6,6 @@
   <title><%- title %></title>
   <meta name="naive-ui-style" />
   <script>
-
-    window.instance_name = location.search.substring(1).replace(/%22/g, '"')
-    if ((window.instance_name).endsWith('/')) {
-      console.log(window.instance_name.replace(/\//g, ''));
-      window.instance_name = JSON.parse(window.instance_name.replace(/\//g, ''))
-    } else {
-      window.instance_name = JSON.parse(window.instance_name)
-    }
-    window.electronAPI.ipcRenderer.on(`reload_page_${window.instance_name.parent ?? window.instance_name.my}`, () => location.reload())
-    window.addWindow = (name = (Math.random() * 100).toFixed()) => {
-      window.electronAPI.ipcRenderer.sendSync('createMainlessWindow', name)
-    }
     window.goHome = () => {
       window.location.hash = `#/main`
       location.reload()

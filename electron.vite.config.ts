@@ -106,7 +106,7 @@ export default defineConfig(({ command: mode }) => {
                 tag: 'div',
                 attrs: {
                   id: 'app',
-                  style: 'height: 100vh;z'
+                  style: 'height: 100vh;'
                 },
               },
             ],

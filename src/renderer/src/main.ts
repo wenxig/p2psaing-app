@@ -12,7 +12,7 @@ app.use(pinia)
 app.use(router)
 app.use({
   install(app) {
-    app.config.globalProperties.$electron = window.electronAPI
+    app.config.globalProperties.$ipc = window.ipc
     app.config.globalProperties.$window = window
   },
 })

@@ -7,11 +7,8 @@ import { toUserWebSave } from '@/utils/user'
 import { Chat } from '@/api/chat';
 import router from '@/router';
 import { useAppStore } from './appdata';
-const ipc = window.electronAPI.ipcRenderer
-const name = window.instance_name?.parent ?? window.instance_name.my
 const reload = (): User.WebDbSaveDeep => {
-  const appState = ipc.sendSync(`getState`, 'user', name)
-  console.log(appState);
+  const appState = window.ipc.getStateSync('user')
   if (isEmpty(appState)) {
     return {
       email: '',
@@ -27,36 +24,39 @@ const reload = (): User.WebDbSaveDeep => {
       password: ''
     }
   }
-  return JSON.parse(appState)
+  return appState
 }
 export const useUserStore = defineStore("user", () => {
   const user = ref(reload())
-  ipc.on(`reload_store_user_${name}`, () => user.value = reload())
   async function commit() {
-    ipc.send(`setState`, 'user', JSON.stringify(user.value))
+    window.ipc.setState('user', JSON.stringify(user.value))
     await server.createUpdate().commit(user.value)
     await server.createUpdate().commit(toUserWebSave(user.value))
     await server.createUpdate().commit(new Date().getTime())
     await db.lastLogin.set()
-    await ipc.invoke(`reload_store_user_${name}`)
+    window.ipc.reload('/store/user')
   }
   let latestData = user.value
   watch(user, (val, oldVal) => {
     if (JSON.stringify(latestData) == JSON.stringify(val)) {
       return
     }
-    ipc.send(`setState`, 'user', JSON.stringify(val), name)
+    window.ipc.setState('user', JSON.stringify(val))
     console.log(isEmpty(oldVal.name), oldVal.name, val.name);
     return
   }, { deep: true })
   function $setUser(value: { user: User.WebDbSaveDeep }) {
     user.value = value.user
   }
-  ipc.on(`reload_store_user_${name}`, () => {
+  window.ipc.listen(`/reload/store/user`, () => {
+    console.log('reload');
+    
     peerSetup();
+    user.value = reload()
     user.value = reload()
   })
   async function peerSetup() {
+    window.ipc.toTop()
     const appStore = useAppStore()
     const c = await (new Chat(user.value.lid)).setup()
     c.listen('connection', conn => {

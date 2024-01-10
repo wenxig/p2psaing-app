@@ -7,10 +7,7 @@ import { toRef } from 'vue'
 const qrcodeValue = '你扫你吗呢'
 let lastLogin = toRef<false | User.LastLogin>(await db.lastLogin.get())
 const router = useRouter()
-window.electronAPI.ipcRenderer.invoke(`${window.instance_name.my}_setSize`, {
-  width: 280,
-  height: 400
-})
+window.ipc.setSize(280, 400)
 function login() {
   if (!lastLogin.value) return
   const loading = ElLoading.service({

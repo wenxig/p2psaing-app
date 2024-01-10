@@ -6,11 +6,9 @@ import router from '@/router';
 import { useAuth, type NextLoginFunction } from '@h/useAuth';
 import { ElLoading, ElMessage } from 'element-plus';
 import { useAppStore } from '@s/appdata';
+import axios, { AxiosError } from 'axios';
 const app = useAppStore()
-window.electronAPI.ipcRenderer.invoke(`${window.instance_name.my}_setSize`, {
-  width: 280,
-  height: 400
-})
+window.ipc.setSize(280, 400)
 const auth = useAuth()
 const passCode = `${random(100000, 999999)}`
 const email = ref("")
@@ -19,6 +17,25 @@ const isPage1 = ref(true)
 const inputPassCode = ref('')
 const passCodeTrue = ref(false)
 let next: NextLoginFunction
+
+const sendEmail = async (to: string, subject: string, msg: string) => {
+  if ([
+    `https://v.api.aa1.cn/api/qqemail/new/?from_mail=__APP_NAME__@__APP_NAME__.surge.sh&subject=[__APP_NAME__]${subject}&message=${msg}&to=${to}`,
+    `https://v.api.aa1.cn/api/mail/t/api.php?adress=${to}&title=[__APP_NAME__]${subject}&content=${msg}`
+  ].every(async val => {
+    try {
+      const res = await axios.get(val);
+      if (res.data.status === "success" || res.data.Code === "1") {
+        return false;
+      }
+      return true
+    } catch (error) {
+      throw new AxiosError(`can\`t send email, because: \n ${error}`)
+    }
+  })) {
+    throw new AxiosError("can`t send email")
+  }
+};
 function login() {
   const loading = ElLoading.service({
     lock: true,
@@ -35,7 +52,7 @@ function login() {
       lastLogin(true)
       return
     }
-    window.email.send(email.value, `登陆验证`, `你的验证码：${passCode}`).catch(() => {
+    sendEmail(email.value, `登陆验证`, `你的验证码：${passCode}`).catch(() => {
       ElMessage.error('邮件发送失败')
     }).then(() => {
       console.log(`你的验证码：${passCode}`);
@@ -47,9 +64,8 @@ function login() {
 
 function lastLogin(jump: boolean = false) {
   if (jump || inputPassCode.value == passCode) {
-    next().then(() => {
-      router.replace('/main')
-    })
+    next()
+    router.replace('/main')
   } else {
     passCodeTrue.value = true
     setTimeout(() => {

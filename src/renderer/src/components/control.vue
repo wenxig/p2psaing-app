@@ -17,10 +17,10 @@ const props = withDefaults(defineProps<Props>(), {
 let isFocus = ref(true)
 let isHover = ref(false)
 let isMaxSize = ref(false)
-window.electronAPI.ipcRenderer.on(`${props.for}_focus`, () => {
+window.ipc.listen(`focus`, () => {
   isFocus.value = true
 })
-window.electronAPI.ipcRenderer.on(`${props.for}_blur`, () => {
+window.ipc.listen(`blur`, () => {
   isFocus.value = false
 })
 
@@ -38,10 +38,19 @@ const classes = reactive([
 ])
 
 const clickEvent = reactive([
-  () => window.electronAPI.ipcRenderer.invoke((props.type == 'haid') || (window.instance_name.my != 'index') ? `${props.for ?? window.instance_name.my}_close` : 'app_quit'),
-  () => window.electronAPI.ipcRenderer.invoke(`${props.for ?? window.instance_name.my}_minimize`),
-  () => window.electronAPI.ipcRenderer.invoke(`${props.for ?? window.instance_name.my}_maximize`, (isMaxSize.value = true)),
-  () => window.electronAPI.ipcRenderer.invoke(`${props.for ?? window.instance_name.my}_unmaximize`, (isMaxSize.value = false))
+  () => {
+    if ((props.type == 'haid') || (window.instance_name.my != 'index')) window.ipc.close()
+    else window.ipc.relanch()
+  },
+  () => window.ipc.minimize(),
+  () => {
+    window.ipc.maximize()
+    isMaxSize.value = true
+  },
+  () => {
+    window.ipc.unmaximize()
+    isMaxSize.value = false
+  }
 ])
 const ifShow = reactive([
   props.exit,

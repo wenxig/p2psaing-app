@@ -1,8 +1,31 @@
 import type { AxiosResponse } from 'axios';
-import type { ElectronAPI } from '@electron-toolkit/preload';
+import type { BrowserOptions, ChildBrowserOptions } from '../main/hook/useWindow'
+
+type ipc = {
+  listen(path: string, fn: (...data: any[]) => any | Promise<any>): Promise<() => void>
+  beforeListen(fn: (data: any[]) => any | Promise<any>): () => void
+  beforeAddListen(fn: (path: string) => string | Promise<any>): () => void
+  listenOnce(path: string): Promise<any>
+  removeAllListens(path?: string): void
+  setSize(width: number, height: number): void
+  setResizable(agree: boolean): void
+  minimize(): void
+  maximize(): void
+  unmaximize(): void
+  close(): void
+  quitApp(): void
+  toTop(): void
+  relanch(): void
+  setState(key: string, value: string): void
+  getState<T = User.WebDbSaveDeep>(key: string): Promise<T>
+  getStateSync<T = User.WebDbSaveDeep>(key: string): T
+  createMainlessWindow(opt: BrowserOptions): void
+  createChildWindow(opt: ChildBrowserOptions): void
+  reload(sth: string): void
+}
 declare module "vue" {
   interface ComponentCustomProperties {
-    $electron: ElectronAPI
+    $ipc: ipc
     $window: typeof window
   }
 }
@@ -25,16 +48,11 @@ declare global {
   }[keyof T];
   interface Window {
     getToken(of: 'github' | 'smms'): string
-    electronAPI: ElectronAPI
-    email: {
-      send(to: string, subject: string, msg: string): Promise<AxiosResponse<any, any>>
-    };
     instance_name: {
       my: string,
       parent?: string
     }
-    addWindow(name?: string): void
     goHome: () => void
+    ipc: ipc
   }
-
 }

@@ -1,0 +1,62 @@
+{
+  "extends": "@electron-toolkit/tsconfig/tsconfig.web.json",
+  "include": [
+    "./**/*"
+  ],
+  "compilerOptions": {
+    "lib": [
+      "ESNext",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "jsx": "preserve",
+    "target": "ESNext",
+    "useDefineForClassFields": true,
+    "module": "ESNext",
+    "skipLibCheck": true,
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ],
+      "@t/*": [
+        "./src/types/*"
+      ],
+      "@h/*": [
+        "./src/hook/*"
+      ],
+      "@i/*": [
+        "./src/i18n/*"
+      ],
+      "@l/*": [
+        "./src/layout/*"
+      ],
+      "@s/*": [
+        "./src/store/*"
+      ],
+      "@p/*": [
+        "./src/views/*"
+      ],
+      "@a/*": [
+        "./src/api/*"
+      ],
+    },
+    "types": [
+      "../../node_modules/element-plus/global",
+      "./globle.d.ts"
+    ],
+  },
+}

@@ -28,9 +28,9 @@ namespace Peer {
     send: <Tbody = Msg.index | Handshake.Body>(data: Request<Tbody> | isResponse, chunked?: boolean | undefined) => void | Promise<void>
   }
   namespace Msg {
-    type index = {
+    type index = All | CallBask
+    type All = {} & (UserTextMsg | UserFileMsg | UserAppMsg | UserCodeMsg | UserEquationMsg)
 
-    } & (UserTextMsg | UserFileMsg | UserAppMsg | UserCodeMsg | UserEquationMsg | CallBask)
     type UserTextMsg = {
       main: string;
       type: "text";

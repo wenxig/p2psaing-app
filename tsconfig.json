@@ -1,79 +1,15 @@
 {
-  "compilerOptions": {
-    "jsx": "preserve",
-    "target": "ESNext",
-    "useDefineForClassFields": true,
-    "module": "ESNext",
-    "lib": [
-      "ESNext",
-      "DOM",
-      "DOM.Iterable"
-    ],
-    "skipLibCheck": true,
-    /* Bundler mode */
-    "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "noEmit": true,
-    /* Linting */
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true,
-    "experimentalDecorators": true,
-    "baseUrl": ".",
-    "paths": {
-      "@/*": [
-        "./src/renderer/src/*"
-      ],
-      "@t/*": [
-        "./src/renderer/src/types/*"
-      ],
-      "@h/*": [
-        "./src/renderer/src/hook/*"
-      ],
-      "@i/*": [
-        "./src/renderer/src/i18n/*"
-      ],
-      "@l/*": [
-        "./src/renderer/src/layout/*"
-      ],
-      "@s/*": [
-        "./src/renderer/src/store/*"
-      ],
-      "@p/*": [
-        "./src/renderer/src/views/*"
-      ],
-      "@a/*": [
-        "./src/renderer/src/api/*"
-      ],
-      "@@b/*": [
-        "./build/*"
-      ],
-      "@@p/*": [
-        "./src/preload/*"
-      ],
-      "@@r/*": [
-        "./src/renderer/*"
-      ]
-    },
-    "types": [
-      "./node_modules/element-plus/global",
-      "electron-vite/node",
-      "node",
-      "./src/renderer/globle.d.ts"
-    ],
-    "composite": true,
-    "allowSyntheticDefaultImports": true
-  },
+  "extends": "@electron-toolkit/tsconfig/tsconfig.node.json",
   "include": [
-    "src/renderer/**/*",
-    "src/preload/**/*",
-    "src/main/**/*",
-    "electron.vite.config.*",
-    "tailwind.config.*",
-    "src/renderer/user.d.ts",
-    "./package.json"
-  ]
+    "./electron.vite.config.ts",
+  ],
+  "compilerOptions": {
+    "types": [
+      "electron-vite/node",
+      "node"
+    ],
+    "lib": [
+      "ESNext"
+    ]
+  }
 }

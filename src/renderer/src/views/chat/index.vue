@@ -88,9 +88,7 @@ connection.onData(`/msg`, async (data) => {
 
 <template>
   <div class=" h-full overflow-hidden">
-    <div class="w-full h-[80%] overflow-y-hidden">
-      <MsgList :msgs="msgs" :users="[user.user, toUser]" :uid="user.user.uid" />
-    </div>
+    <MsgList :msgs="msgs" :users="[user.user, toUser]" :uid="user.user.uid" />
     <div class="w-full h-[20%] border-t relative">
       <n-mention type="textarea" :options="[]" class="!h-full !w-full" v-model:value="tempMsg.text"></n-mention>
       <n-button type="primary" class="absolute bottom-1 right-1" plain @click="SendMsg.text()">发送</n-button>

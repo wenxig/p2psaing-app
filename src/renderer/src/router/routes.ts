@@ -48,6 +48,14 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/main/dev",
     component: () => import("@p/dev/index.vue")
+  },
+  {
+    path: "/main/dev/state",
+    component: () => import("@p/dev/state.vue")
+  },
+  {
+    path: "/main/chat/img/preview",
+    component: () => import("@p/chat/preview/index.vue")
   }
 ];
 export default routes;

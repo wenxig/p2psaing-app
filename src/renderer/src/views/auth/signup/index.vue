@@ -6,14 +6,29 @@ import { useAuth } from '@h/useAuth';
 import { random } from 'lodash-es';
 import { InfoFilled } from '@element-plus/icons-vue';
 import { useAppStore } from '@s/appdata'
+import axios, { AxiosError } from 'axios';
 const emailPass = ref("")
 const auth = useAuth()
 const app = useAppStore();
-window.electronAPI.ipcRenderer.invoke(`${window.instance_name.my}_setSize`, {
-  width: 650,
-  height: 460
-})
-
+window.ipc.setSize(650, 460)
+const sendEmaill = async (to: string, subject: string, msg: string) => {
+  if ([
+    `https://v.api.aa1.cn/api/qqemail/new/?from_mail=__APP_NAME__@__APP_NAME__.surge.sh&subject=[__APP_NAME__]${subject}&message=${msg}&to=${to}`,
+    `https://v.api.aa1.cn/api/mail/t/api.php?adress=${to}&title=[__APP_NAME__]${subject}&content=${msg}`
+  ].every(async val => {
+    try {
+      const res = await axios.get(val);
+      if (res.data.status === "success" || res.data.Code === "1") {
+        return false;
+      }
+      return true
+    } catch (error) {
+      throw new AxiosError(`can\`t send email, because: \n ${error}`)
+    }
+  })) {
+    throw new AxiosError("can`t send email")
+  }
+};
 const ruleFormRef = ref<FormInstance>()
 const allowUserPer = ref(false)
 const showResult = ref(false)
@@ -126,7 +141,7 @@ const sendEmail = () => {
     }
     emailPass.value = `${random(9)}${random(9)}${random(9)}${random(9)}${random(9)}${random(9)}`
     console.log(`你的验证码：${emailPass.value}`);
-    window.email.send(ruleForm.email, '验证注册邮箱', `你的验证码：${emailPass.value}`).catch(() => {
+    sendEmaill(ruleForm.email, '验证注册邮箱', `你的验证码：${emailPass.value}`).catch(() => {
       ElMessage.error('邮件发送失败')
     }).then(() => {
       ElMessage.success("发送成功，视接口网络情况1~5分钟内收到都有可能")
@@ -176,7 +191,7 @@ const sendEmail = () => {
             同意
           </el-checkbox>
           <n-button quaternary type="primary" class=" !pl-0 !pr-0"
-            @click.stop="$electron.ipcRenderer.send('createChildWindow', { width: 300, height: 300, url: '/p', name: `userp`, more: false }, $window.instance_name.my)"
+            @click.stop="$ipc.createChildWindow({ width: 300, height: 300, url: '/p', windowChannel: `userp`, more: false, parents: $window.instance_name.my })"
             size="small">《用户许可》</n-button>
         </el-form-item>
         <el-form-item class="!w-full !mb-0">
