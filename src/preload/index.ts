@@ -1,15 +1,12 @@
-import { contextBridge } from 'electron'
-import { ipcChannel } from './lib/ipc';
+import { contextBridge as _cb } from 'electron'
+import './lib/ipc';
+const contextBridge = { exposeInMainWorld: import.meta.env.DEV ? (key: string, value: any) => void (window[key] = value) : _cb.exposeInMainWorld }
 
-console.log('perLoad');
-
-contextBridge.exposeInMainWorld('ipc', ipcChannel())
 //密钥获取
 contextBridge.exposeInMainWorld('getToken', (of: string) => {
-  if (of == 'github') {
-    return import.meta.env.PRELOAD_VITE_GITHUB_KEY
-  }
-  if (of == 'smms') {
-    return import.meta.env.PRELOAD_VITE_SMMS_KEY
+  switch (of) {
+    case 'github': return import.meta.env.PRELOAD_VITE_GITHUB_KEY
+    case 'smms': return import.meta.env.PRELOAD_VITE_SMMS_KEY
+    default: return ''
   }
 })

@@ -2,11 +2,6 @@ import type { AxiosResponse } from 'axios';
 import type { BrowserOptions, ChildBrowserOptions } from '../main/hook/useWindow'
 
 type ipc = {
-  listen(path: string, fn: (...data: any[]) => any | Promise<any>): Promise<() => void>
-  beforeListen(fn: (data: any[]) => any | Promise<any>): () => void
-  beforeAddListen(fn: (path: string) => string | Promise<any>): () => void
-  listenOnce(path: string): Promise<any>
-  removeAllListens(path?: string): void
   setSize(width: number, height: number): void
   setResizable(agree: boolean): void
   minimize(): void
@@ -16,12 +11,15 @@ type ipc = {
   quitApp(): void
   toTop(): void
   relanch(): void
-  setState(key: string, value: string): void
+  setState(key: string, value: string, animate: boolean = false): void
   getState<T = User.WebDbSaveDeep>(key: string): Promise<T>
-  getStateSync<T = User.WebDbSaveDeep>(key: string): T
-  createMainlessWindow(opt: BrowserOptions): void
+  createWindow(opt: BrowserOptions): void
+  createInstanse(): void
   createChildWindow(opt: ChildBrowserOptions): void
   reload(sth: string): void
+  onReload(path: string, fn: Function): () => void
+  addRouter<T = any, P extends Record<string, string> = any, Q extends Record<string, string> = any>(path: string, fn: MessageCenterRouterRowFn<T, P, Q>): () => void
+  addOnceRouter<T = any, P extends Record<string, string> = any, Q extends Record<string, string> = any>(path: string, fn: MessageCenterRouterRowFn<T, P, Q>): void
 }
 declare module "vue" {
   interface ComponentCustomProperties {
@@ -49,8 +47,8 @@ declare global {
   interface Window {
     getToken(of: 'github' | 'smms'): string
     instance_name: {
-      my: string,
-      parent?: string
+      my: number,
+      parent: number
     }
     goHome: () => void
     ipc: ipc

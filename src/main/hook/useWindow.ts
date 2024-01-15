@@ -1,14 +1,24 @@
 import { join } from 'path';
 import appIcon from '../../../resources/icon.png?asset'
-import { BrowserWindow } from 'electron';
+import { BrowserWindow, shell, app as App } from 'electron';
 import { is } from '@electron-toolkit/utils';
 const mainHtml = '../renderer/index.html'
-interface MessageInstance<T = any> {
+import { isUrlMatched, createMessageCenterRouterUrl, MessageCenterRouterUrl } from '../utils/url';
+export type MessageCenterRouterRowFn<T = any, P extends Record<string, string> = any, Q extends Record<string, string> = any> = (url: MessageCenterRouterUrl<P, Q>, data: T) => any
+export interface MessageCenterRouterRow<P extends Record<string, string> = any, Q extends Record<string, string> = any> {
   path: string,
-  body: T
+  fn: MessageCenterRouterRowFn<P, Q>,
+  key: symbol
+}
+const remove = <T>(arr: T[], rule: (val: T, index: number) => boolean) => {
+  arr.forEach((val, i) => {
+    if (rule(val, i)) {
+      arr.splice(i, 1)
+    }
+  })
 }
 
-interface WindowConfig extends Electron.BrowserWindowConstructorOptions {
+export interface WindowConfig extends Electron.BrowserWindowConstructorOptions {
   url: string
   parent?: Window
 }
@@ -20,7 +30,8 @@ const baseOpt: WindowConfig = {
   webPreferences: {
     preload: join(__dirname, '../preload/index.js'),
     spellcheck: false,
-    webSecurity: false
+    webSecurity: false,
+    contextIsolation: false
   },
   frame: false,
   resizable: false,
@@ -29,64 +40,129 @@ const baseOpt: WindowConfig = {
 } as const;
 
 
-class ElectronAppInstance {
-  /**  instance to instance communication 实例间通信 */
-  public iic = {}
+export class ElectronAppInstance {
   constructor(public name = 'index') {
     const messageCenter = new MessageCenter(this)
     this.msgChannel = messageCenter
   }
   public msgChannel: MessageCenter
-  private _state = new Map<number, Map<string, any>>()
+  private _state = new Map<number, Map<string, string>>()
   public state = (id: number) => this._state.get(id)
-  createWindow(opt = baseOpt) {
+  public createWindow(opt = baseOpt) {
     const window = new Window(opt, this)
     this._state.set(window.id, new Map())
     return window
   }
 }
 
-interface MessageCenterRouterUrl{
-  
-}
-interface MessageCenterRouterRow {
+export interface MessageInstance<T = any> {
   path: string,
-  fn: <T = any>(url: MessageCenterRouterUrl, data: T) => any
+  body: T
 }
 class MessageCenter {
   constructor(protected app: ElectronAppInstance) { }
-  private windows: { port: Electron.MessagePortMain, window: Window, router: MessageCenterRouterRow }[] = []
+  public windows: { port: Electron.MessagePortMain, window: Window, router: MessageCenterRouterRow[] }[] = []
   public addWindow(win: Window) {
-    if (this.windows.find(v => v.window.id == win.id)) return false
-    win.webContents.ipc.once(`init`, (event) => {
-      const ports = event.ports[0]
-      ports.postMessage({
-        path: '/init',
-        body: {
-          br: win
+    return new Promise<void>((ok) => {
+      win.webContents.ipc.on('init_sync', (event) => {
+        console.log('init_sync');
+        event.returnValue = {
+          my: win.id,
+          root: win.root.id
         }
-      } as MessageInstance)
-      ports.on('message', ({ data }) => {
-        data
       })
-      event.returnValue = win
+      win.webContents.ipc.on(`init_port`, (event) => {
+        const port_main = event.ports[0]
+        console.log(event.ports);
+        
+        this.windows.push({ port: port_main, window: win, router: [] })
+        console.log('window init');
+        const cleanUpPort = () => {
+          port_main.close()
+          remove(this.windows, ({ window }) => win.id == window.id)
+        }
+        win.once('closed', cleanUpPort)
+        port_main.on('message', ({ data }: { data: MessageInstance }) => {
+          console.log('message', data);
+          const cb = new Array<any>()
+          console.log(data);
+          // 遍历执行该窗口的符合url的处理函数
+          for (const { fn, path } of this.windows.find(({ window }) => window.id == win.id)!.router.filter(({ path }) => isUrlMatched(path, data.path))) cb.push(fn(createMessageCenterRouterUrl(path, data.path), data.body))
+          console.log({
+            path: `${data.path}#callback`,
+            body: cb
+          });
+          port_main.postMessage(<MessageInstance>{
+            path: `${data.path}#callback`,
+            body: cb
+          })
+        })
+        port_main.start()
+        ok()
+      })
     })
-    return true
+  }
+  public addRoute<T = any>(win: Window, path: string, fn: MessageCenterRouterRowFn<T>): () => void {
+    const key = Symbol(path)
+    const window = this.windows[this.windows.findIndex(({ window }) => window.id == win.id)]
+    window.router.push({ path, fn, key })
+    return () => remove(window.router, val => val.key == key)
+  }
+  public send(msg: MessageInstance, to: (number | Window | Electron.MessagePortMain)[] = this.windows.map(v => v.window)) {
+    const ports: Electron.MessagePortMain[] = to.map((row) => {
+      if (typeof row === 'number') return this.windows.find(r => r.window.id == row)!.port
+      if (row instanceof Window) return this.windows.find(r => r.window.id == row.id)!.port
+      return row
+    })
+    for (const port of ports) port.postMessage(msg)
   }
 }
 class Window extends BrowserWindow {
   public root: Window
   constructor(public options = baseOpt, private app: ElectronAppInstance) {
     super(options)
+    this.once('ready-to-show', () => {
+      console.log('show');
+      this.show()
+    })
+    this.webContents.setWindowOpenHandler((details) => {
+      shell.openExternal(details.url)
+      return { action: 'deny' }
+    })
+    this.app.msgChannel.addWindow(this).then(() => {
+      this.addRoute<any[], { method: string }>('/run/window/:method', ({ params }, data) => this[params.method](...(data ?? [])))
+      this.addRoute<any[], { method: string }>('/run/app/:method', ({ params }, data) => App[params.method](...(data ?? [])))
+      this.addRoute<any[], { method: string }>('/run/instanes/:method', ({ params }, data) => app[params.method](...(data ?? [])))
+      this.addRoute<string | undefined, { method: 'get' | 'set', key: string }>('/state/:method/:key', ({ params }, data) => {
+        switch (params.method) {
+          case 'get': {
+            return this.app.state(this.id)!.get(params.key)
+          }
+          case 'set': {
+            this.app.state(this.id)!.set(params.key, data!)
+            return
+          }
+        }
+      })
+      this.addRoute<void, { id: string }>('/reload', (_, path) => {
+        this.app.msgChannel.send({
+          path: `/reload${path}`,
+          body: null
+        })
+      })
+      this.on('focus', () => this.app.msgChannel.send({
+        path: `/emit/focus`,
+        body: null
+      }, [this]))
+      this.on('blur', () => this.app.msgChannel.send({
+        path: `/emit/blur`,
+        body: null
+      }, [this]))
+    })
+    this.root = this.options.parent?.root ?? this.options.parent ?? this
     const joinData = `#${options.url}`
-    process.cwd
-    if (is.dev && process.env['ELECTRON_RENDERER_URL']) this.loadURL([process.env['ELECTRON_RENDERER_URL'], joinData].join())
-    else this.loadFile([join(__dirname, mainHtml), joinData].join())
-    this.app.msgChannel.addWindow(this)
-    this.root = this
-    while (!!this.root.root) {
-      this.root = this.root.root
-    }
+    if (is.dev && process.env['ELECTRON_RENDERER_URL']) this.loadURL(`${process.env['ELECTRON_RENDERER_URL']}${joinData}`)
+    else this.loadFile(`${join(__dirname, mainHtml)}${joinData}`)
   }
   public createChildWindow(options = baseOpt) {
     const win = new Window({
@@ -94,6 +170,9 @@ class Window extends BrowserWindow {
       parent: this
     }, this.app)
     this.app.msgChannel.addWindow(win)
+  }
+  public addRoute<T = any, P extends Record<string, string> = any, Q extends Record<string, string> = any>(path: string, fn: MessageCenterRouterRowFn<T, P, Q>): () => void {
+    return this.app.msgChannel.addRoute<T>(this, path, fn)
   }
 }
 

@@ -17,12 +17,8 @@ const props = withDefaults(defineProps<Props>(), {
 let isFocus = ref(true)
 let isHover = ref(false)
 let isMaxSize = ref(false)
-window.ipc.listen(`focus`, () => {
-  isFocus.value = true
-})
-window.ipc.listen(`blur`, () => {
-  isFocus.value = false
-})
+window.ipc.addRouter(`/emit/focus`, () => isFocus.value = true)
+window.ipc.addRouter(`/emit/blur`, () => isFocus.value = false)
 
 const classes = reactive([
   [
@@ -39,7 +35,7 @@ const classes = reactive([
 
 const clickEvent = reactive([
   () => {
-    if ((props.type == 'haid') || (window.instance_name.my != 'index')) window.ipc.close()
+    if ((props.type == 'haid') || (window.instance_name.my != 1)) window.ipc.close()
     else window.ipc.relanch()
   },
   () => window.ipc.minimize(),
@@ -75,7 +71,7 @@ const IconNements = [
   <el-space class="region-no-drag !w-[3.75rem] h-5 !pl-1 !pr-1" @mouseenter="isHover = true"
     @mouseleave="isHover = false">
     <template v-for="(show, index) of ifShow">
-      <div :class="[(!isFocus ? '!bg-[#C0C4CC]' : ''), ...classes[index == 3 ? 2 : index]]"
+      <div :class="[!isFocus && '!bg-[#C0C4CC]', ...classes[index == 3 ? 2 : index]]"
         class="flex items-center justify-around rounded-full h-3 w-3 border-[0.1px] border-[#909399] border-solid"
         v-if="show && ((index == 0 || index == 1) || (!isMaxSize && index == 2) || (isMaxSize && index == 3))">
         <el-icon size="0.5rem" v-if="isHover" @click="clickEvent[index]">

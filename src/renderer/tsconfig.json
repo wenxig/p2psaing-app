@@ -52,11 +52,11 @@
       ],
       "@a/*": [
         "./src/api/*"
-      ],
+      ]
     },
     "types": [
       "../../node_modules/element-plus/global",
       "./globle.d.ts"
-    ],
-  },
+    ]
+  }
 }

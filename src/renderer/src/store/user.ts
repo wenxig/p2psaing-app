@@ -7,10 +7,10 @@ import { toUserWebSave } from '@/utils/user'
 import { Chat } from '@/api/chat';
 import router from '@/router';
 import { useAppStore } from './appdata';
-const reload = (): User.WebDbSaveDeep => {
-  const appState = window.ipc.getStateSync('user')
-  if (isEmpty(appState)) {
-    return {
+export const useUserStore = defineStore("user", () => {
+  const reload = (setup = false): User.WebDbSaveDeep => {
+    window.ipc.getState('user').then((data) => !isEmpty(data) && (user.value = data))
+    return setup ? {
       email: '',
       pid: '',
       lid: '',
@@ -22,12 +22,9 @@ const reload = (): User.WebDbSaveDeep => {
       },
       name: '',
       password: ''
-    }
+    } : user.value
   }
-  return appState
-}
-export const useUserStore = defineStore("user", () => {
-  const user = ref(reload())
+  const user = ref(reload(true))
   async function commit() {
     window.ipc.setState('user', JSON.stringify(user.value))
     await server.createUpdate().commit(user.value)
@@ -48,9 +45,8 @@ export const useUserStore = defineStore("user", () => {
   function $setUser(value: { user: User.WebDbSaveDeep }) {
     user.value = value.user
   }
-  window.ipc.listen(`/reload/store/user`, () => {
+  window.ipc.onReload(`/store/user`, () => {
     console.log('reload');
-    
     peerSetup();
     user.value = reload()
     user.value = reload()

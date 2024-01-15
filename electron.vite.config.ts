@@ -15,28 +15,15 @@ import { createHtmlPlugin } from 'vite-plugin-html'
 import inspect from 'vite-plugin-inspect';
 import replace from '@rollup/plugin-replace';
 export default defineConfig(({ command: mode }) => {
-  function onlyBuild(buildValue: any, defaultValue?: any) {
-    if (mode == 'build') {
-      if (buildValue instanceof Function && defaultValue instanceof Array) {
-        return buildValue(...defaultValue)
-      }
-      return buildValue
-    }
-    if (defaultValue instanceof Array) {
-      return defaultValue[0]
-    }
-    return defaultValue
-  }
-  onlyBuild(() => [path.join(__dirname, './electron-builder.yml'), path.join(__dirname, './dev-app-update.yml')].forEach(val => fs.writeFileSync(val, fs.readFileSync(val).toString().replace(/__APP_NAME__/g, package_json.name))))
+  const onlyBuild = <T>(buildValue: T, defaultValue?: any): T => mode == 'build' ? buildValue : defaultValue
+  const onlyBuildRun = <T extends (...args: any[]) => any>(fn: T, ...props: Parameters<T>): ReturnType<T> | void => mode == 'build' && fn(...props)
+  onlyBuildRun(() => [path.join(__dirname, './electron-builder.yml'), path.join(__dirname, './dev-app-update.yml')].forEach(val => fs.writeFileSync(val, fs.readFileSync(val).toString().replace(/__APP_NAME__/g, package_json.name))))
   return {
     main: {
       plugins: [
-
         replace({
-          '@@b': fileURLToPath(new URL('./build', import.meta.url)),
-          '@@p': fileURLToPath(new URL('./src/preload', import.meta.url)),
-          '@@r': fileURLToPath(new URL('./src/renderer', import.meta.url)),
-          ".ts?$": '.js'
+          '__APP_NAME__': `${package_json.name}`,
+          '__APP_VERSION__': `${package_json.version}`
         }),
         bytecodePlugin({ protectedStrings: ["https://tinywebdb.appinventor.space/api"] }),
         externalizeDepsPlugin(),
@@ -55,7 +42,11 @@ export default defineConfig(({ command: mode }) => {
       }
     },
     preload: {
-      plugins: [bytecodePlugin({ protectedStrings: ["https://tinywebdb.appinventor.space/api"] }), externalizeDepsPlugin()],
+      plugins: [
+        replace({
+          '__APP_NAME__': `${package_json.name}`,
+          '__APP_VERSION__': `${package_json.version}`
+        }), bytecodePlugin({ protectedStrings: ["https://tinywebdb.appinventor.space/api"] }), externalizeDepsPlugin()],
       build: {
         ...onlyBuild({
           terserOptions: {

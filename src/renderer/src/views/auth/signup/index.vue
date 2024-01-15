@@ -122,9 +122,11 @@ const submitForm = (formEl: FormInstance | undefined) => {
         return true;
       }
       ElMessage.error("用户已经存在")
+      return
     }).catch(err => {
       ElMessage.error(err)
     }).finally(() => loading.close())
+    return
   })
 }
 
