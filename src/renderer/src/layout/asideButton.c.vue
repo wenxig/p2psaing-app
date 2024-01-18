@@ -15,14 +15,13 @@ const textColor = ref(!props.primary ? '#666' : 'var(--el-color-primary-light-3)
 <template>
   <button class="c !transition backdrop-opacity-5 bg-[unset] flex justify-center items-center rounded-md mt-5 !h-[2rem] !w-[2rem]"
     @click="(e) => !primary && $emit('click', e)">
-    <el-icon size="1.5rem" :color="color">
+    <el-icon size="1.5rem" class=" transition-colors icon" :color="color">
       <slot></slot>
     </el-icon>
   </button>
 </template>
 <style scoped lang='scss'>
-.c:hover .el-icon {
-  transition: color 150ms;
+.c:hover .icon {
   color: v-bind("textColor");
 }
 

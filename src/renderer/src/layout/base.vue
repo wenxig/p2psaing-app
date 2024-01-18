@@ -1,23 +1,56 @@
 <script setup lang='tsx'>
 import { ChatRound } from "@element-plus/icons-vue";
 import control from '@/components/control.vue';
-import { computed } from 'vue';
+import { computed, ref, nextTick } from 'vue';
 import { useUserStore } from '@s/user';
 import { storeToRefs } from 'pinia';
 import AsideButton from './asideButton.c.vue';
 import { useRoute } from "vue-router";
 import { Code20Filled } from '@vicons/fluent';
 import { useAppStore } from "@/store/appdata";
+import { Settings } from '@vicons/carbon';
+import gsap from "gsap"
 const route = useRoute()
-const user = useUserStore()
 const app = useAppStore()
-const userVal = storeToRefs(user)
+const { user } = storeToRefs(useUserStore())
 const isOnHomePage = computed(() => {
   return [
     /^\/main\/chat/g,
     /^\/main$/g
   ].some(reg => reg.test(route.path))
 })
+
+const BASE_SIZE_AVATAR = 40
+const BASE_SIZE_CHANGE = 5
+const DivEl = ref<HTMLDivElement>()
+const bigSize = (el: HTMLElement) => {
+  nextTick(() => {
+    gsap.to(el, {
+      width: BASE_SIZE_AVATAR + BASE_SIZE_CHANGE,
+      height: BASE_SIZE_AVATAR + BASE_SIZE_CHANGE,
+      x: BASE_SIZE_CHANGE,
+      marginBottom: -BASE_SIZE_CHANGE,
+    }).play()
+    gsap.to('.pop-user', {
+      x: 50,
+      opacity: 1,
+      direction: 2
+    }).play()
+  })
+}
+const nomeSize = (el: HTMLElement) => {
+  gsap.to(el, {
+    width: BASE_SIZE_AVATAR,
+    height: BASE_SIZE_AVATAR,
+    x: 0,
+    marginBottom: 0,
+  }).play()
+  gsap.to('.pop-user', {
+    x: 30,
+    opacity: 0,
+    direction: 4
+  }).play()
+}
 </script>
 
 <template>
@@ -27,9 +60,29 @@ const isOnHomePage = computed(() => {
     }">
       <control class="absolute top-0 left-0"></control>
       <el-space direction='vertical' class=" w-full h-full">
-        <el-avatar shape="square" class="region-no-drag" :size="40"
-          :src="userVal.user.value.img == '' ? '/userIcon.png' : userVal.user.value.img"
-          @click="$ipc.createChildWindow({ width: 800, height: 500, url: '/main/userSetting', windowChannel: `userSetting`, more: false, parents: $window.instance_name.my })" />
+        <div @mouseleave="(e) => nomeSize(e.target as HTMLElement)" ref="DivEl"
+          @mouseenter="(e) => bigSize(e.target as HTMLElement)" class=" relative DivEl"
+          :style="{ width: `${BASE_SIZE_AVATAR}px`, height: `${BASE_SIZE_AVATAR}px` }">
+          <el-avatar shape="square" class="region-no-drag !w-full !h-full"
+            :src="user.img == '' ? '/userIcon.png' : user.img"
+            @click="$ipc.createChildWindow({ width: 800, height: 500, url: '/main/setting/user', parents: $window.instance_name.my })" />
+        </div>
+        <div
+          class="pointer-events-none border p-2 border-[--el-fill-color-light] bg-[--el-bg-color] pop-user rounded-md opacity-0 w-[13rem] h-[8rem] fixed z-40 before:bg-[--el-bg-color] before:pointer-events-none before:border-b before:border-l before:border-[--el-fill-color-light] before:content-[''] before:w-5 before:h-5 before:top-[--i-before-top] before:block before:m-0 before:!absolute before:-translate-x-[100%] before:rotate-45"
+          :style="{
+            top: `${(DivEl?.offsetTop ?? 0) - BASE_SIZE_AVATAR / 2}px`,
+            '--i-before-top': `${BASE_SIZE_AVATAR}px`
+          }">
+          <NThing class="!w-full !h-full">
+            <template #avatar>
+              <el-avatar shape="square" class="region-no-drag" :size="BASE_SIZE_AVATAR"
+                :src="user.img == '' ? '/userIcon.png' : user.img" />
+            </template>
+            <template #header>{{ user.name }}</template>
+            <template #description>{{ user.introduction }}</template>
+            <ElDivider class="!m-0" />
+          </NThing>
+        </div>
         <AsideButton :primary="isOnHomePage" @click="$router.push('/main')">
           <ChatRound />
         </AsideButton>
@@ -41,6 +94,11 @@ const isOnHomePage = computed(() => {
         </AsideButton>
         <AsideButton :primary="$route.path.startsWith('/main/dev')" @click="$router.push('/main/dev')">
           <Code20Filled />
+        </AsideButton>
+      </el-space>
+      <el-space direction='vertical' class=" w-full h-auto absolute bottom-2">
+        <AsideButton :primary="$route.path.startsWith('/main/setting/app')" @click="$router.push('/main/setting/app')">
+          <Settings />
         </AsideButton>
       </el-space>
     </el-aside>

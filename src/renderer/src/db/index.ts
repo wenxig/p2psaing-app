@@ -3,21 +3,24 @@ import { watchOnce } from "@vueuse/core";
 import localforage from "localforage";
 import { ref } from "vue";
 import * as server from '@/db/network'
-
+import { remove } from "lodash-es";
 namespace db {
   const driver = localforage.INDEXEDDB
   export const base = localforage.createInstance({
     name: '__APP_NAME__',
     driver
   })
-  async function setItem<T>(key: string, value: T): Promise<T> {
+  function setItem<T>(key: string, value: T): Promise<T> {
     return base.setItem<T>(`${key}_${window.instance_name.my}`, value)
   }
-  async function getItem<T>(key: string): Promise<T | null> {
+  function getItem<T>(key: string): Promise<T | null> {
     return base.getItem<T>(`${key}_${window.instance_name.my}`)
   }
-  async function removeItem(key: string): Promise<void> {
+  function removeItem(key: string): Promise<void> {
     return base.removeItem(`${key}_${window.instance_name.my}`)
+  }
+  async function getAllKeys(): Promise<string[]> {
+    return (await base.keys()).map(key => key.replaceAll(`_${window.instance_name.my}`, ''))
   }
   let isReady = ref(false)
   base.ready().then(() => isReady.value = true)
@@ -109,6 +112,39 @@ namespace db {
     export async function get(uid: number): Promise<Peer.Request.Msg[]> {
       await whenReady()
       return await getItem<Peer.Request.Msg[]>(uid.toString()) ?? []
+    }
+  }
+  export namespace app {
+    export interface Code {
+      code: string,
+      about: string,
+      time: Date,
+      name: string,
+      isLoad: boolean
+    }
+    const subs: { fn: (allStyle: Code[]) => any; key: symbol; }[] = []
+    export function sub(fn: (allStyle: Code[]) => any, setup = false) {
+      const key = Symbol('sub')
+      subs.push({ fn, key })
+      if (setup) (async () => fn(await getAllStyle()))()
+      return () => remove(subs, { key })
+    }
+    export async function addStyle(code: Omit<Code, 'name'>, id: string) {
+      await setItem(`${id}_style`, { ...code, name: id })
+      for (const { fn } of subs) fn(await getAllStyle())
+    }
+    export async function removeStyle(id: string) {
+      await removeItem(`${id}_style`)
+      for (const { fn } of subs) fn(await getAllStyle())
+    }
+    export function getStyle(id: string) {
+      return getItem<Code>(`${id}_style`)
+    }
+    export async function getAllStyle() {
+      const keys = (await getAllKeys()).filter(val => val.endsWith('_style'))
+      const items: Code[] = []
+      for (const key of keys) items.push((await getItem(key))!)
+      return items
     }
   }
   interface DataWithTime<T> {

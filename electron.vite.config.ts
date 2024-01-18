@@ -14,6 +14,92 @@ import fs from "fs"
 import { createHtmlPlugin } from 'vite-plugin-html'
 import inspect from 'vite-plugin-inspect';
 import replace from '@rollup/plugin-replace';
+import monacoEditorPlugin, { IMonacoEditorOpts } from 'vite-plugin-monaco-editor'
+//@ts-ignore  堆栈深度过高
+const rendererConfig = defineViteConfig({
+  //@ts-ignore  堆栈深度过高
+  resolve: {
+    alias: {
+      '@t': fileURLToPath(new URL('./src/renderer/src/types', import.meta.url)),
+      '@': fileURLToPath(new URL('./src/renderer/src', import.meta.url)),
+      '@h': fileURLToPath(new URL('./src/renderer/src/hook', import.meta.url)),
+      '@l': fileURLToPath(new URL('./src/renderer/src/layout', import.meta.url)),
+      '@i': fileURLToPath(new URL('./src/renderer/src/i18n', import.meta.url)),
+      '@s': fileURLToPath(new URL('./src/renderer/src/store', import.meta.url)),
+      '@p': fileURLToPath(new URL('./src/renderer/src/views', import.meta.url)),
+      '@a': fileURLToPath(new URL('./src/renderer/src/api', import.meta.url))
+    }
+  },
+  plugins: [
+    inspect(),
+    replace({
+      'process.env': JSON.stringify({
+        NODE_ENV: import.meta.env,
+      }),
+      '__APP_NAME__': `${package_json.name}`,
+      '__APP_VERSION__': `${package_json.version}`
+    }),
+    createHtmlPlugin({
+      minify: true,
+      entry: 'src/main.ts',
+      inject: {
+        data: {
+          title: package_json.name,
+        },
+        tags: [
+          {
+            injectTo: 'body-prepend',
+            tag: 'div',
+            attrs: {
+              id: 'app',
+              style: 'height: 100vh;'
+            },
+          },
+        ],
+      },
+    }),
+    vue(),
+    vueJsx(),
+    (<any>monacoEditorPlugin).default(<IMonacoEditorOpts>{
+      languageWorkers: ['editorWorkerService', 'css'],
+      features: ["coreCommands", "find", "format", "folding", 'smartSelect', 'snippets', 'suggest', 'hover']
+    }),
+    AutoImport({
+      resolvers: [
+        NaiveUiResolver(),
+        ElementPlusResolver()
+      ],
+    }),
+    Components({
+      resolvers: [
+        NaiveUiResolver(),
+        ElementPlusResolver()
+      ],
+    })
+  ],
+  //@ts-ignore
+  css: {
+    postcss: {
+      plugins: [
+        //@ts-ignore
+        tailwindcss,
+        //@ts-ignore
+        postCssPxToRem,
+      ]
+    }
+  },
+  build: {
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true,
+      },
+    },
+    minify: "terser",
+    outDir: 'dist/renderer'
+  }
+})
+
 export default defineConfig(({ command: mode }) => {
   const onlyBuild = <T>(buildValue: T, defaultValue?: any): T => mode == 'build' ? buildValue : defaultValue
   const onlyBuildRun = <T extends (...args: any[]) => any>(fn: T, ...props: Parameters<T>): ReturnType<T> | void => mode == 'build' && fn(...props)
@@ -60,88 +146,6 @@ export default defineConfig(({ command: mode }) => {
         outDir: 'dist/preload'
       }
     },
-    //@ts-ignore  堆栈深度过高
-    renderer: defineViteConfig({
-      //@ts-ignore  堆栈深度过高
-      resolve: {
-        alias: {
-          '@t': fileURLToPath(new URL('./src/renderer/src/types', import.meta.url)),
-          '@': fileURLToPath(new URL('./src/renderer/src', import.meta.url)),
-          '@h': fileURLToPath(new URL('./src/renderer/src/hook', import.meta.url)),
-          '@l': fileURLToPath(new URL('./src/renderer/src/layout', import.meta.url)),
-          '@i': fileURLToPath(new URL('./src/renderer/src/i18n', import.meta.url)),
-          '@s': fileURLToPath(new URL('./src/renderer/src/store', import.meta.url)),
-          '@p': fileURLToPath(new URL('./src/renderer/src/views', import.meta.url)),
-          '@a': fileURLToPath(new URL('./src/renderer/src/api', import.meta.url))
-        }
-      },
-      plugins: [
-        inspect(),
-        replace({
-          'process.env': JSON.stringify({
-            NODE_ENV: import.meta.env,
-          }),
-          '__APP_NAME__': `${package_json.name}`,
-          '__APP_VERSION__': `${package_json.version}`
-        }),
-        createHtmlPlugin({
-          minify: true,
-          entry: 'src/main.ts',
-          inject: {
-            data: {
-              title: package_json.name,
-            },
-            tags: [
-              {
-                injectTo: 'body-prepend',
-                tag: 'div',
-                attrs: {
-                  id: 'app',
-                  style: 'height: 100vh;'
-                },
-              },
-            ],
-          },
-        }),
-        vue(),
-        vueJsx(),
-        AutoImport({
-          resolvers: [
-            NaiveUiResolver(),
-            ElementPlusResolver()
-          ],
-        }),
-        Components({
-          resolvers: [
-            NaiveUiResolver(),
-            ElementPlusResolver()
-          ],
-        })
-      ],
-      //@ts-ignore
-      css: {
-        postcss: {
-          plugins: [
-            //@ts-ignore
-            tailwindcss,
-            //@ts-ignore
-            postCssPxToRem,
-          ]
-        }
-      },
-      build: {
-        terserOptions: {
-          compress: {
-            drop_console: true,
-            drop_debugger: true,
-          },
-        },
-        minify: "terser",
-        outDir: 'dist/renderer'
-      },
-      test: {
-
-      }
-    }),
+    renderer: rendererConfig
   }
 })

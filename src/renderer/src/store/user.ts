@@ -9,7 +9,7 @@ import router from '@/router';
 import { useAppStore } from './appdata';
 export const useUserStore = defineStore("user", () => {
   const reload = (setup = false): User.WebDbSaveDeep => {
-    window.ipc.getState('user').then((data) => !isEmpty(data) && (user.value = data))
+    window.ipc.getState('user').then((data) => !isEmpty(data) && (user.value = JSON.parse(data)))
     return setup ? {
       email: '',
       pid: '',
@@ -52,7 +52,6 @@ export const useUserStore = defineStore("user", () => {
     user.value = reload()
   })
   async function peerSetup() {
-    window.ipc.toTop()
     const appStore = useAppStore()
     const c = await (new Chat(user.value.lid)).setup()
     c.listen('connection', conn => {

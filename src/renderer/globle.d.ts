@@ -1,6 +1,6 @@
 import type { AxiosResponse } from 'axios';
 import type { BrowserOptions, ChildBrowserOptions } from '../main/hook/useWindow'
-
+import { MonacoEnvironment } from 'monaco-editor';
 type ipc = {
   setSize(width: number, height: number): void
   setResizable(agree: boolean): void
@@ -12,12 +12,13 @@ type ipc = {
   toTop(): void
   relanch(): void
   setState(key: string, value: string, animate: boolean = false): void
-  getState<T = User.WebDbSaveDeep>(key: string): Promise<T>
+  getState(key: string): Promise<string>
   createWindow(opt: BrowserOptions): void
   createInstanse(): void
   createChildWindow(opt: ChildBrowserOptions): void
   reload(sth: string): void
   onReload(path: string, fn: Function): () => void
+  getVersions(): Record<string, string>
   addRouter<T = any, P extends Record<string, string> = any, Q extends Record<string, string> = any>(path: string, fn: MessageCenterRouterRowFn<T, P, Q>): () => void
   addOnceRouter<T = any, P extends Record<string, string> = any, Q extends Record<string, string> = any>(path: string, fn: MessageCenterRouterRowFn<T, P, Q>): void
 }
@@ -52,5 +53,6 @@ declare global {
     }
     goHome: () => void
     ipc: ipc
+    MonacoEnvironment: MonacoEnvironment
   }
 }

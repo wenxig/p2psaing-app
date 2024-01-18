@@ -8,8 +8,15 @@ import 'highlight.js/scss/atom-one-light.scss';
 import { useLightTheme } from '@h/useTheme';
 import { useThemeVars } from 'naive-ui';
 import { useUserStore } from './store/user';
+import { useStyleTag } from '@vueuse/core';
+import db from './db';
 useLightTheme(useThemeVars())
 const user = useUserStore()
+const joinStyle = useStyleTag('', { id: 'app-inject-style' })
+db.app.sub((styles) => {
+  styles = styles.filter(({ isLoad }) => isLoad)
+  joinStyle.css.value = styles.map(({ code }) => code).join('\n')
+}, true)
 </script>
 
 <template>
@@ -17,7 +24,7 @@ const user = useUserStore()
     <n-global-style />
     <el-config-provider :locale="elZhCn">
       <Suspense>
-        <router-view></router-view>
+        <router-view class="overflow-hidden"></router-view>
       </Suspense>
     </el-config-provider>
   </n-config-provider>

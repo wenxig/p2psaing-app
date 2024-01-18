@@ -4,4 +4,4 @@ out
 *.log*
 pnpm-lock.yaml
 .DS_Store
-resources/vue/* 
+resources/vue_devtools/* 

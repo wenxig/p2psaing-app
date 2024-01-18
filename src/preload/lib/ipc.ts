@@ -2,6 +2,8 @@ import { ipcRenderer, contextBridge as _cb } from "electron";
 import type { MessageInstance, MessageCenterRouterRowFn, MessageCenterRouterRow, WindowConfig } from '../../main/hook/useWindow';
 import type { ipc as Ipc } from '../../renderer/globle';
 import { isUrlMatched, createMessageCenterRouterUrl } from "../../main/utils/url";
+import { dependencies, devDependencies } from "../../../package.json"
+
 const contextBridge = { exposeInMainWorld: import.meta.env.DEV ? (key: string, value: any) => void (window[key] = value) : _cb.exposeInMainWorld }
 const remove = <T,>(arr: T[], rule: (val: T, index: number) => boolean) => {
   arr.forEach((val, i) => {
@@ -84,6 +86,7 @@ const setSize = (width: number, height: number, animate: boolean = false) => sen
   body: [width, height, animate]
 })
 const toTop = () => {
+  if (my != root) return
   send({
     path: `/run/window/center`,
     body: null
@@ -106,7 +109,7 @@ const relanch = () => send({
   body: null
 })
 const setResizable = (agree: boolean) => send({
-  path: `/run/app/relanch`,
+  path: `/run/window/setResizable`,
   body: [agree]
 })
 
@@ -133,7 +136,10 @@ contextBridge.exposeInMainWorld('ipc', {
   reload,
   onReload,
   addRouter,
-  addOnceRouter
+  addOnceRouter,
+  getVersions(){
+    return Object.assign(process.versions, dependencies, devDependencies)
+  }
 } as Ipc)
 
 

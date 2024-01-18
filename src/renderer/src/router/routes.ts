@@ -42,8 +42,12 @@ const routes: RouteRecordRaw[] = [
     component: () => import("@p/permiss/index.vue")
   },
   {
-    path: "/main/userSetting",
-    component: () => import("@p/setting/index.vue")
+    path: "/main/setting/user",
+    component: () => import("@p/setting/user/index.vue")
+  },
+  {
+    path: "/main/setting/app",
+    component: () => import("@p/setting/app/index.vue")
   },
   {
     path: "/main/dev",
