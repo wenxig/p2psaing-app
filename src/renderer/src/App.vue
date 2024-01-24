@@ -7,13 +7,19 @@ import hljs from 'highlight.js';
 import 'highlight.js/scss/atom-one-light.scss';
 import { useLightTheme } from '@h/useTheme';
 import { useThemeVars } from 'naive-ui';
-import { useUserStore } from './store/user';
+import { useUserStore } from '@s/user';
 import { useStyleTag } from '@vueuse/core';
 import db from './db';
+import { actor } from "@c/index";
 useLightTheme(useThemeVars())
 const user = useUserStore()
 const joinStyle = useStyleTag('', { id: 'app-inject-style' })
+let isLoadCSS = false
 db.app.sub((styles) => {
+  if (!isLoadCSS) {
+    actor.send({ type: 'loadCSS' })
+    isLoadCSS = true
+  }
   styles = styles.filter(({ isLoad }) => isLoad)
   joinStyle.css.value = styles.map(({ code }) => code).join('\n')
 }, true)

@@ -53,44 +53,26 @@ function useMonacoEditor(language: string = 'css') {
   }
 
   // 格式化
-  async function formatDoc() {
-    await monacoEditor?.getAction('editor.action.formatDocument')?.run()
-  }
+  const formatDoc = async () => await monacoEditor?.getAction('editor.action.formatDocument')?.run()
 
   // 数据更新
-  function updateVal(val: string) {
-    nextTick(() => {
-      if (getOption(monaco.editor.EditorOption.readOnly)) {
-        updateOptions({ readOnly: false })
-      }
-      monacoEditor?.setValue(val)
-      setTimeout(async () => {
-        await formatDoc()
-      }, 10)
-    })
-  }
+  const updateVal = (val: string) => nextTick(() => {
+    if (getOption(monaco.editor.EditorOption.readOnly)) updateOptions({ readOnly: false })
+    monacoEditor?.setValue(val)
+    setTimeout(async () => await formatDoc(), 10)
+  })
 
   // 配置更新
-  function updateOptions(opt: monaco.editor.IStandaloneEditorConstructionOptions) {
-    monacoEditor?.updateOptions(opt)
-  }
+  const updateOptions = (opt: monaco.editor.IStandaloneEditorConstructionOptions) => monacoEditor?.updateOptions(opt)
 
   // 获取配置
-  function getOption(name: monaco.editor.EditorOption) {
-    return monacoEditor?.getOption(name)
-  }
+  const getOption = (name: monaco.editor.EditorOption) => monacoEditor?.getOption(name)
 
   // 获取实例
-  function getEditor() {
-    return monacoEditor
-  }
+  const getEditor = () => monacoEditor
 
   // 页面离开 销毁
-  onBeforeUnmount(() => {
-    if (monacoEditor) {
-      monacoEditor.dispose()
-    }
-  })
+  onBeforeUnmount(() => monacoEditor && monacoEditor.dispose())
 
   return {
     monacoEditorRef,
@@ -122,35 +104,23 @@ const emits = defineEmits<{
   (e: 'mounted'): void
 }>()
 
-const monacoEditorStyle = computed(() => {
-  return {
-    width: typeof props.width === 'string' ? props.width : props.width + 'px',
-    height: typeof props.height === 'string' ? props.height : props.height + 'px'
-  }
-})
+const monacoEditorStyle = computed(() => ({
+  width: typeof props.width === 'string' ? props.width : props.width + 'px',
+  height: typeof props.height === 'string' ? props.height : props.height + 'px'
+}))
 
 const { monacoEditorRef, createEditor, updateVal, updateOptions, getEditor } = useMonacoEditor(props.language)
 onMounted(async () => {
   const monacoEditor = await createEditor(props.editorOption)
   updateMonacoVal(props.modelValue);
-  monacoEditor?.onDidChangeModelContent(() => {
-    emits('update:modelValue', monacoEditor!.getValue())
-  });
-  monacoEditor?.onDidBlurEditorText(() => {
-    emits('blue')
-  })
+  monacoEditor?.onDidChangeModelContent(() => emits('update:modelValue', monacoEditor!.getValue()));
+  monacoEditor?.onDidBlurEditorText(() => emits('blue'))
   emits('mounted')
 })
 
-watch(() => props.modelValue, () => {
-  updateMonacoVal(props.modelValue)
-})
+watch(() => props.modelValue, () => updateMonacoVal(props.modelValue))
 
-function updateMonacoVal(val: string) {
-  if (val !== getEditor()?.getValue()) {
-    updateVal(val)
-  }
-}
+const updateMonacoVal = (val: string) => val !== getEditor()?.getValue() && updateVal(val)
 defineExpose({ updateOptions })
 </script>
 <template>

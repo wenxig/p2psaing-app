@@ -3,16 +3,15 @@ import { useUserStore } from '@s/user';
 import { useAppStore } from '@s/appdata';
 import NameEdit from './nameEdit.c.vue';
 import { Plus } from '@element-plus/icons-vue'
-import useUploader from '@h/useUploader';
+import { uploader } from '@h/useUploader';
 import { ref } from 'vue'
 import { storeToRefs } from 'pinia';
 import CoverEdit from './coverEdit.c.vue';
 const { settingPage } = storeToRefs(useAppStore())
-const userStoer = useUserStore()
-const uploader = useUploader()
+const { user } = storeToRefs(useUserStore())
 const progressFlag = ref(false)
 const isUploadErr = ref(false)
-const imageUrl = ref(userStoer.user.img)
+const imageUrl = ref(user.value.img)
 const showSetUserImage = ref(false)
 let reloadTimes = 0
 async function upload(rawFile: File) {
@@ -20,22 +19,19 @@ async function upload(rawFile: File) {
   reloadTimes = 0
   progressFlag.value = true;
   settingPage.value.loadProgress = 0
-  let value
   try {
-    value = await uploader.titleImg(rawFile);
+    var [value] = await uploader.avatar(rawFile);
   } catch (err) {
     console.error(err);
     isUploadErr.value = true
     throw false
   }
-  imageUrl.value = value[0]
+  imageUrl.value = value
   progressFlag.value = false
   return true
 }
 const reload = () => {
-  if (reloadTimes == 3) {
-    throw false;
-  }
+  if (reloadTimes == 3) throw false;
   imageUrl.value = imageUrl.value += '?r=0'
   reloadTimes++
 }
@@ -46,7 +42,7 @@ const reload = () => {
     <el-header class="region-drag !bg-[var(--el-color-info-light-7)] flex justify-center items-center !text-xl"
       height="25px">
     </el-header>
-    <el-main @click="settingPage.name = userStoer.user.name">
+    <el-main @click="settingPage.name = user.name">
       <n-thing class="!relative">
         <template #avatar>
           <el-upload :auto-upload="false" :progressFlag="false" :show-file-list="false"
@@ -67,7 +63,7 @@ const reload = () => {
           <NameEdit />
         </template>
         <template #description>
-          <el-text class="!relative !top-7 left-3" type="info">uid: {{ userStoer.user.uid }}</el-text>
+          <el-text class="!relative !top-7 left-3" type="info">uid: {{ user.uid }}</el-text>
         </template>
       </n-thing>
       <n-modal v-model:show="showSetUserImage" overlay-style="">

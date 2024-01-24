@@ -1,24 +1,16 @@
 <script setup lang='tsx'>
 import { ChatRound } from "@element-plus/icons-vue";
 import control from '@/components/control.vue';
-import { computed, ref, nextTick } from 'vue';
+import { ref, nextTick } from 'vue';
 import { useUserStore } from '@s/user';
 import { storeToRefs } from 'pinia';
 import AsideButton from './asideButton.c.vue';
-import { useRoute } from "vue-router";
 import { Code20Filled } from '@vicons/fluent';
-import { useAppStore } from "@/store/appdata";
 import { Settings } from '@vicons/carbon';
+import { nowRouterState } from '@c/index';
 import gsap from "gsap"
-const route = useRoute()
-const app = useAppStore()
+import { watch } from "vue";
 const { user } = storeToRefs(useUserStore())
-const isOnHomePage = computed(() => {
-  return [
-    /^\/main\/chat/g,
-    /^\/main$/g
-  ].some(reg => reg.test(route.path))
-})
 
 const BASE_SIZE_AVATAR = 40
 const BASE_SIZE_CHANGE = 5
@@ -51,13 +43,15 @@ const nomeSize = (el: HTMLElement) => {
     direction: 4
   }).play()
 }
+watch(nowRouterState, (val) => {
+  console.log(val);
+
+})
 </script>
 
 <template>
   <el-container class=" h-full">
-    <el-aside class="relative region-drag bg-[var(--el-color-info-light-7)] !pt-20 !h-full flex justify-center" :style="{
-      width: `${app.style.aside.width}px`
-    }">
+    <el-aside class="relative region-drag bg-[var(--el-color-info-light-7)] !pt-20 !h-full flex justify-center !w-[60px]">
       <control class="absolute top-0 left-0"></control>
       <el-space direction='vertical' class=" w-full h-full">
         <div @mouseleave="(e) => nomeSize(e.target as HTMLElement)" ref="DivEl"
@@ -83,21 +77,24 @@ const nomeSize = (el: HTMLElement) => {
             <ElDivider class="!m-0" />
           </NThing>
         </div>
-        <AsideButton :primary="isOnHomePage" @click="$router.push('/main')">
+        <AsideButton :primary="nowRouterState == 'onHomeRouter' || nowRouterState == 'onChatRouter'"
+          @click="$actor.send({ type: 'quit', to: 'goHome' })">
           <ChatRound />
         </AsideButton>
-        <AsideButton :primary="$route.path.startsWith('/main/address')" @click="$router.push('/main/address')">
+        <AsideButton :primary="nowRouterState == 'onAddressRouter'"
+          @click="$actor.send({ type: 'quit', to: 'goAddress' })">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
             <path
               d="M6 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm-5 6s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H1zM11 3.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1h-4a.5.5 0 0 1-.5-.5zm.5 2.5a.5.5 0 0 0 0 1h4a.5.5 0 0 0 0-1h-4zm2 3a.5.5 0 0 0 0 1h2a.5.5 0 0 0 0-1h-2zm0 3a.5.5 0 0 0 0 1h2a.5.5 0 0 0 0-1h-2z" />
           </svg>
         </AsideButton>
-        <AsideButton :primary="$route.path.startsWith('/main/dev')" @click="$router.push('/main/dev')">
+        <AsideButton :primary="nowRouterState == 'onDevRouter'" @click="$actor.send({ type: 'quit', to: 'goDev' })">
           <Code20Filled />
         </AsideButton>
       </el-space>
       <el-space direction='vertical' class=" w-full h-auto absolute bottom-2">
-        <AsideButton :primary="$route.path.startsWith('/main/setting/app')" @click="$router.push('/main/setting/app')">
+        <AsideButton :primary="nowRouterState == 'onSettingRouter'"
+          @click="$actor.send({ type: 'quit', to: 'goSetting' })">
           <Settings />
         </AsideButton>
       </el-space>
@@ -105,9 +102,3 @@ const nomeSize = (el: HTMLElement) => {
     <slot></slot>
   </el-container>
 </template>
-
-<style scoped lang='scss'>
-:deep(.n-menu-item-content__icon) {
-  width: 40px !important;
-}
-</style>

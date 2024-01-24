@@ -7,34 +7,29 @@ export class Connection {
   public isOpen = reactive({ value: false })
   public metadata: [starterData: User.WebDbSave, starterUid: number]
   public type: 'chat' | 'server'
-  constructor(conn: Peer.Connection) {
-    this.conn = conn
+  constructor(public conn: Peer.Connection) {
     this.type = conn.label as 'chat' | 'server'
     this.metadata = conn.metadata
     const events: ("data" | "open" | "error" | "close")[] = ['data', 'close', 'open', 'error']
     events.forEach(event => this.conn.addListener(event, (data?) => this.default[event].forEach(row => row[0](data))))
   }
-  conn: Peer.Connection
   public whenReady() {
     return new Promise<void>(resolve => {
       if (this.isOpen.value) return resolve()
       //@ts-ignore
-      watchOnce(this.isOpen, () => resolve())
+      watchOnce(this.isOpen, resolve)
     })
   }
   public async send<TReturn = Peer.Request.All>(request: Peer.Request.All): Promise<TReturn>
   public async send<TReturn = Peer.Request.All>(path: string, data: Peer.Request.All['body'], config?: { header: Peer.Request.All['headers'] }): Promise<TReturn>
   public async send<TReturn = Peer.Request.All>(value: string | Peer.Request.All, data?: Peer.Request.All['body'], config?: { header: Peer.Request.All['headers'] }): Promise<TReturn> {
     await this.whenReady()
-    console.log('post');
     const request = isRequest(value) ? value : {
       path: value,
       body: data,
       headers: config?.header ?? {}
     }
-    setTimeout(async () => {
-      await this.conn.send(request)
-    }, 0)
+    setTimeout(async () => await this.conn.send(request), 0)
     return this.listenOnce('data', request.path) as TReturn
   }
   private default: Record<"data" | "open" | "error" | "close", [fn: Function, tag: symbol][]> & {
@@ -69,9 +64,7 @@ export class Connection {
       switch (event) {
         case "data": {
           const close = this.listen(event, (data) => {
-            if (path != data.path) {
-              return
-            }
+            if (path != data.path) return
             close()
             return resolve(data)
           })
@@ -104,9 +97,7 @@ export class Connection {
     const _next = Symbol('next')
     return this.listen('data', async (data) => {
       await this.whenReady()
-      console.log('on data');
-      if (!isRequest(data) || data.path != path)
-        return
+      if (!isRequest(data) || data.path != path) return
       let beforeData: any[] = []
       handles = this.default.onData.concat(handles, [constant(false)])
       for (const handel of handles) {
@@ -118,9 +109,7 @@ export class Connection {
           await this.conn.send(ret)
           break;
         }
-        if (ret == _next) {
-          continue;
-        }
+        if (ret == _next) continue
         if (ret == false) {
           this.conn.close()
           break;

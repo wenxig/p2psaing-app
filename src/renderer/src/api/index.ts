@@ -2,22 +2,16 @@ import { z } from 'zod'
 import { Connection } from './connection'
 import { MediaConnection, Peer, PeerError } from 'peerjs'
 import { remove } from 'lodash-es'
-import { reactive } from 'vue'
+import { Ref, reactive } from 'vue'
 import { watchOnce } from '@vueuse/core'
-export function isRequest(value: unknown): value is Peer.Request.Handshake|Peer.Request.Msg {
-  const rule = z.object({
-    path: z.string().startsWith('/'),
-    headers: z.any(),
-    body: z.any()
-  }).strict()
-  return rule.safeParse(value).success
-}
-export function isResponse(value: unknown): value is Peer.Response {
-  const rule = z.object({
-    ok: z.boolean()
-  })
-  return rule.safeParse(value).success
-}
+export const isRequest = (value: unknown): value is Peer.Request.Handshake | Peer.Request.Msg => z.object({
+  path: z.string().startsWith('/'),
+  headers: z.any(),
+  body: z.any()
+}).strict().safeParse(value).success
+export const isResponse = (value: unknown): value is Peer.Response => z.object({
+  ok: z.boolean()
+}).safeParse(value).success
 export interface PeerPostConfig {
   useEncrypt?: Peer.Handshake.Body['encrypt'],
   connection: Peer.Connection,
@@ -30,28 +24,22 @@ export type DefaultOnLinkHandle = (connection: Connection) => boolean | Promise<
 type Event = 'error' | 'call' | 'disconnected' | 'open' | 'close' | 'connection'
 export class P2P {
   public peerEvent: Event[] = ['error', 'call', 'disconnected', 'open', 'close', 'connection']
-  private default: Record<Event, [fn: Function, tag: symbol][]> & {
-
-  } = {
-      connection: [],
-      close: [[() => {
-        this.peer.removeAllListeners()
-        this.isOpen.value = false
-      }, Symbol('close')]],
-      open: [[() => {
-        this.isOpen.value = true
-      }, Symbol('open')]],
-      error: [],
-      call: [],
-      disconnected: []
-    }
-  peer: Peer
+  private default: Record<Event, [fn: Function, tag: symbol][]> & {} = {
+    connection: [],
+    close: [[() => {
+      this.peer.removeAllListeners()
+      this.isOpen.value = false
+    }, Symbol('close')]],
+    open: [[() => {
+      this.isOpen.value = true
+    }, Symbol('open')]],
+    error: [],
+    call: [],
+    disconnected: []
+  }
+  public peer: Peer
   protected whenReady() {
-    return new Promise<void>(resolve => {
-      if (this.isOpen.value) return resolve()
-      //@ts-ignore 
-      watchOnce(this.isOpen, () => resolve())
-    })
+    return new Promise<void>(resolve => this.isOpen.value ? resolve() : watchOnce(this.isOpen as Ref<boolean>, () => resolve()))
   }
   public isOpen = reactive({ value: false })
   public listen(event: 'connection', fn: (connection: Connection) => any): () => void
@@ -76,14 +64,6 @@ export class P2P {
 
   constructor(lid: string) {
     this.peer = new Peer(lid)
-    this.peerEvent.forEach(event => this.peer.addListener(event, (data?) => {
-      this.default[event].forEach(row => {
-        if (event == 'connection') {
-          row[0](new Connection(<Peer.Connection>data))
-          return
-        }
-        row[0](data)
-      })
-    }))
+    for (const event of this.peerEvent) this.peer.addListener(event, (data?) => this.default[event].forEach(row => event == 'connection' ? row[0](new Connection(<Peer.Connection>data)) : row[0](data)))
   }
 }

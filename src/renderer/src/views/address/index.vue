@@ -14,7 +14,6 @@ const props = {
   children: 'children',
 }
 const data: listItem[] = []
-
 interface listItem {
   value: string | number
   label: string

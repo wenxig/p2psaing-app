@@ -1,2 +1,5 @@
 # p2psaing-app
-electron is good
+
+一款基于webrtc的类微信软件
+
+更新缓慢

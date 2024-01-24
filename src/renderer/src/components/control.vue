@@ -1,43 +1,35 @@
 <script setup lang='tsx'>
-import { reactive, ref } from 'vue';
+import { ref } from 'vue';
 import { CloseBold, Minus, DCaret } from '@element-plus/icons-vue'
-interface Props {
+const props = withDefaults(defineProps<{
   exit?: boolean
   minsize?: boolean
   maxsize?: boolean
   type?: 'quit' | 'haid',
   for?: string
-}
-const props = withDefaults(defineProps<Props>(), {
+}>(), {
   exit: true,
   minsize: true,
   maxsize: true,
   type: 'haid',
 })
-let isFocus = ref(true)
-let isHover = ref(false)
-let isMaxSize = ref(false)
+const isFocus = ref(true)
+const isHover = ref(false)
+const isMaxSize = ref(false)
 window.ipc.addRouter(`/emit/focus`, () => isFocus.value = true)
 window.ipc.addRouter(`/emit/blur`, () => isFocus.value = false)
-
-const classes = reactive([
-  [
-    'bg-red-500',
-    'active:bg-red-700'
-  ], [
-    'bg-yellow-400',
-    "active:bg-yellow-700"
-  ], [
-    'bg-green-500',
-    'active:bg-green-700'
-  ]
-])
-
-const clickEvent = reactive([
-  () => {
-    if ((props.type == 'haid') || (window.instance_name.my != 1)) window.ipc.close()
-    else window.ipc.relanch()
-  },
+const classes = [[
+  'bg-red-500',
+  'active:bg-red-700'
+], [
+  'bg-yellow-400',
+  "active:bg-yellow-700"
+], [
+  'bg-green-500',
+  'active:bg-green-700'
+]]
+const clickEvent = [
+  () => ((props.type == 'haid') || (window.instance_name.my != 1)) ? window.ipc.close() : window.ipc.relanch(),
   () => window.ipc.minimize(),
   () => {
     window.ipc.maximize()
@@ -46,14 +38,13 @@ const clickEvent = reactive([
   () => {
     window.ipc.unmaximize()
     isMaxSize.value = false
-  }
-])
-const ifShow = reactive([
+  }]
+const ifShow = [
   props.exit,
   props.minsize,
   props.maxsize,
   props.maxsize
-])
+]
 
 const IconNements = [
   <CloseBold></CloseBold>,

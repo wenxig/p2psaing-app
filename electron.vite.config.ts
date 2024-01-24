@@ -20,11 +20,10 @@ const rendererConfig = defineViteConfig({
   //@ts-ignore  堆栈深度过高
   resolve: {
     alias: {
-      '@t': fileURLToPath(new URL('./src/renderer/src/types', import.meta.url)),
+      '@c': fileURLToPath(new URL('./src/renderer/src/controller', import.meta.url)),
       '@': fileURLToPath(new URL('./src/renderer/src', import.meta.url)),
       '@h': fileURLToPath(new URL('./src/renderer/src/hook', import.meta.url)),
       '@l': fileURLToPath(new URL('./src/renderer/src/layout', import.meta.url)),
-      '@i': fileURLToPath(new URL('./src/renderer/src/i18n', import.meta.url)),
       '@s': fileURLToPath(new URL('./src/renderer/src/store', import.meta.url)),
       '@p': fileURLToPath(new URL('./src/renderer/src/views', import.meta.url)),
       '@a': fileURLToPath(new URL('./src/renderer/src/api', import.meta.url))

@@ -10,29 +10,16 @@ namespace db {
     name: '__APP_NAME__',
     driver
   })
-  function setItem<T>(key: string, value: T): Promise<T> {
-    return base.setItem<T>(`${key}_${window.instance_name.my}`, value)
-  }
-  function getItem<T>(key: string): Promise<T | null> {
-    return base.getItem<T>(`${key}_${window.instance_name.my}`)
-  }
-  function removeItem(key: string): Promise<void> {
-    return base.removeItem(`${key}_${window.instance_name.my}`)
-  }
-  async function getAllKeys(): Promise<string[]> {
-    return (await base.keys()).map(key => key.replaceAll(`_${window.instance_name.my}`, ''))
-  }
-  let isReady = ref(false)
+  const setItem = <T>(key: string, value: T): Promise<T> => base.setItem<T>(`${key}_${window.instance_name.my}`, value)
+  const getItem = <T>(key: string): Promise<T | null> => base.getItem<T>(`${key}_${window.instance_name.my}`)
+  const removeItem = (key: string): Promise<void> => base.removeItem(`${key}_${window.instance_name.my}`)
+  const getAllKeys = async (): Promise<string[]> => (await base.keys()).map(key => key.replaceAll(`_${window.instance_name.my}`, ''))
+  const isReady = ref(false)
   base.ready().then(() => isReady.value = true)
   function whenReady() {
-    return new Promise<void>(resolve => {
-      if (isReady.value) {
-        resolve()
-        return
-      }
-      watchOnce(isReady, () => {
-        resolve()
-      })
+    return new Promise<any>(resolve => {
+      if (isReady.value) return resolve(true)
+      watchOnce(isReady, resolve)
     })
   }
   export namespace lastLogin {
@@ -63,11 +50,8 @@ namespace db {
     }
     export async function set(data?: DataWithTime<User.LastLogin>) {
       await whenReady()
-      if (data) {
-        await setItem<DataWithTime<User.LastLogin>>('user.LastLogin', data)
-        return
-      }
-      const { user: user } = useUserStore()
+      if (data) return void await setItem<DataWithTime<User.LastLogin>>('user.LastLogin', data)
+      const { user } = useUserStore()
       await setItem<DataWithTime<User.LastLogin>>('user.LastLogin', {
         user: {
           'email': user.email,

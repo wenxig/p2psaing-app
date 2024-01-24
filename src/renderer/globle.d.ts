@@ -1,6 +1,6 @@
 import type { AxiosResponse } from 'axios';
 import type { BrowserOptions, ChildBrowserOptions } from '../main/hook/useWindow'
-import { MonacoEnvironment } from 'monaco-editor';
+import { actor } from "./src/controller";
 type ipc = {
   setSize(width: number, height: number): void
   setResizable(agree: boolean): void
@@ -12,7 +12,10 @@ type ipc = {
   toTop(): void
   relanch(): void
   setState(key: string, value: string, animate: boolean = false): void
+  setSelfState(key: string, value: string, animate: boolean = false): void
   getState(key: string): Promise<string>
+  getStateSync(key: string): string
+  getSelfStateSync(key: string): string
   createWindow(opt: BrowserOptions): void
   createInstanse(): void
   createChildWindow(opt: ChildBrowserOptions): void
@@ -26,18 +29,17 @@ declare module "vue" {
   interface ComponentCustomProperties {
     $ipc: ipc
     $window: typeof window
+    $actor: typeof actor
   }
 }
 declare module 'axios' {
   interface AxiosDefaults {
     retry: number,
     retryDelay: number,
-    shouldRetry: (err: AxiosError) => boolean
   }
   interface InternalAxiosRequestConfig {
     retry: number,
     retryDelay: number,
-    shouldRetry: (err: AxiosError) => boolean,
     __retryCount?: number
   }
 }
@@ -53,6 +55,6 @@ declare global {
     }
     goHome: () => void
     ipc: ipc
-    MonacoEnvironment: MonacoEnvironment
+    plugins: AppPlugin.Plugin[]
   }
 }

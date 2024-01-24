@@ -26,10 +26,10 @@ namespace User {
     delImg?: string;
     link: {
       group: {
-        uid: number;
+        gid: string;
       }[];
       chat: {
-        cid?: string;
+        uid: number;
       }[]
     }
   }

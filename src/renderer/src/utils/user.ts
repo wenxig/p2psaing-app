@@ -11,20 +11,20 @@ export const webSaveRule = z.object({
 export const linkRule = ({
   link: z.object({
     group: z.object({
-      uid: z.number()
+      gid: z.string()
     }).array(),
     chat: z.object({
-      cid: z.string()
+      uid: z.number()
     }).array(),
   })
 })
 export const linkRuleStrict = ({
   link: z.object({
     group: z.object({
-      uid: z.number()
+      gid: z.string()
     }).strict().array(),
     chat: z.object({
-      cid: z.string()
+      uid: z.number()
     }).strict().array(),
   })
 })
@@ -40,26 +40,27 @@ export const webSaveDeepRule = z.object({
   delImg: z.string().optional()
 })
 
-export function isUserWebSave(val: unknown): val is User.WebDbSave {
-  return webSaveRule.strict().safeParse(val).success
-}
-export function isUserWebSaveDeep(val: unknown): val is User.WebDbSaveDeep {
-  return webSaveDeepRule.extend(linkRuleStrict).strict().safeParse(val).success
-}
-
-export function toUserWebSave(val: unknown): User.WebDbSave {
-  return webSaveRule.parse(val)
-}
-export function toUserWebSaveDeep(val: unknown): User.WebDbSaveDeep {
-  return webSaveDeepRule.extend(linkRule).parse(val)
-}
-
-export function createRandomUser(): User.WebDbSave {
-  return {
-    email: `${random(0, 100000)}@gmail.com`,
-    lid: `${random(100000, 999999)}${random(100000, 999999)}${random(100000, 999999)}`,
-    uid: random(0, 100000),
-    img: '/userIcon.png',
-    name: `${random(100000, 999999)}`,
-  }
-}
+export const isUserWebSave = (val: unknown): val is User.WebDbSave => webSaveRule.strict().safeParse(val).success
+export const isUserWebSaveDeep = (val: unknown): val is User.WebDbSaveDeep => webSaveDeepRule.extend(linkRuleStrict).strict().safeParse(val).success
+export const toUserWebSave = (val: unknown): User.WebDbSave => webSaveRule.parse(val)
+export const toUserWebSaveDeep = (val: unknown): User.WebDbSaveDeep => webSaveDeepRule.extend(linkRule).parse(val)
+export const createRandomUser = (): User.WebDbSave => ({
+  email: `${random(0, 100000)}@gmail.com`,
+  lid: `${random(100000, 999999)}${random(100000, 999999)}${random(100000, 999999)}`,
+  uid: random(0, 100000),
+  img: '/userIcon.png',
+  name: `${random(100000, 999999)}`,
+})
+export const createEmptyDeepUser = (): User.WebDbSaveDeep => ({
+  email: '',
+  pid: '',
+  lid: '',
+  uid: NaN,
+  img: '',
+  link: {
+    group: [],
+    chat: []
+  },
+  name: '',
+  password: ''
+})

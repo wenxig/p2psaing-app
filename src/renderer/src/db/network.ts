@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { useUserStore } from '@s/user';
 import { isEmpty, isUndefined, isNumber, isObject, isString } from "lodash-es";
 import { isUserWebSaveDeep } from "@/utils/user";
@@ -7,10 +7,25 @@ const base = axios.create({
   baseURL: "https://tinywebdb.appinventor.space/api",
   method: "post"
 })
+
+export const sendEmail = async (to: string, subject: string, msg: string) => {
+  if ([
+    `https://v.api.aa1.cn/api/qqemail/new/?from_mail=__APP_NAME__@__APP_NAME__.surge.sh&subject=[__APP_NAME__]${subject}&message=${msg}&to=${to}`,
+    `https://v.api.aa1.cn/api/mail/t/api.php?adress=${to}&title=[__APP_NAME__]${subject}&content=${msg}`
+  ].every(async val => {
+    try {
+      const { data } = await axios.get(val);
+      return !(data.status === "success" || data.Code === "1")
+    } catch (error) {
+      return false;
+    }
+  })) {
+    throw new AxiosError("can`t send email")
+  }
+};
 base.interceptors.response.use(undefined, handleError)
 base.interceptors.request.use(config => {
-  if (config.data.action == 'update')
-    config.data.value = JSON.stringify(config.data.value)
+  if (config.data.action == 'update') config.data.value = JSON.stringify(config.data.value)
   config.headers["Content-Type"] = "application/x-www-form-urlencoded;charset=UTF-8"
   config.data['user'] = "p2psaing"
   config.data['secret'] = "59c44c2f"
@@ -20,21 +35,16 @@ const main = axios.create({
   baseURL: "https://tinywebdb.appinventor.space",
   method: "post"
 })
-export async function get(tag: string | number): Promise<[User.WebDbSaveDeep, true] | [undefined, false]> {
-  const result = await base({
+export async function get(key: string | number): Promise<[User.WebDbSaveDeep, true] | [undefined, false]> {
+  const { data } = await base({
     data: {
-      tag: tag.toString(),
+      tag: key.toString(),
       action: 'get'
     }
   })
-
-  if (result.data[tag] == 'null' && result.data[tag] == null) {
-    return [undefined, false]
-  }
-  if (isObject(result.data[tag])) {
-    return [result.data[tag], true]
-  }
-  return [JSON.parse(result.data[tag]), true]
+  if (data[key] == 'null' && data[key] == null) return [undefined, false]
+  if (isObject(data[key])) return [data[key], true]
+  return [JSON.parse(data[key]), true]
 }
 
 export function createUpdate() {
@@ -42,35 +52,28 @@ export function createUpdate() {
   let data: User.WebDbSaveDeep | User.WebDbSave | undefined | number
   let isCommited = false
   async function noTag(value: User.WebDbSaveDeep | User.WebDbSave | number) {
-    const userData = useUserStore()
-    if (isUserWebSaveDeep(value)) {
-      await base({
-        data: {
-          tag: userData.user.pid,
-          value,
-          action: 'update'
-        }
-      })
-      return
-    }
-    if (isNumber(value)) {
-      await base({
-        data: {
-          tag: `time_uid-${userData.user.uid}*email-${userData.user.email}*`,
-          value,
-          action: 'update'
-        }
-      })
-      return
-    }
-    await base({
+    const { user } = useUserStore()
+    if (isUserWebSaveDeep(value)) return void await base({
       data: {
-        tag: `uid-${userData.user.uid}|email-${userData.user.email}|`,
+        tag: user.pid,
         value,
         action: 'update'
       }
     })
-    return
+    if (isNumber(value)) return void await base({
+      data: {
+        tag: `time_uid-${user.uid}*email-${user.email}*`,
+        value,
+        action: 'update'
+      }
+    })
+    return void await base({
+      data: {
+        tag: `uid-${user.uid}|email-${user.email}|`,
+        value,
+        action: 'update'
+      }
+    })
   }
 
   const todo = {
@@ -86,54 +89,40 @@ export function createUpdate() {
      * 如果没有tag链，则自动推断tag并使用data(如果有)/入参
     */
     async commit(value?: User.WebDbSaveDeep | User.WebDbSave | number) {
-      if (isCommited) {
-        throw new Error('is commited!')
-      }
+      if (isCommited) throw new Error('is commited!')
       isCommited = true
-      if (value && isEmpty(baseTag)) {
-        await noTag(value)
-        return
-      }
-      if (value && baseTag) {
-        await base({
-          data: {
-            tag: baseTag,
-            value,
-            action: 'update'
-          }
-        })
-        return
-      }
-      if (!isUndefined(data) && isEmpty(baseTag)) {
-        await noTag(data)
-        return
-      }
-      if (!isEmpty(baseTag) && !isEmpty(data)) {
-        await base({
-          data: {
-            tag: baseTag,
-            value: data,
-            action: 'update'
-          }
-        })
-        return
-      }
+      if (value && isEmpty(baseTag)) return void await noTag(value)
+      if (value && baseTag) return void await base({
+        data: {
+          tag: baseTag,
+          value,
+          action: 'update'
+        }
+      })
+      if (!isUndefined(data) && isEmpty(baseTag)) return void await noTag(data)
+      if (!isEmpty(baseTag) && !isEmpty(data)) return void await base({
+        data: {
+          tag: baseTag,
+          value: data,
+          action: 'update'
+        }
+      })
     },
     isCommited: () => isCommited
   }
   return todo
 }
 export async function delUser() {
-  const userData = useUserStore()
+  const { user } = useUserStore()
   await base({
     data: {
-      tag: userData.user.uid,
+      tag: user.uid,
       action: 'delete'
     }
   })
   await base({
     data: {
-      tag: `uid-${userData.user.uid}|email-${userData.user.email}|`,
+      tag: `uid-${user.uid}|email-${user.email}|`,
       action: 'delete'
     }
   })
@@ -152,60 +141,28 @@ export async function search(tag: string | number, type: "value" | "tag" | "both
     }
   })
   const allKeys = Object.keys(result)
-  if (allKeys.length > 1) {
-    return allKeys.map((tag) => {
-      return {
-        value: ((): User.WebDbSave => {
-          if (isString(result[tag])) {
-            return JSON.parse(result[tag])
-          }
-          return result[tag]
-        })(),
-        tag
-      };
-    })
+  if (allKeys.length > 1) return allKeys.map((tag) => ({
+    value: ((): User.WebDbSave => isString(result[tag]) ? JSON.parse(result[tag]) : result[tag])(),
+    tag
+  }))
+  return result[allKeys[0]] = (<any[]>result[allKeys[0]]).map((value) => isString(value) ? JSON.parse(value) : value)
+}
+export const count = async (): Promise<number> => (await base({
+  data: {
+    action: "count"
   }
-  result[allKeys[0]] = (<any[]>result[allKeys[0]]).map((value) => {
-    if (isString(value)) {
-      return JSON.parse(value)
-    }
-    return value
-  })
-  return result[allKeys[0]]
-}
-export async function count(): Promise<number> {
-  const result = await base({
-    data: {
-      action: "count"
-    }
-  })
-  return result.data.count
-}
+})).data.count
 
-export async function searchByUid(uid: number) {
-  const result = (await search(`uid-${uid}|`, 'value', undefined, 1))[0]
-  return result
-}
-export async function searchByEmail(email: string) {
-  const result = (await search(`|email-${email}|`, 'value', undefined, 1))[0]
-  return result
-}
-export async function getTimeByUid(uid: number) {
-  const result = (await search(`time_uid-${uid}*`, 'value', undefined, 1))[0]
-  return result as unknown as number
-}
-export async function getTimeByEmail(email: string) {
-  const result = (await search(`*email-${email}*`, 'value', undefined, 1))[0]
-  return result as unknown as number
-}
+export const searchByUid = async (uid: number) => (await search(`uid-${uid}|`, 'value', undefined, 1))[0]
+export const searchByEmail = async (email: string) => (await search(`|email-${email}|`, 'value', undefined, 1))[0]
+export const getTimeByUid = async (uid: number) => (await search(`time_uid-${uid}*`, 'value', undefined, 1))[0] as unknown as number
+export const getTimeByEmail = async (email: string) => (await search(`*email-${email}*`, 'value', undefined, 1))[0] as unknown as number
 
-export function createTable(name: string, password: string) {
-  return main.post('/signup', {
-    user: name,
-    pw1: password,
-    pw2: password,
-    ask: 'p2psaing',
-    ans: 'good',
-  })
-}
+export const createTable = (name: string, password: string) => main.post('/signup', {
+  user: name,
+  pw1: password,
+  pw2: password,
+  ask: 'p2psaing',
+  ans: 'good',
+})
 export default base

@@ -1,88 +1,18 @@
 <script setup lang='ts'>
-import { reactive } from 'vue';
-import { ref } from 'vue';
+import { reactive, ref } from 'vue';
 import { ElLoading, ElMessage, type FormInstance, type FormRules } from 'element-plus'
-import { useAuth } from '@h/useAuth';
-import { random } from 'lodash-es';
+import { isEmpty, random } from 'lodash-es';
 import { InfoFilled } from '@element-plus/icons-vue';
 import { useAppStore } from '@s/appdata'
-import axios, { AxiosError } from 'axios';
+import { searchByEmail, sendEmail } from '@/db/network';
+import { isUserWebSave } from '@/utils/user';
+import { Checker } from "./checkers";
+import { actor } from '@/controller';
 const emailPass = ref("")
-const auth = useAuth()
 const app = useAppStore();
 window.ipc.setSize(650, 460)
-const sendEmaill = async (to: string, subject: string, msg: string) => {
-  if ([
-    `https://v.api.aa1.cn/api/qqemail/new/?from_mail=__APP_NAME__@__APP_NAME__.surge.sh&subject=[__APP_NAME__]${subject}&message=${msg}&to=${to}`,
-    `https://v.api.aa1.cn/api/mail/t/api.php?adress=${to}&title=[__APP_NAME__]${subject}&content=${msg}`
-  ].every(async val => {
-    try {
-      const res = await axios.get(val);
-      if (res.data.status === "success" || res.data.Code === "1") {
-        return false;
-      }
-      return true
-    } catch (error) {
-      throw new AxiosError(`can\`t send email, because: \n ${error}`)
-    }
-  })) {
-    throw new AxiosError("can`t send email")
-  }
-};
 const ruleFormRef = ref<FormInstance>()
 const allowUserPer = ref(false)
-const showResult = ref(false)
-const checkName = (_rule: any, value: string, callback: any) => {
-  if (!value) {
-    return callback(new Error('请输入用户名'))
-  }
-  if (/yan|fei|[烟绯]/.test(value)) {
-    return callback(new Error('包含敏感词语'))
-  }
-  callback()
-}
-
-const validatePass = (_rule: any, value: any, callback: any) => {
-  if (value === '') {
-    callback(new Error('请输入密码'))
-    return
-  }
-  if (!(/^(?=.*\d)(?=.*[a-z])(?=.*[a-z])[a-z0-9]{8,10}$/).test(value)) {
-    callback(new Error('当前密码强度不够'))
-  }
-  callback()
-}
-const validatePass2 = (_rule: any, value: any, callback: any) => {
-  if (value === '') {
-    callback(new Error('请再次输入密码'))
-  } else if (value !== ruleForm.password) {
-    callback(new Error("两次密码不一样"))
-  } else if (!((/^(?=.*\d)(?=.*[a-z])(?=.*[a-z])[a-z0-9]{8,10}$/).test(value))) {
-    callback(new Error('当前密码强度不够'))
-  } else {
-    callback()
-  }
-}
-
-const checkEmail = (_rule: any, value: any, callback: any) => {
-  if (!value) {
-    return callback(new Error('请输入邮箱'))
-  }
-  if (!(/^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/).test(value)) {
-    callback(new Error('好像不是邮箱捏'))
-  }
-  callback()
-}
-
-const checkCode = (_rule: any, value: any, callback: any) => {
-  if (!value) {
-    return callback(new Error('请输入邮箱验证码'))
-  }
-  if (emailPass.value != value) {
-    callback(new Error('验证码不正确'))
-  }
-  callback()
-}
 
 const ruleForm = reactive({
   name: "",
@@ -92,64 +22,47 @@ const ruleForm = reactive({
   emailPass: "",
   emailButtonText: "发送验证码"
 })
-
+const checker = new Checker(() => emailPass.value, ruleForm)
 const rules = reactive<FormRules<typeof ruleForm>>({
-  password: [{ validator: validatePass, trigger: 'blur' }],
-  password2: [{ validator: validatePass2, trigger: 'blur' }],
-  name: [{ validator: checkName, trigger: 'blur' }],
-  email: [{ validator: checkEmail, trigger: 'blur' }],
-  emailPass: [{ validator: checkCode, trigger: 'blur' }]
+  password: [{ validator: checker.validatePass, trigger: 'blur' }],
+  password2: [{ validator: checker.validatePass2, trigger: 'blur' }],
+  name: [{ validator: checker.checkName, trigger: 'blur' }],
+  email: [{ validator: checker.checkEmail, trigger: 'blur' }],
+  emailPass: [{ validator: checker.checkCode, trigger: 'blur' }]
 })
+let toId: NodeJS.Timeout
+const handleEmailCodeSend = () => {
+  if (!ruleForm.email) return void ElMessage.error('要不填个邮箱')
+  if (!isEmpty(toId)) clearTimeout(toId)
+  checker.checkEmail('', ruleForm.email, (isError: void | Error) => {
+    ruleForm.emailButtonText = "已发送验证码"
+    if (isError) return void ElMessage.error('请正确填写邮箱')
+    emailPass.value = random(100000, 999999).toString()
+    console.log(`你的验证码：${emailPass.value}`);
+    sendEmail(ruleForm.email, '验证注册邮箱', `你的验证码：${emailPass.value}`)
+      .catch(() => ElMessage.error('邮件发送失败'))
+      .then(() => ElMessage.success("发送成功，视接口网络情况1~5分钟内收到都有可能"))
+    toId = setTimeout(() => {
+      ruleForm.emailButtonText = "发送验证码"
+    }, 1000 * 60);
+  })
+}
 
-const submitForm = (formEl: FormInstance | undefined) => {
+const isUploadToDb = ref(false)
+const signUp = (formEl: FormInstance | undefined) => {
   if (!formEl) return
   formEl.validate((valid) => {
-    if (!valid) {
-      return false
-    }
-    if (!allowUserPer.value) {
-      ElMessage.error("未同意《用户许可》")
-      return;
-    }
+    if (!valid) return false
+    if (!allowUserPer.value) return false || (void ElMessage.error("未同意《用户许可》"))
     const loading = ElLoading.service({
       lock: true,
       text: '上传数据中',
       background: !app.isDark ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
     })
-    auth.signUp(ruleForm).then(ret => {
-      if (ret) {
-        showResult.value = true
-        return true;
-      }
+    return searchByEmail(ruleForm.email).then(ret => {
+      if (isUserWebSave(ret)) return void (isUploadToDb.value = true);
       ElMessage.error("用户已经存在")
-      return
-    }).catch(err => {
-      ElMessage.error(err)
-    }).finally(() => loading.close())
-    return
-  })
-}
-
-const sendEmail = () => {
-  if (!ruleForm.email) {
-    ElMessage.error('要不填个邮箱')
-    return
-  }
-  checkEmail('', ruleForm.email, (is: void | Error) => {
-    ruleForm.emailButtonText = "已发送验证码"
-    if (is) {
-      ElMessage.error('请正确填写邮箱')
-      return
-    }
-    emailPass.value = `${random(9)}${random(9)}${random(9)}${random(9)}${random(9)}${random(9)}`
-    console.log(`你的验证码：${emailPass.value}`);
-    sendEmaill(ruleForm.email, '验证注册邮箱', `你的验证码：${emailPass.value}`).catch(() => {
-      ElMessage.error('邮件发送失败')
-    }).then(() => {
-      ElMessage.success("发送成功，视接口网络情况1~5分钟内收到都有可能")
-      return true
-    })
-    ruleForm.emailButtonText = "发送验证码"
+    }).catch(ElMessage.error).finally(() => loading.close())
   })
 }
 </script>
@@ -183,7 +96,7 @@ const sendEmail = () => {
         <el-form-item label="邮箱验证码" class="w-full !mb-0" prop="emailPass">
           <el-input v-model="ruleForm.emailPass" maxlength="6" minlength="6">
             <template #append>
-              <el-button plain @click="sendEmail" :disabled="ruleForm.emailButtonText != '发送验证码'">
+              <el-button plain @click="handleEmailCodeSend" :disabled="ruleForm.emailButtonText != '发送验证码'">
                 {{ ruleForm.emailButtonText }}</el-button>
             </template>
           </el-input>
@@ -197,7 +110,7 @@ const sendEmail = () => {
             size="small">《用户许可》</n-button>
         </el-form-item>
         <el-form-item class="!w-full !mb-0">
-          <el-button type="primary" @click="submitForm(ruleFormRef)">提交</el-button>
+          <el-button type="primary" @click="signUp(ruleFormRef)">提交</el-button>
           <el-button @click="$router.back()">取消</el-button>
         </el-form-item>
       </el-form>
@@ -208,9 +121,10 @@ const sendEmail = () => {
         </template>
       </el-popover>
     </el-main>
-    <el-result icon="success" title="成功" sub-title="点击确定将登陆" class="!fixed w-full h-full bg-white z-10" v-if="showResult">
+    <el-result icon="success" title="成功" sub-title="点击确定将登陆" class="!fixed w-full h-full bg-white z-10"
+      v-if="isUploadToDb">
       <template #extra>
-        <el-button type="primary" @click="$router.replace('/main')">确定</el-button>
+        <el-button type="primary" @click="actor.send({ type: 'singuping', data: ruleForm })">确定</el-button>
       </template>
     </el-result>
     <control class="absolute top-0 left-0 z-20" type="quit" :minsize="false" :maxsize="false"></control>

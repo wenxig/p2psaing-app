@@ -80,27 +80,34 @@ class MessageCenter {
           remove(this.windows, ({ window }) => win.id == window.id)
         }
         win.once('closed', cleanUpPort)
-        port_main.on('message', ({ data }: { data: MessageInstance }) => {
-          console.log('message', data);
+        const handleMessage = async (data: MessageInstance) => {
           const cb = new Array<any>()
-          console.log(data);
           // 遍历执行该窗口的符合url的处理函数
-          for (const { fn, path } of this.windows.find(({ window }) => window.id == win.id)!.router.filter(({ path }) => isUrlMatched(path, data.path))) cb.push(fn(createMessageCenterRouterUrl(path, data.path), data.body))
+          for (const { fn, path } of this.windows.find(({ window }) => window.id == win.id)!.router.filter(({ path }) => isUrlMatched(path, data.path))) cb.push(await fn(createMessageCenterRouterUrl(path, data.path), data.body))
           const sendData: MessageInstance = {
             path: `${data.path}#callback`,
             body: cb
           } as const
           console.log(sendData);
-          port_main.postMessage(sendData)
+          return sendData
+        }
+        port_main.on('message', async ({ data }: { data: MessageInstance }) => {
+          console.log('message', data);
+          port_main.postMessage(await handleMessage(data))
+        })
+        win.webContents.ipc.on(win.id.toString(), async (event, data: MessageInstance) => {
+          console.log('sync message', data);
+          event.returnValue = await handleMessage(data)
         })
         port_main.start()
         ok()
       })
     })
   }
-  public addRoute<T = any>(win: Window, path: string, fn: MessageCenterRouterRowFn<T>): () => void {
+  public addRoute<T = any>(win: Window, path: string, fn: MessageCenterRouterRowFn<T>, sync: boolean): () => void {
     const key = Symbol(path)
     const window = this.windows[this.windows.findIndex(({ window }) => window.id == win.id)]
+    sync && window.router.push({ path: `/sync${path}`, fn, key })
     window.router.push({ path, fn, key })
     return () => remove(window.router, val => val.key == key)
   }
@@ -116,13 +123,13 @@ class MessageCenter {
           continue
         }
         yield input
-        continue
       }
     }).call(this)) port.postMessage(msg)
   }
 }
 class Window extends BrowserWindow {
   public root: Window
+  public state = new Map<string, string>();
   constructor(public options = baseOpt, private app: ElectronAppInstance) {
     super(options)
     this.once('ready-to-show', () => {
@@ -139,15 +146,16 @@ class Window extends BrowserWindow {
       this.addRoute<any[], { method: string }>('/run/instanes/:method', ({ params }, data) => app[params.method](...(data ?? [])))
       this.addRoute<string | undefined, { method: 'get' | 'set', key: string }>('/state/:method/:key', ({ params }, data) => {
         switch (params.method) {
-          case 'get': {
-            return this.app.state(this.root.id)!.get(params.key)
-          }
-          case 'set': {
-            this.app.state(this.root.id)!.set(params.key, data!)
-            return
-          }
+          case 'get': return this.app.state(this.root.id)!.get(params.key)
+          case 'set': return void this.app.state(this.root.id)!.set(params.key, data!)
         }
-      })
+      }, true)
+      this.addRoute<string | undefined, { method: 'get' | 'set', key: string }>('/state/self/:method/:key', ({ params }, data) => {
+        switch (params.method) {
+          case 'get': return this.state.get(params.key)
+          case 'set': return void this.state.set(params.key, data!)
+        }
+      }, true)
       this.addRoute<void, { id: string }>('/reload', (_, path) => {
         this.app.msgChannel.send({
           path: `/reload${path}`,
@@ -175,8 +183,8 @@ class Window extends BrowserWindow {
       parent: this
     }, this.app)
   }
-  public addRoute<T = any, P extends Record<string, string> = any, Q extends Record<string, string> = any>(path: string, fn: MessageCenterRouterRowFn<T, P, Q>): () => void {
-    return this.app.msgChannel.addRoute<T>(this, path, fn)
+  public addRoute<T = any, P extends Record<string, string> = any, Q extends Record<string, string> = any>(path: string, fn: MessageCenterRouterRowFn<T, P, Q>, sync = false): () => void {
+    return this.app.msgChannel.addRoute<T>(this, path, fn, sync)
   }
 }
 

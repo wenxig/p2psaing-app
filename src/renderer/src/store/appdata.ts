@@ -10,16 +10,6 @@ export const useAppStore = defineStore("app", () => {
   })
   const isDark = ref(false)
   const links = reactive<User.WebDbSave[]>([])
-  const style = ref({
-    aside: {
-      width: 60
-    },
-    rightBase: {
-
-    }
-  })
-  watchEffect(() => {
-    document.querySelectorAll('html')[0].className = isDark.value ? 'dark' : 'light'
-  })
-  return { topBar, settingPage, isDark, links, style }
+  watchEffect(() => document.querySelectorAll('html')[0].className = isDark.value ? 'dark' : 'light')
+  return { topBar, settingPage, isDark, links }
 })

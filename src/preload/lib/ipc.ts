@@ -34,7 +34,6 @@ contextBridge.exposeInMainWorld('instance_name', {
 console.log('perload init');
 port1.start()
 port1.onmessage = ({ data }: { data: MessageInstance }) => {
-  console.log('data', data)
   for (const { fn, path } of routers.filter(({ path }) => isUrlMatched(path, data.path))) fn(createMessageCenterRouterUrl(path, data.path), data.body)
 }
 
@@ -48,17 +47,30 @@ const send = <T = any, P extends Record<string, string> = any, Q extends Record<
     return true
   })
 })
+const sendSync = (msg: MessageInstance) => ipcRenderer.sendSync(my.toString(), msg).body
 
 const minimize = () => send({
   path: '/run/window/minimize',
   body: []
 })
-const getState = async <T = User.WebDbSaveDeep,>(key: string) => (await send<MessageInstance<T>>({
+const getState = async <T = User.WebDbSaveDeep>(key: string) => (await send<MessageInstance<T>>({
   path: `/state/get/${key}`,
   body: null
 }))[0]
+const getStateSync = (key: string) => sendSync({
+  path: `/sync/state/get/${key}`,
+  body: null
+})[0]
+const getSelfStateSync = (key: string) => sendSync({
+  path: `/sync/state/self/get/${key}`,
+  body: null
+})[0]
 const setState = (key: string, body: string) => send({
   path: `/state/set/${key}`,
+  body
+})
+const setSelfState = (key: string, body: string) => send({
+  path: `/sync/state/self/set/${key}`,
   body
 })
 const close = () => send({
@@ -137,7 +149,10 @@ contextBridge.exposeInMainWorld('ipc', {
   onReload,
   addRouter,
   addOnceRouter,
-  getVersions(){
+  getStateSync,
+  getSelfStateSync,
+  setSelfState,
+  getVersions() {
     return Object.assign(process.versions, dependencies, devDependencies)
   }
 } as Ipc)

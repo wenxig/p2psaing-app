@@ -1,5 +1,6 @@
 import { contextBridge as _cb } from 'electron'
 import './lib/ipc';
+import './lib/plugin';
 const contextBridge = { exposeInMainWorld: import.meta.env.DEV ? (key: string, value: any) => void (window[key] = value) : _cb.exposeInMainWorld }
 
 //密钥获取

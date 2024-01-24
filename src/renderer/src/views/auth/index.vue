@@ -1,25 +1,18 @@
 <script setup lang='ts'>
 import db from '@/db';
-import { useAuth } from '@/hook/useAuth';
-import { useRouter } from 'vue-router';
-import { ElLoading, ElMessage } from 'element-plus'
+import { actor, on } from '@c/index';
+import { ElLoading } from 'element-plus'
 import { toRef } from 'vue'
 const qrcodeValue = '你扫你吗呢'
 let lastLogin = toRef<false | User.LastLogin>(await db.lastLogin.get())
-const router = useRouter()
 window.ipc.setSize(280, 400)
 function login() {
   if (!lastLogin.value) return
   const loading = ElLoading.service({
     text: '登陆中'
   })
-  const auth = useAuth()
-  auth.login(lastLogin.value).then(val => {
-    val[2]()
-    router.replace('/main')
-  }).catch(() => {
-    ElMessage.error('网络错误')
-  }).finally(() => loading.close())
+  on('onAuthed', loading.close)
+  actor.send({ type: 'logining', data: lastLogin.value })
 }
 </script>
 
