@@ -7,11 +7,12 @@ import { toUserWebSave, createEmptyDeepUser } from '@/utils/user'
 import { peerSetup } from '@a/chat';
 
 export const useUserStore = defineStore("user", () => {
-  const reload = (): User.WebDbSaveDeep => {
+  const reload = (steup = false): User.WebDbSaveDeep => {
     const ipcReturn = window.ipc.getStateSync('user')
+    if (steup) return isEmpty(ipcReturn) ? createEmptyDeepUser() : JSON.parse(ipcReturn)
     return isEmpty(ipcReturn) ? (isEmpty(user.value) ? createEmptyDeepUser() : user.value) : JSON.parse(ipcReturn)
   }
-  const user = ref(reload())
+  const user = ref(reload(true))
   async function commit() {
     window.ipc.setState('user', JSON.stringify(user.value))
     await server.createUpdate().commit(user.value)

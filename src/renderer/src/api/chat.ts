@@ -35,33 +35,53 @@ export const isHandShake = (value: unknown): value is Peer.Request.Handshake => 
 export const isMsg = (value: unknown): value is Peer.Request.Msg => isRequest(value) && [{
   type: z.enum(['text']),
   main: z.string()
-}
-  , {
-  type: z.enum(['img', 'file', 'video']),
-  main: z.instanceof(Blob),
-  md5: z.string()
-}
-  , {
+}, {
+  type: z.enum(['img', 'file', 'video', 'article']),
+  main: z.string(),
+  md5: z.string(),
+  name: z.string().optional()
+}, {
   type: z.enum(['appFunction']),
   main: z.any()
-}
-  , {
+}, {
   type: z.enum(['code']),
   main: z.string(),
-  is: z.string()
-}
-  , {
+  is: z.number()
+}, {
   type: z.enum(['equation']),
   main: z.string()
 }, {
   type: z.enum(['callback']),
   main: z.boolean()
+}, {
+  type: z.enum(["assetsTag"]),
+  is: z.enum(['file']),
+  main: {
+    size: z.string(),
+    name: z.string(),
+    md5: z.string()
+  }
+}, {
+  type: z.enum(["assetsTag"]),
+  is: z.enum(['video']),
+  main: {
+    size: z.string(),
+    cover: z.string(),
+    md5: z.string(),
+  }
+}, {
+  type: z.enum(["assetsTag"]),
+  is: z.enum(['article']),
+  main: {
+    size: z.string(),
+    cover: z.string(),
+    md5: z.string(),
+  }
 }].some(fn => z.object(fn as any).strict().safeParse(value.body).success)
 
 const chat_ref = ref<Chat>()
 const isReady = ref(false)
 let me: undefined | User.WebDbSaveDeep = undefined
-console.log(P2P)
 export class Chat extends P2P {
   public linkList = <Record<number, {
     connection: Connection;

@@ -3,15 +3,9 @@ import type { MessageInstance, MessageCenterRouterRowFn, MessageCenterRouterRow,
 import type { ipc as Ipc } from '../../renderer/globle';
 import { isUrlMatched, createMessageCenterRouterUrl } from "../../main/utils/url";
 import { dependencies, devDependencies } from "../../../package.json"
-
+const remove = <T>(arr: T[], rule: (val: T, index: number) => boolean) => arr.forEach((val, i) => rule(val, i) && arr.splice(i, 1))
 const contextBridge = { exposeInMainWorld: import.meta.env.DEV ? (key: string, value: any) => void (window[key] = value) : _cb.exposeInMainWorld }
-const remove = <T,>(arr: T[], rule: (val: T, index: number) => boolean) => {
-  arr.forEach((val, i) => {
-    if (rule(val, i)) {
-      arr.splice(i, 1)
-    }
-  })
-}
+
 function addRouter<T = any, P extends Record<string, string> = any, Q extends Record<string, string> = any>(path: string, fn: MessageCenterRouterRowFn<T, P, Q>): () => void {
   const key = Symbol(path)
   routers.push({ path, fn, key })
@@ -24,7 +18,8 @@ const addOnceRouter = <T = any, P extends Record<string, string> = any, Q extend
   })
 }
 const { port1, port2: _port } = new MessageChannel()
-const { my, root } = ipcRenderer.sendSync('init_sync')
+const { my, root, props } = ipcRenderer.sendSync('init_sync')
+contextBridge.exposeInMainWorld('props', props)
 ipcRenderer.postMessage('init_port', null, [_port])
 const routers = new Array<MessageCenterRouterRow>()
 contextBridge.exposeInMainWorld('instance_name', {
@@ -48,7 +43,7 @@ const send = <T = any, P extends Record<string, string> = any, Q extends Record<
   })
 })
 const sendSync = (msg: MessageInstance) => ipcRenderer.sendSync(my.toString(), msg).body
-
+const sendAsync = (msg: MessageInstance) => ipcRenderer.send(my.toString(), msg)
 const minimize = () => send({
   path: '/run/window/minimize',
   body: []
@@ -129,6 +124,10 @@ const reload = (body: string) => send({
   path: `/reload`,
   body
 })
+const dragFiles = (files: File[]) => sendAsync({
+  path: `/sync/dragfiles`,
+  body: files
+})
 const onReload = (path: string, fn: MessageCenterRouterRowFn) => addRouter(`/reload${path}`, fn)
 contextBridge.exposeInMainWorld('ipc', {
   minimize,
@@ -154,7 +153,8 @@ contextBridge.exposeInMainWorld('ipc', {
   setSelfState,
   getVersions() {
     return Object.assign(process.versions, dependencies, devDependencies)
-  }
+  },
+  dragFiles
 } as Ipc)
 
 

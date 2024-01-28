@@ -28,7 +28,7 @@ namespace Peer {
     send: <Tbody = Msg.index | Handshake.Body>(data: Request<Tbody> | isResponse, chunked?: boolean | undefined) => void | Promise<void>
   }
   namespace Msg {
-    type index = All | CallBask
+    type index = All | CallBask | AssetTag
     type All = {} & (UserTextMsg | UserFileMsg | UserAppMsg | UserCodeMsg | UserEquationMsg)
 
     type UserTextMsg = {
@@ -37,8 +37,9 @@ namespace Peer {
     }
     type UserFileMsg = {
       main: string;
-      md5: string;
-      type: "img" | "file" | "video"
+      type: "img" | "file" | "video" | "article",
+      md5: string,
+      name?: string
     }
     type UserAppMsg = {
       type: "appFunction";
@@ -47,7 +48,7 @@ namespace Peer {
     type UserCodeMsg = {
       type: "code";
       main: string;
-      is: string
+      is: number
     }
     type UserEquationMsg = {
       type: "equation";

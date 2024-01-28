@@ -18,7 +18,7 @@
     background-color: var(--n-color);
   }
 }
-*:not(.monaco *) {
+*:not(.monaco *,.n-code *) {
   font-family: var(--el-font-family) !important;
   // user-select: none;
 }
@@ -51,6 +51,6 @@ textarea,
 .n-button,
 .n-layout-toggle-button,
 a {
-  outline:none;
+  outline: none;
   -webkit-app-region: no-drag;
 }

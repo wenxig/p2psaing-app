@@ -58,7 +58,7 @@ const routes: RouteRecordRaw[] = [
     component: () => import("@p/dev/state.vue")
   },
   {
-    path: "/main/chat/img/preview",
+    path: "/main/chat/:type/preview",
     component: () => import("@p/chat/preview/index.vue")
   }
 ];

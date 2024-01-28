@@ -29,7 +29,7 @@ export class Connection {
       body: data,
       headers: config?.header ?? {}
     }
-    setTimeout(async () => await this.conn.send(request), 0)
+    setTimeout(async () => await this.conn.send(request, true), 0)
     return this.listenOnce('data', request.path) as TReturn
   }
   private default: Record<"data" | "open" | "error" | "close", [fn: Function, tag: symbol][]> & {

@@ -9,7 +9,7 @@ import { ref, defineComponent, reactive, watch, markRaw } from 'vue'
 import { ElIcon, ElMessage, ElSpace, ElText } from 'element-plus'
 import { useUserStore } from '@/store/user';
 import db from '@/db';
-import MsgList from './msgList.c.vue'
+// import MsgList from './msgList.c.vue'
 const app = useAppStore()
 const user = useUserStore()
 const route = useRoute()
@@ -30,17 +30,14 @@ const tempMsg = reactive({
   text: ''
 })
 
-app.topBar.value = markRaw(defineComponent(() => {
-  return () => {
-    return (<div class=" w-full relative flex items-center">
-      <ElText class='!text-xl !mr-4'>{toUser.name}</ElText>
-      <ElSpace size={5}>
-        {route.params.type == 'temp' && <ElIcon color='gray'><Clock20Regular /></ElIcon>}
-        {connection.isOpen.value ? <ElIcon><ConnectionSignal /></ElIcon> : <ElIcon><ConnectionSignalOff /></ElIcon>}
-      </ElSpace>
-    </div>)
-  }
-}))
+app.topBar.value = markRaw(defineComponent(() => () =>
+(<div class=" w-full relative flex items-center">
+  <ElText class='!text-xl !mr-4'>{toUser.name}</ElText>
+  <ElSpace size={5}>
+    {route.params.type == 'temp' && <ElIcon color='gray'><Clock20Regular /></ElIcon>}
+    {connection.isOpen.value ? <ElIcon><ConnectionSignal /></ElIcon> : <ElIcon><ConnectionSignalOff /></ElIcon>}
+  </ElSpace>
+</div>)))
 
 class SendMsg {
   public static async text() {
@@ -88,7 +85,7 @@ connection.onData(`/msg`, async (data) => {
 
 <template>
   <div class=" h-full overflow-hidden">
-    <MsgList :msgs="msgs" :users="[user.user, toUser]" :uid="user.user.uid" />
+    <!-- <MsgList :msgs="msgs" :users="[user.user, toUser]" :uid="user.user.uid" /> -->
     <div class="w-full h-[20%] border-t relative">
       <n-mention type="textarea" :options="[]" class="!h-full !w-full" v-model:value="tempMsg.text"></n-mention>
       <n-button type="primary" class="absolute bottom-1 right-1" plain @click="SendMsg.text()">发送</n-button>

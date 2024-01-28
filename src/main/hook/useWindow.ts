@@ -1,4 +1,4 @@
-import { join } from 'path';
+import path, { join } from 'path';
 import appIcon from '../../../resources/icon.png?asset'
 import { BrowserWindow, shell, app as App } from 'electron';
 import { is } from '@electron-toolkit/utils';
@@ -10,18 +10,12 @@ export interface MessageCenterRouterRow<P extends Record<string, string> = any, 
   fn: MessageCenterRouterRowFn<P, Q>,
   key: symbol
 }
-const remove = <T>(arr: T[], rule: (val: T, index: number) => boolean) => {
-  arr.forEach((val, i) => {
-    if (rule(val, i)) {
-      arr.splice(i, 1)
-    }
-  })
-}
-
 export interface WindowConfig extends Electron.BrowserWindowConstructorOptions {
   url: string
   parent?: Window
+  props?: Record<string, any>
 }
+const remove = <T>(arr: T[], rule: (val: T, index: number) => boolean) => arr.forEach((val, i) => rule(val, i) && arr.splice(i, 1))
 const baseOpt: WindowConfig = {
   width: 280,
   height: 400,
@@ -37,6 +31,7 @@ const baseOpt: WindowConfig = {
   resizable: false,
   icon: appIcon,
   url: '/',
+  props: {}
 } as const;
 
 
@@ -68,7 +63,8 @@ class MessageCenter {
         console.log('init_sync');
         event.returnValue = {
           my: win.id,
-          root: win.root.id
+          root: win.root.id,
+          props: win.options.props
         }
       })
       win.webContents.ipc.on(`init_port`, (event) => {
@@ -91,12 +87,20 @@ class MessageCenter {
           console.log(sendData);
           return sendData
         }
+        const handleDragFile = async (event: Electron.IpcMainEvent, files: File[]) => {
+          for (const file of files) event.sender.startDrag({
+            file: path.join(__dirname, file.name),
+            icon: ''
+          })
+          return null
+        }
         port_main.on('message', async ({ data }: { data: MessageInstance }) => {
           console.log('message', data);
           port_main.postMessage(await handleMessage(data))
         })
         win.webContents.ipc.on(win.id.toString(), async (event, data: MessageInstance) => {
           console.log('sync message', data);
+          if (data.path == '/sync/dragfiles') handleDragFile(event, data.body)
           event.returnValue = await handleMessage(data)
         })
         port_main.start()
@@ -109,7 +113,7 @@ class MessageCenter {
     const window = this.windows[this.windows.findIndex(({ window }) => window.id == win.id)]
     sync && window.router.push({ path: `/sync${path}`, fn, key })
     window.router.push({ path, fn, key })
-    return () => remove(window.router, val => val.key == key)
+    return () => remove(window.router, v => v.key == key)
   }
   public send(msg: MessageInstance, to: (number | Window | Electron.MessagePortMain)[] = this.windows.map(v => v.window)) {
     for (const port of (function* (this: MessageCenter): Generator<Electron.MessagePortMain, void, unknown> {
@@ -187,4 +191,3 @@ class Window extends BrowserWindow {
     return this.app.msgChannel.addRoute<T>(this, path, fn, sync)
   }
 }
-

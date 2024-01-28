@@ -6,76 +6,12 @@ import db from '@/db';
 import { useUserStore } from '@/store/user';
 import { toUserWebSave } from '@/utils/user';
 import { useAppStore } from '@/store/appdata';
-import { remove } from 'lodash-es';
-import { reactive, watch, ref } from 'vue';
+import { addAsyncProcess, addSyncProcess, nowRouterState, readQuery, routerMap, runPluginLfe } from './helper';
 export const router = createRouter({
   history: createWebHashHistory(),
   routes: routes,
 })
-const fnBuffer = new Array<{
-  key: symbol
-  life: keyof AppPlugin.PluginFunction,
-  fn: Function
-}>()
-const runPluginLfe = <K extends keyof AppPlugin.PluginFunction, R = undefined | ReturnType<NonNullable<AppPlugin.PluginFunction[K]>>>(life: K, ...data: Parameters<NonNullable<AppPlugin.PluginFunction[K]>>) => {
-  let runningPlugin = ''
-  const returns: R[] = []
-  nowState.value = life
-  try {
-    for (const plugin of window.plugins.filter(pg => !!pg[life])) {
-      runningPlugin = plugin.name
-      returns.push((plugin[life] as Function)!(...data))
-    }
-  } catch (error) {
-    throw new Error(`[Plugin Error] ${error} \n at plugin name:${runningPlugin}`)
-  }
-  for (const { fn } of fnBuffer.filter(({ life: lf }) => lf == life)) fn(...returns)
-}
-const readQuery = () => {
-  const query = new Map<string, string>()
-  if (/\?/g.test(location.hash)) for (const [key, value] of location.hash.substring(location.hash.indexOf("?") + 1).split('&').map(v => v.split('='))) query.set(key, value)
-  return query
-}
-const routerMap = {
-  onHomeRouter: '/main',
-  onChatRouter: '/main/dev/chat',
-  onPluginRouter: '/main',
-  onSettingRouter: '/main/setting/app',
-  onAddressRouter: '/main/address',
-  onDevRouter: '/main/dev'
-} as const
-export const nowState = ref<(keyof AppPlugin.PluginFunction) | 'onSetup'>((readQuery().get("route") ?? 'onSetup') as any)
-export const nowRouterState = ref<(keyof AppPlugin.PluginRouterFunction) | 'onSetup'>((readQuery().get("route") ?? 'onSetup') as any)
-watch(nowRouterState, (route) => {
-  window.ipc.setSelfState('route', route)
-}, { flush: 'post' })
 
-const processList = reactive(new Array<{
-  ready: boolean,
-  task: () => Promise<any>,
-  waiting: boolean,
-  sync: boolean
-}>())
-function addAsyncProcess(task: () => Promise<any>) {
-  processList.push({
-    ready: false,
-    task,
-    waiting: false,
-    sync: false
-  })
-}
-function addSyncProcess(task: () => any) {
-  processList.push({
-    ready: false,
-    task,
-    waiting: false,
-    sync: true
-  })
-}
-watch(processList, (val) => {
-  if (val[0]?.ready) processList.shift()
-  if (!!val[0] && !val[0].waiting && (val[0].waiting = true)) val[0].sync ? (() => val[0].ready = (!!val[0].task() || true))() : (val[0].task().finally(() => val[0].ready = true))
-})
 const appMachine = setup({
   types: {} as {
     events:
@@ -99,7 +35,7 @@ const appMachine = setup({
   /** @xstate-layout N4IgpgJg5mDOIC5QEMAOqB0B7AdgZTABcBXVAYgBstkIAFC4qASxwG0AGAXUVFS1iaEmuHiAAeiAEzt2GAJwBmAOwBWdkvYA2OQA4FAFh0qANCACeiAIzt9GdnM065MnZNftLlgL5fTaTLj0jCwAMtQQlOEAwnh4HNxIIHwCQiKJEgj6cioYWQqaCgqSmh4qOvqmFgjWmnYO2SrZlkoGRT5+6Ng4YTQxeGQCOFCkLFDxosmCwjiiGaq1xZJKLR769kpylVY2GI3aJSqNNiqWcu0g-l09EH2RzDij44mTqTPpiEoFGJ6WksWazWU5S2CGktQMSl+RWcyjklgU50uuDC9zIT14-CmaVAGWs+lq1k8Kn0kgUcjk+ksIOkSgw5SUpO0nlUhR0iM6uDwTCgOAAquR0UlMa9Ztt8d8PJZiaTyZSQTU6tpDk0Wvo2r4LhycABBYiEAAWkDRXAmwumouqlh0skkzgaVpUqn0JnMiAUzVyTnxOk0AMd7Ek7ICOAAElgALZgABKWD1YAATmQAI7EQSCl7m97VSTEjD5RoM+F6SyaEHE2x6OEqBT2R0+pRBrpRfXIQgxuOJlNpk3PM3Y8Rux3ydiOgHqHPsHQ6EGuWojoyk23VyT6Ru4Zut9uEBNdAg4CCjACycFgyBgxoSGJSmZxbuKdgUjsO1esnwK8pLOgwf00kLVymrBENSRHANzbWNt3jLoABVkAoABrMh4zAABjMAmAANzAdM+zeW9QWUDBNFHANrVJBQ9EkD9rG-aRKRraQykpNdQJbcCOxguDENgMB9wAIT1Qh1woJgUPgnDr37DJSVpYjPlIgNWSKeVJClPNJxHVSxzhVdgK1MCtx3XBj1gU9zwkrE8IHBAijnR9VEOd11F9BR5S0BRvjJSw1UhP4SRYoJ7kMztU0ICyRSzeFpHkQwlCnGtfQZCpXQQHQaJ0OLfiJEoKV0jpg0Clhgq6KMwHDLAsMKnAL1NSSrNxfRVHU7Jf0OP54VLFLPG0PNshXFQ5N0TQAoYIKIKM-B9SwAB3KrtQAIwgsgIBm7pwnCm9rO8pRbChAEpUaspmg-ew6RkX88WJbaRuCHBis5KbZtGlgFqWniKAAeQNBMNqkqwSxyEcrWtX4c1JNyNF65Z8mOW0zj0grnru8aoIema5sWvUkLKirsJ7K9LItbbdsZIlDrSpQVO8ukpxLEcDGKFQbrGjjOTAChUMIKqat7OqiYBuwTinDw-hUcGut+WRGucU49CKUXmaKlGugAEVwaaqBobnfvqqwTlpOK4fdVqAbczRJAwSEKQ8FoNAZJmEa6Kr7rWrWkePHBiAGdmdYtOFZGrAEMoGn1ClcrrJw8naBvN3R2CKbxHbZwghCGYLk1C32s2kNT1GUSExcpHbpxStLZAytKyndR1GobJP8CIVOoBdggU9GDchjAMgUJbIZRlbpus-w053TpZY1V9FcnGItzq1yLyGV8sW9BY7UIAgZDTPTrswvxoU+ezwocg2ZwjGWc3H06qoy7Hyvixr5ZV-XzfYBd64143k8Pa9mgIF5Hj4xD2siuEkREbAOHjnIDQ5Qr7-SKHYUkJwChFEfE-T+W9lbInCB-F+38yC-2gmVVA-8fp7wzH9UEJILZkhzGSNY5J1Czw8mqOQE5VJGCKHlTUwYcEnjftg5+X9eJe2QuVLCJDAFkNwhaFcto8z6DWKpaGLQXRVCyrIDYBhvI5hUTYNBL8XYfwkTzAmEV8JLCnN+GwtojCOmhMlNR8IPJiwMKwxwnwVz6L4ZgnU69CHhmIQAkx+9CbZzil+OiNjDgtHDmokcthFCsLKAyR88SvEYNZndHG4iglAOkuEqxJJdDRPsVTC2toDDEjhNIP4QF8oYHjCjMgUAsBgTyR8aKqkKQVLoicEEv4PKPkaKDDY1Y1SNkaR2ZpWAqrtOzFob8Po-j020HkGc6VMpVylDtR+jtJmQWmQPR4UiD7D0OF+QopxijNEys6fpLQ8zKhGdkVoEymktN4aZOZVoyRjw0IoTQtcMpURSgMx5wy-ijNeXs95WAACKoVtToDmRAuwywklaGKFoMsbhch4jcNWYkvo3lTJaSrMAGFvn5C-IoU4xF474jirAmyhRcgUhrFaSk8SV4wtJVgMMkZvnbUttIGs7oum0LLAoukXlig+kUlwkC5KMLb0zic0Jw98iyXsFKR0O1DqqLdM4IiBhnTunxPkYa5wcBYAgHAUQ-haoausgAWlAUsBhJJfxZGIrExALqcjknJOfEkNYWosVbqQJ1ZjrIknWXUZQAJdAMPKIGeuVVrjRs2hkQochLbitsa4NKtl432ETbLFN-l67XD6FmihjQPIVyyo+KUjgS7X0sAmvQZRqysIBixFELA6261Shlb4BQSiQhuaUeUrg6QsOKQuQ4xL65ch5PyYdFopy0hLDDKdywZ2l07WW7tHC+0rvqbgXU30ICbsih1eQygcxtp7Ya1Kx7FCnt7VpK1l7QwRmjCjO9w8pSDPAY1SkSxawgkpBEso09iSEoZCxAyQHebOoyMfaQtYWgTgML6N9rCNEOEfG4cozoxYobYi3XiB4hgmTMmAYDsboraGw0seDZJNgS0aLsAuFSNhyrrn+1DmTYIIWY5hqO2Hsi4bUBCM2HlJ62kMKwpw8MRPUZ8Qxs8TH0MxoyCSWQbGZAcfiuSWethDBklIo0YpiqtTOzQ6Y7NiBHAeSlA6eORQdqKBBERvMb4BplBysRRWyNMmlTEWAKqkmrAAgtiwpYgKnm6A-Lxzz+wRw2GhuFluj0MYQTi9mY1VoASfDswGSmEcviyMLloPtLQ8s+IIBzFCXMkbFeDURYocU+3rDFop78JIsjWygTYROf6nOZLVjgDW4RYv6dc9UBL89WGfAo3CNLEdcxaCM8RAE5sL3cKdkjfhbtbrf2Ky0TtnmjDeaWGsmrGiST1bY4CCNjdRjBWK8DC27kawnEMDIQbKUtuW31qwtUJZ8SfbbmnFrX2hgdxgL9xQsgAdA2B5pE6X4xbxwysUxBDmeGCIyZBYrqlpXOEq0YRw+JCOnF2M6EoOYzX2HSa-Hx78yewCu0tihErhy05Dgzj8OYiI3MUI1HVbJ66fK55koxADKfmwud6ZopwJ4gscaPCmU9rYuDl3+hXhi-FEIkaryc3wlzOAGYuJh35oRFuuXCOpJ2r285dlF3GluBcjuubYEciglFJuaG+9RuwMqeEaqB6wDt6n7ITL9pR+aw2sOkAC+5HmfVkl-BsNYwmTs7yRagLruYVyJTNf8bFKUKJ5qtPCSD5tJyHBJ6rClP3-cyNtLSYk8dfSGC9Suakj5LYUgKDhlcl8WLKvOxAZV-OXOC8qczgfgLU3mwcW6Hqhh2FlqWC0QFPgfBAA */
   id: 'app',
 
-  initial: readQuery().get("route") ?? "onSetup",
+  initial: window.ipc.getSelfStateSync("route") ?? "onSetup",
 
   states: {
     onSetup: {
@@ -541,10 +477,10 @@ const appMachine = setup({
   context: {
     router,
     data_goChat: { dev: true },
-
   }
 });
-export const actor = createActor(appMachine, { devTools: true })
+
+export const actor = createActor(appMachine)
 export const $setup = () => {
   if (readQuery().get("route") ?? false) {
     console.log(routerMap[readQuery().get("route")!])
@@ -553,8 +489,5 @@ export const $setup = () => {
   actor.start()
   return router
 }
-export function on<K extends keyof AppPlugin.PluginFunction>(life: K, fn: (...data: (ReturnType<NonNullable<AppPlugin.PluginFunction[K]>>)[]) => any): () => void {
-  const key = Symbol(life)
-  fnBuffer.push({ life, fn, key })
-  return () => remove(fnBuffer, { key })
-}
+
+export {  nowRouterState, nowState, on, readQuery, routerMap } from './helper';

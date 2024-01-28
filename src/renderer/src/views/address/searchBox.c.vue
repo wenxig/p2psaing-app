@@ -15,11 +15,9 @@ function filteUsers(keyword: string, cb: any) {
   cb([keyword])
 }
 async function toAddUser() {
-  iconRotate.value == '0deg' ? iconRotate.value = '-45deg' : iconRotate.value = '0deg'
+  iconRotate.value = iconRotate.value == '0deg' ? '-45deg' : '0deg'
   await nextTick()
-  if (iconRotate.value != '0deg') {
-    AddUserCom.value?.focus()
-  }
+  if (iconRotate.value != '0deg') AddUserCom.value?.focus()
 }
 
 function getLisetData(keyword: string, cb: AutocompleteFetchSuggestionsCallback) {

@@ -1,13 +1,17 @@
 <script setup lang='tsx'>
 import { useAppStore } from '@/store/appdata';
-import { ref, defineComponent, reactive, markRaw } from 'vue'
+import { ref, defineComponent, reactive, markRaw, provide } from 'vue'
 import { ElText } from 'element-plus'
 import MsgList from '@p/chat/msgList.c.vue'
+import CodeView from '@p/chat/check/code.c.vue'
 import { createRandomUser } from '@/utils/user';
 import { Picture } from '@element-plus/icons-vue'
 import { useFileDialog } from '@vueuse/core';
 import { fileToDataURL } from '@/utils/image';
 import { MD5 } from 'crypto-js';
+import { Code } from '@vicons/carbon';
+import { useSender } from '../chat/inject';
+import { times } from 'lodash-es';
 const file = useFileDialog({
   accept: 'image/*'
 })
@@ -16,7 +20,9 @@ const user = createRandomUser()
 const toUser = createRandomUser()
 const msgs = ref<Peer.Request.Msg[]>([])
 const tempMsg = reactive({
-  text: ''
+  text: '',
+  code_is: 61,
+  showPlaseCode: false
 })
 app.topBar.value = markRaw(defineComponent(() => {
   return () => {
@@ -25,79 +31,116 @@ app.topBar.value = markRaw(defineComponent(() => {
     </div>)
   }
 }))
-
+const sendFromMe = ref(true)
+const createMeg = (body: Peer.Msg.All): Peer.Request.Msg => ({
+  body,
+  headers: {
+    from: sendFromMe.value ? user.uid : toUser.uid,
+    time: new Date().getTime()
+  },
+  path: `/msg`
+})
 class SendMsg {
-  public static async text() {
-    const msg: Peer.Request.Msg = {
-      body: {
-        type: 'text',
-        main: tempMsg.text || '<empty>'
-      },
-      headers: {
-        from: user.uid,
-        time: new Date().getTime()
-      },
-      path: `/msg`
-    }
-    msgs.value.push(msg)
+  public static text() {
+    msgs.value.push(createMeg({
+      type: 'text',
+      main: tempMsg.text || '<empty>'
+    }))
     tempMsg.text = ''
   }
-  public static image() {
+  public static imageWithSelect() {
     file.open()
     file.onChange(async () => {
-      const img = await fileToDataURL(file.files.value![0])
-      const msg: Peer.Request.Msg = {
-        body: {
-          type: 'img',
-          main: img,
-          md5: MD5(img).toString()
-        },
-        headers: {
-          from: user.uid,
-          time: new Date().getTime()
-        },
-        path: `/msg`
-      }
-      msgs.value.push(msg)
-      tempMsg.text = ''
+      const imgs = await Promise.all(times(file.files.value?.length ?? 0, async i => await fileToDataURL(file.files.value![i])))
+      for (const img of imgs) SendMsg.image(img)
     })
   }
-  public static async text2() {
-    const msg: Peer.Request.Msg = {
-      body: {
-        type: 'text',
-        main: tempMsg.text || '<empty>'
-      },
-      headers: {
-        from: toUser.uid,
-        time: new Date().getTime()
-      },
-      path: `/msg`
-    }
-    msgs.value.push(msg)
+  public static videoWithSelect() {
+    file.open()
+    file.onChange(async () => {
+      const videos = await Promise.all(times(file.files.value?.length ?? 0, async i => await fileToDataURL(file.files.value![i])))
+      for (const video of videos) SendMsg.video(video)
+    })
+  }
+  public static fileWithSelect() {
+    file.open()
+    file.onChange(async () => {
+      const files = await Promise.all(times(file.files.value?.length ?? 0, async i => [await fileToDataURL(file.files.value![i]), file.files.value![i].name]))
+      for (const file of files) SendMsg.file(file[0], file[1])
+    })
+  }
+  public static code() {
+    msgs.value.push(createMeg({
+      type: 'code',
+      main: tempMsg.text || '// <empty>',
+      is: tempMsg.code_is
+    }))
     tempMsg.text = ''
+    CodeViewC.value?.close()
+  }
+
+  public static video(dataUrl: string) {
+    msgs.value.push(createMeg({
+      type: 'video',
+      main: dataUrl,
+      md5: MD5(dataUrl).toString()
+    }))
+  }
+  public static image(dataUrl: string) {
+    msgs.value.push(createMeg({
+      type: 'img',
+      main: dataUrl,
+      md5: MD5(dataUrl).toString()
+    }))
+  }
+  public static article(dataUrl: string) {
+    msgs.value.push(createMeg({
+      type: 'article',
+      main: dataUrl,
+      md5: MD5(dataUrl).toString()
+    }))
+  }
+  public static file(dataUrl: string, name: string) {
+    msgs.value.push(createMeg({
+      type: 'file',
+      main: dataUrl,
+      md5: MD5(dataUrl).toString(),
+      name
+    }))
   }
 }
+provide(useSender, (key: any, ...value) => SendMsg[key](...value))
+const SEND_IMAGE_BUTTON_CLASS = 'transition-colors !text-[--el-color-info-light-5] hover:!text-[--el-color-info-light-3] active:!text-[--el-color-info]'
+// 基块 end
+
+const CodeViewC = ref<InstanceType<typeof CodeView>>()
 </script>
 
 <template>
   <div class=" h-full overflow-hidden">
     <ElUpload class="!hidden"></ElUpload>
     <MsgList :msgs="msgs" :users="[user, toUser]" :uid="user.uid" />
-    <div class="w-full h-[20%] border-t relative">
+    <div class="h-1/5 border-t relative bottom-0">
       <n-mention type="textarea" :options="[]" class="!h-full !w-full" v-model:value="tempMsg.text"></n-mention>
       <el-space class="absolute top-1 right-1">
-        <el-icon @click="SendMsg.image()" size="20">
-          <Picture
-            class="transition-colors !text-[--el-color-info-light-5] hover:!text-[--el-color-info-light-3] active:!text-[--el-color-info]" />
+        <el-icon @click="SendMsg.imageWithSelect()" size="25">
+          <Picture :class="SEND_IMAGE_BUTTON_CLASS" />
+        </el-icon>
+        <el-icon size="25" @click="CodeViewC?.open()">
+          <Code :class="SEND_IMAGE_BUTTON_CLASS" />
         </el-icon>
       </el-space>
       <div class="absolute bottom-1 right-1">
-        <n-button type="primary" class="mr-1" @click="SendMsg.text()">发送(己方)</n-button>
-        <n-button type="primary" plain @click="SendMsg.text2()">发送(对方)</n-button>
+        <n-button type="primary" class="mr-1" @click="SendMsg.text()">发送</n-button>
+        <label class="select-none">
+          对方
+          <ElSwitch v-model="sendFromMe"></ElSwitch>
+          己方
+        </label>
       </div>
     </div>
   </div>
+  <CodeView v-model="tempMsg" :code-sender="SendMsg.code" ref="CodeViewC" />
 </template>
 
 <style scoped lang='scss'>

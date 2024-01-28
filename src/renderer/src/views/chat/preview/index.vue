@@ -1,9 +1,11 @@
 <script setup lang='ts'>
-const dataImg = localStorage.getItem('preview')
+import ImgPerview from './img.c.vue';
+import CodePerview from './code.c.vue';
+import VideoPerview from './video.c.vue';
 </script>
 
 <template>
-  <span>
-    {{ dataImg }}
-  </span>
+  <ImgPerview v-if="$route.params.type == 'image'" />
+  <CodePerview v-if="$route.params.type == 'code'" />
+  <VideoPerview v-if="$route.params.type == 'video'" />
 </template>

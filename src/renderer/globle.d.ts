@@ -1,29 +1,30 @@
 import type { AxiosResponse } from 'axios';
-import type { BrowserOptions, ChildBrowserOptions } from '../main/hook/useWindow'
+import type { WindowConfig } from '../main/hook/useWindow'
 import { actor } from "./src/controller";
 type ipc = {
-  setSize(width: number, height: number): void
-  setResizable(agree: boolean): void
-  minimize(): void
-  maximize(): void
-  unmaximize(): void
-  close(): void
-  quitApp(): void
+  setSize(width: number, height: number): Promise<void>
+  setResizable(agree: boolean): Promise<void>
+  minimize(): Promise<void>
+  maximize(): Promise<void>
+  unmaximize(): Promise<void>
+  close(): Promise<void>
+  quitApp(): Promise<void>
   toTop(): void
-  relanch(): void
-  setState(key: string, value: string, animate: boolean = false): void
-  setSelfState(key: string, value: string, animate: boolean = false): void
+  relanch(): Promise<void>
+  setState(key: string, value: string, animate: boolean = false): Promise<void>
+  setSelfState(key: string, value: string, animate: boolean = false): Promise<void>
   getState(key: string): Promise<string>
   getStateSync(key: string): string
   getSelfStateSync(key: string): string
-  createWindow(opt: BrowserOptions): void
-  createInstanse(): void
-  createChildWindow(opt: ChildBrowserOptions): void
-  reload(sth: string): void
+  createWindow(opt: WindowConfig): Promise<void>
+  createInstanse(): Promise<void>
+  createChildWindow(opt: WindowConfig): Promise<void>
+  reload(sth: string): Promise<void>
   onReload(path: string, fn: Function): () => void
   getVersions(): Record<string, string>
   addRouter<T = any, P extends Record<string, string> = any, Q extends Record<string, string> = any>(path: string, fn: MessageCenterRouterRowFn<T, P, Q>): () => void
   addOnceRouter<T = any, P extends Record<string, string> = any, Q extends Record<string, string> = any>(path: string, fn: MessageCenterRouterRowFn<T, P, Q>): void
+  dragFiles(files: File[]): void
 }
 declare module "vue" {
   interface ComponentCustomProperties {
@@ -55,6 +56,7 @@ declare global {
     }
     goHome: () => void
     ipc: ipc
-    plugins: AppPlugin.Plugin[]
+    plugins: AppPlugin.Plugin[],
+    props: Record<string, any>
   }
 }

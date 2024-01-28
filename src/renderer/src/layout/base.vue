@@ -1,6 +1,6 @@
-<script setup lang='tsx'>
+<script setup lang='ts'>
 import { ChatRound } from "@element-plus/icons-vue";
-import control from '@/components/control.vue';
+import Control from '@/components/control.vue';
 import { ref, nextTick } from 'vue';
 import { useUserStore } from '@s/user';
 import { storeToRefs } from 'pinia';
@@ -9,7 +9,6 @@ import { Code20Filled } from '@vicons/fluent';
 import { Settings } from '@vicons/carbon';
 import { nowRouterState } from '@c/index';
 import gsap from "gsap"
-import { watch } from "vue";
 const { user } = storeToRefs(useUserStore())
 
 const BASE_SIZE_AVATAR = 40
@@ -43,23 +42,19 @@ const nomeSize = (el: HTMLElement) => {
     direction: 4
   }).play()
 }
-watch(nowRouterState, (val) => {
-  console.log(val);
-
-})
 </script>
 
 <template>
   <el-container class=" h-full">
     <el-aside class="relative region-drag bg-[var(--el-color-info-light-7)] !pt-20 !h-full flex justify-center !w-[60px]">
-      <control class="absolute top-0 left-0"></control>
+      <Control class="absolute top-0 left-0"></Control>
       <el-space direction='vertical' class=" w-full h-full">
         <div @mouseleave="(e) => nomeSize(e.target as HTMLElement)" ref="DivEl"
           @mouseenter="(e) => bigSize(e.target as HTMLElement)" class=" relative DivEl"
           :style="{ width: `${BASE_SIZE_AVATAR}px`, height: `${BASE_SIZE_AVATAR}px` }">
           <el-avatar shape="square" class="region-no-drag !w-full !h-full"
             :src="user.img == '' ? '/userIcon.png' : user.img"
-            @click="$ipc.createChildWindow({ width: 800, height: 500, url: '/main/setting/user', parents: $window.instance_name.my })" />
+            @click="$ipc.createChildWindow({ width: 800, height: 500, url: '/main/setting/user' })" />
         </div>
         <div
           class="pointer-events-none border p-2 border-[--el-fill-color-light] bg-[--el-bg-color] pop-user rounded-md opacity-0 w-[13rem] h-[8rem] fixed z-40 before:bg-[--el-bg-color] before:pointer-events-none before:border-b before:border-l before:border-[--el-fill-color-light] before:content-[''] before:w-5 before:h-5 before:top-[--i-before-top] before:block before:m-0 before:!absolute before:-translate-x-[100%] before:rotate-45"

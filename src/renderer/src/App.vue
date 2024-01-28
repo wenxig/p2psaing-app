@@ -23,6 +23,7 @@ db.app.sub((styles) => {
   styles = styles.filter(({ isLoad }) => isLoad)
   joinStyle.css.value = styles.map(({ code }) => code).join('\n')
 }, true)
+
 </script>
 
 <template>
