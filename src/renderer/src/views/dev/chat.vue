@@ -4,16 +4,18 @@ import { ref, defineComponent, reactive, markRaw, provide } from 'vue'
 import { ElText } from 'element-plus'
 import MsgList from '@p/chat/msgList.c.vue'
 import CodeView from '@p/chat/check/code.c.vue'
+import EquationView from '@p/chat/check/equation.c.vue'
+import ArticleEdit from '@p/chat/check/article.c.vue'
 import { createRandomUser } from '@/utils/user';
-import { Picture } from '@element-plus/icons-vue'
+import { Picture, VideoPlay, Document } from '@element-plus/icons-vue'
 import { useFileDialog } from '@vueuse/core';
 import { fileToDataURL } from '@/utils/image';
 import { MD5 } from 'crypto-js';
-import { Code } from '@vicons/carbon';
+import { Code, FunctionMath } from '@vicons/carbon';
 import { useSender } from '../chat/inject';
 import { times } from 'lodash-es';
-const file = useFileDialog({
-  accept: 'image/*'
+const file = (accept = 'image/*') => useFileDialog({
+  accept
 })
 const app = useAppStore()
 const user = createRandomUser()
@@ -41,33 +43,46 @@ const createMeg = (body: Peer.Msg.All): Peer.Request.Msg => ({
   path: `/msg`
 })
 class SendMsg {
-  public static text() {
-    msgs.value.push(createMeg({
-      type: 'text',
-      main: tempMsg.text || '<empty>'
-    }))
-    tempMsg.text = ''
-  }
   public static imageWithSelect() {
-    file.open()
-    file.onChange(async () => {
-      const imgs = await Promise.all(times(file.files.value?.length ?? 0, async i => await fileToDataURL(file.files.value![i])))
+    const f = file()
+    f.open()
+    f.onChange(async () => {
+      const imgs = await Promise.all(times(f.files.value?.length ?? 0, async i => await fileToDataURL(f.files.value![i])))
       for (const img of imgs) SendMsg.image(img)
     })
   }
   public static videoWithSelect() {
-    file.open()
-    file.onChange(async () => {
-      const videos = await Promise.all(times(file.files.value?.length ?? 0, async i => await fileToDataURL(file.files.value![i])))
+    const f = file('video/*')
+    f.open()
+    f.onChange(async () => {
+      const videos = await Promise.all(times(f.files.value?.length ?? 0, async i => await fileToDataURL(f.files.value![i])))
       for (const video of videos) SendMsg.video(video)
     })
   }
   public static fileWithSelect() {
-    file.open()
-    file.onChange(async () => {
-      const files = await Promise.all(times(file.files.value?.length ?? 0, async i => [await fileToDataURL(file.files.value![i]), file.files.value![i].name]))
+    const f = file('')
+    f.open()
+    f.onChange(async () => {
+      const files = await Promise.all(times(f.files.value?.length ?? 0, async i => [await fileToDataURL(f.files.value![i]), f.files.value![i].name]))
       for (const file of files) SendMsg.file(file[0], file[1])
     })
+  }
+  public static articleWithEdit() {
+    ArticleEditC.value?.open()
+  }
+  public static equation() {
+    msgs.value.push(createMeg({
+      type: 'equation',
+      main: tempMsg.text || '<empty>'
+    }))
+    tempMsg.text = ''
+  }
+  public static text() {
+    msgs.value.push(createMeg({
+      type: 'text',
+      main: tempMsg.text.replaceAll('$$', '') || '<empty>'
+    }))
+    tempMsg.text = ''
   }
   public static code() {
     msgs.value.push(createMeg({
@@ -93,11 +108,11 @@ class SendMsg {
       md5: MD5(dataUrl).toString()
     }))
   }
-  public static article(dataUrl: string) {
+  public static article(text: string) {
     msgs.value.push(createMeg({
       type: 'article',
-      main: dataUrl,
-      md5: MD5(dataUrl).toString()
+      main: text,
+      md5: MD5(text).toString()
     }))
   }
   public static file(dataUrl: string, name: string) {
@@ -108,28 +123,48 @@ class SendMsg {
       name
     }))
   }
+
 }
 provide(useSender, (key: any, ...value) => SendMsg[key](...value))
 const SEND_IMAGE_BUTTON_CLASS = 'transition-colors !text-[--el-color-info-light-5] hover:!text-[--el-color-info-light-3] active:!text-[--el-color-info]'
 // 基块 end
 
 const CodeViewC = ref<InstanceType<typeof CodeView>>()
+const EquationViewC = ref<InstanceType<typeof EquationView>>()
+const ArticleEditC = ref<InstanceType<typeof ArticleEdit>>()
 </script>
 
 <template>
   <div class=" h-full overflow-hidden">
     <ElUpload class="!hidden"></ElUpload>
     <MsgList :msgs="msgs" :users="[user, toUser]" :uid="user.uid" />
-    <div class="h-1/5 border-t relative bottom-0">
+    <el-space class="pl-1 border-t w-full h-[5%]">
+      <el-icon @click="SendMsg.imageWithSelect()" size="25">
+        <Picture :class="SEND_IMAGE_BUTTON_CLASS" />
+      </el-icon>
+      <el-icon @click="SendMsg.videoWithSelect()" size="25">
+        <VideoPlay :class="SEND_IMAGE_BUTTON_CLASS" />
+      </el-icon>
+      <el-icon size="25" @click="SendMsg.fileWithSelect()">
+        <svg :class="SEND_IMAGE_BUTTON_CLASS" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink"
+          viewBox="0 0 1024 1024">
+          <path
+            d="M854.6 288.6L639.4 73.4c-6-6-14.1-9.4-22.6-9.4H192c-17.7 0-32 14.3-32 32v832c0 17.7 14.3 32 32 32h640c17.7 0 32-14.3 32-32V311.3c0-8.5-3.4-16.7-9.4-22.7zM790.2 326H602V137.8L790.2 326zm1.8 562H232V136h302v216a42 42 0 0 0 42 42h216v494z"
+            fill="currentColor"></path>
+        </svg>
+      </el-icon>
+      <el-icon size="25" @click="CodeViewC?.open()">
+        <Code :class="SEND_IMAGE_BUTTON_CLASS" />
+      </el-icon>
+      <el-icon @click="SendMsg.articleWithEdit()" size="25">
+        <Document :class="SEND_IMAGE_BUTTON_CLASS" />
+      </el-icon>
+      <el-icon size="25" @click="EquationViewC?.open()">
+        <FunctionMath :class="SEND_IMAGE_BUTTON_CLASS" />
+      </el-icon>
+    </el-space>
+    <div class="h-1/5 relative bottom-0">
       <n-mention type="textarea" :options="[]" class="!h-full !w-full" v-model:value="tempMsg.text"></n-mention>
-      <el-space class="absolute top-1 right-1">
-        <el-icon @click="SendMsg.imageWithSelect()" size="25">
-          <Picture :class="SEND_IMAGE_BUTTON_CLASS" />
-        </el-icon>
-        <el-icon size="25" @click="CodeViewC?.open()">
-          <Code :class="SEND_IMAGE_BUTTON_CLASS" />
-        </el-icon>
-      </el-space>
       <div class="absolute bottom-1 right-1">
         <n-button type="primary" class="mr-1" @click="SendMsg.text()">发送</n-button>
         <label class="select-none">
@@ -140,7 +175,9 @@ const CodeViewC = ref<InstanceType<typeof CodeView>>()
       </div>
     </div>
   </div>
-  <CodeView v-model="tempMsg" :code-sender="SendMsg.code" ref="CodeViewC" />
+  <CodeView v-model="tempMsg" ref="CodeViewC" />
+  <EquationView v-model="tempMsg" ref="EquationViewC" />
+  <ArticleEdit ref="ArticleEditC" @write-ok="SendMsg.article" />
 </template>
 
 <style scoped lang='scss'>

@@ -1,9 +1,13 @@
-import path, { join } from 'path';
+import { join } from 'path';
 import appIcon from '../../../resources/icon.png?asset'
 import { BrowserWindow, shell, app as App } from 'electron';
 import { is } from '@electron-toolkit/utils';
 const mainHtml = '../renderer/index.html'
 import { isUrlMatched, createMessageCenterRouterUrl, MessageCenterRouterUrl } from '../utils/url';
+import { useCkeditor } from './useCkeditor';
+const ckeditor = useCkeditor()
+
+
 export type MessageCenterRouterRowFn<T = any, P extends Record<string, string> = any, Q extends Record<string, string> = any> = (url: MessageCenterRouterUrl<P, Q>, data: T) => any
 export interface MessageCenterRouterRow<P extends Record<string, string> = any, Q extends Record<string, string> = any> {
   path: string,
@@ -87,20 +91,12 @@ class MessageCenter {
           console.log(sendData);
           return sendData
         }
-        const handleDragFile = async (event: Electron.IpcMainEvent, files: File[]) => {
-          for (const file of files) event.sender.startDrag({
-            file: path.join(__dirname, file.name),
-            icon: ''
-          })
-          return null
-        }
         port_main.on('message', async ({ data }: { data: MessageInstance }) => {
           console.log('message', data);
           port_main.postMessage(await handleMessage(data))
         })
         win.webContents.ipc.on(win.id.toString(), async (event, data: MessageInstance) => {
           console.log('sync message', data);
-          if (data.path == '/sync/dragfiles') handleDragFile(event, data.body)
           event.returnValue = await handleMessage(data)
         })
         port_main.start()
@@ -145,6 +141,7 @@ class Window extends BrowserWindow {
       return { action: 'deny' }
     })
     this.app.msgChannel.addWindow(this).then(() => {
+      this.addRoute<any[], { method: string }>('/run/shell/:method', ({ params }, data) => shell[params.method](...(data ?? [])))
       this.addRoute<any[], { method: string }>('/run/window/:method', ({ params }, data) => this[params.method](...(data ?? [])))
       this.addRoute<any[], { method: string }>('/run/app/:method', ({ params }, data) => App[params.method](...(data ?? [])))
       this.addRoute<any[], { method: string }>('/run/instanes/:method', ({ params }, data) => app[params.method](...(data ?? [])))
@@ -166,6 +163,12 @@ class Window extends BrowserWindow {
           body: null
         })
       })
+      this.addRoute('/sync/httpServer', () => {
+        return [{
+          name: 'ck', url: `http://localhost:${ckeditor()}`
+        }]
+      }, true)
+
       this.on('focus', () => this.app.msgChannel.send({
         path: `/emit/focus`,
         body: null
@@ -174,6 +177,7 @@ class Window extends BrowserWindow {
         path: `/emit/blur`,
         body: null
       }, [this]))
+
     })
     this.root = this.options.parent?.root ?? this.options.parent ?? this
     const joinData = `#${options.url}`

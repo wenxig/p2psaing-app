@@ -1,10 +1,11 @@
 <script setup lang='tsx'>
 import { MD5 } from 'crypto-js';
-import { Picture } from '@element-plus/icons-vue'
+import { Picture, Document } from '@element-plus/icons-vue'
 import { Code } from '@vicons/carbon';
 import { defineComponent, ref } from 'vue';
 import { ElIcon } from 'element-plus';
 import { getBase64ImageSize, getVideoFrameImage, getBase64VideoSize } from '@/utils/image';
+import { KatexOptions } from 'katex';
 const props = defineProps<{
   value: Peer.Msg.All
   isMe: boolean
@@ -37,6 +38,11 @@ function download(href: string, title: string) {
   a.remove()
 }
 
+const options: KatexOptions = {
+  fleqn: true,
+  throwOnError: false,
+  errorColor: 'var(--el-color-danger)',
+}
 </script>
 
 <template>
@@ -78,7 +84,7 @@ function download(href: string, title: string) {
     <img class="rounded-md object-cover w-full select-none pointer-events-none" :src="videoImage" />
   </NSpin>
   <MsgBlock v-else-if="value.type == 'file'" v-once :class="isMe ? 'popMe' : 'popThey'"
-    @click="async () => download(value.main, (value as Peer.Msg.UserFileMsg).name!)">
+    @click="() => download(value.main, (value as Peer.Msg.UserFileMsg).name!)">
     <template #icon><svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink"
         viewBox="0 0 1024 1024">
         <path
@@ -88,6 +94,17 @@ function download(href: string, title: string) {
     </template>
     {{ value.name! }}
   </MsgBlock>
+  <MsgBlock v-else-if="value.type == 'article'" v-once :class="isMe ? 'popMe' : 'popThey'"
+    @click="$ipc.createChildWindow({ url: '/main/chat/article/preview', props: { main: value.main } })">
+    <template #icon>
+      <Document />
+    </template>
+    文章
+  </MsgBlock>
+  <div v-if="value.type == 'equation'" v-once :class="isMe ? 'popMe' : 'popThey'"
+    class="max-w-[45%] inline-block rounded-md p-2 px-3 before:content-['']  before:w-2 before:h-2 before:block before:m-0 before:!absolute before:rotate-45 relative !break-all">
+    <NEquation :value="value.main" :katex-options="options" />
+  </div>
 </template>
 
 <style scoped lang='scss'>

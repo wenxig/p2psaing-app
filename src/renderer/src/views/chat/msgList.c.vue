@@ -37,7 +37,7 @@ onMounted(() => {
   msgBox.value?.addEventListener('dragover', endEvent)
   msgBox.value?.addEventListener('drop', async (event) => {
     endEvent(event)
-    if (!event.dataTransfer) return;
+    if (!event.dataTransfer || event.dataTransfer.files.length < 1) return;
     const files = times(event.dataTransfer!.files.length, i => event.dataTransfer!.files.item(i)!).filter(Boolean)
     await DargFileC.value!.open(Promise.all(files.map(fileToDataURL)).then(res => res.map((dataUrl, i) => ([dataUrl, files[i].type, files[i].name]) as [data: string, type: string, name: string])))
   })
@@ -52,7 +52,7 @@ const DargFileC = ref<InstanceType<typeof DargFile>>()
 </script>
 
 <template>
-  <div class="w-full h-[80%] overflow-x-hidden overflow-y-auto relative" ref="msgBox">
+  <div class="w-full h-[75%] overflow-x-hidden overflow-y-auto relative" ref="msgBox">
     <div class="page-change-button" v-if="page != 0" @click="page--">前一页</div>
     <div v-for="(msg) in  datas[0] " class="w-full flex my-3 px-2 msg-row"
       :class="[isMe(msg.headers.from) ? 'justify-end' : 'justify-start']">

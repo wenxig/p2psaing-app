@@ -18,9 +18,12 @@
     background-color: var(--n-color);
   }
 }
-*:not(.monaco *,.n-code *) {
+*:not(.monaco *, .n-code *, .katex *) {
   font-family: var(--el-font-family) !important;
   // user-select: none;
+}
+*:is(.monaco *, .n-code *, .katex *){
+  all:unset;
 }
 
 body,

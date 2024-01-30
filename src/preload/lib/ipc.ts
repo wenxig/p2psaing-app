@@ -128,6 +128,11 @@ const dragFiles = (files: File[]) => sendAsync({
   path: `/sync/dragfiles`,
   body: files
 })
+const openExternal = (url: string) => send({
+  path: `/run/shell/openExternal`,
+  body: [url]
+})
+
 const onReload = (path: string, fn: MessageCenterRouterRowFn) => addRouter(`/reload${path}`, fn)
 contextBridge.exposeInMainWorld('ipc', {
   minimize,
@@ -154,7 +159,14 @@ contextBridge.exposeInMainWorld('ipc', {
   getVersions() {
     return Object.assign(process.versions, dependencies, devDependencies)
   },
-  dragFiles
+  dragFiles,
+  openExternal,
+  htmlServer() {
+    return new Array<any>().concat(...sendSync({
+      path: `/sync/httpServer`,
+      body: []
+    }))
+  }
 } as Ipc)
 
 

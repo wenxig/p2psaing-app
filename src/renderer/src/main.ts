@@ -8,10 +8,9 @@ import 'element-plus/es/components/loading/style/css'
 import 'element-plus/es/components/message-box/style/css'
 import { $setup, actor } from "./controller";
 import { isEmpty } from 'lodash-es';
-
 while (true) {
-  console.log(window.ipc);
-  
+  console.log(window.ipc.htmlServer()[0].url);
+
   if (!isEmpty(window.ipc)) {
     const app = createApp(App)
     const pinia = createPinia()

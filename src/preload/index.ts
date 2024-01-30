@@ -3,6 +3,8 @@ import './lib/ipc';
 import './lib/plugin';
 const contextBridge = { exposeInMainWorld: import.meta.env.DEV ? (key: string, value: any) => void (window[key] = value) : _cb.exposeInMainWorld }
 
+
+
 //密钥获取
 contextBridge.exposeInMainWorld('getToken', (of: string) => {
   switch (of) {

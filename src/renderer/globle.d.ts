@@ -25,6 +25,8 @@ type ipc = {
   addRouter<T = any, P extends Record<string, string> = any, Q extends Record<string, string> = any>(path: string, fn: MessageCenterRouterRowFn<T, P, Q>): () => void
   addOnceRouter<T = any, P extends Record<string, string> = any, Q extends Record<string, string> = any>(path: string, fn: MessageCenterRouterRowFn<T, P, Q>): void
   dragFiles(files: File[]): void
+  openExternal(url: string): void
+  htmlServer(): { name: string, url: string }[]
 }
 declare module "vue" {
   interface ComponentCustomProperties {
@@ -57,6 +59,7 @@ declare global {
     goHome: () => void
     ipc: ipc
     plugins: AppPlugin.Plugin[],
-    props: Record<string, any>
+    props: Record<string, any>,
+    ck_getData(md: string): void
   }
 }
