@@ -7,7 +7,6 @@ import { isUrlMatched, createMessageCenterRouterUrl, MessageCenterRouterUrl } fr
 import { useCkeditor } from './useCkeditor';
 const ckeditor = useCkeditor()
 
-
 export type MessageCenterRouterRowFn<T = any, P extends Record<string, string> = any, Q extends Record<string, string> = any> = (url: MessageCenterRouterUrl<P, Q>, data: T) => any
 export interface MessageCenterRouterRow<P extends Record<string, string> = any, Q extends Record<string, string> = any> {
   path: string,
@@ -48,7 +47,7 @@ export class ElectronAppInstance {
   private _state = new Map<number, Map<string, string>>()
   public state(id: number) { return this._state.get(id) }
   public createWindow(opt = baseOpt) {
-    const window = new Window(opt, this)
+    const window = new Window({ ...baseOpt, ...opt }, this)
     this._state.set(window.id, new Map())
     return window
   }
@@ -127,6 +126,15 @@ class MessageCenter {
     }).call(this)) port.postMessage(msg)
   }
 }
+
+function decryptBykaisa(str: string, iv: number) {
+  let outStr = "";
+  for (let i = 0; i < str.length; i++)  if (str.charCodeAt(i) >= 65 && str.charCodeAt(i) <= 90) outStr += String.fromCharCode((str.charCodeAt(i) - 65 - iv + 26) % 26 + 65)
+  else if (str.charCodeAt(i) >= 97 && str.charCodeAt(i) <= 122) outStr += String.fromCharCode((str.charCodeAt(i) - 97 - iv + 26) % 26 + 97)
+  else outStr += String.fromCharCode(str.charCodeAt(i));
+  return outStr;
+}
+
 class Window extends BrowserWindow {
   public root: Window
   public state = new Map<string, string>();
@@ -141,6 +149,7 @@ class Window extends BrowserWindow {
       return { action: 'deny' }
     })
     this.app.msgChannel.addWindow(this).then(() => {
+      this.addRoute<string[]>('/crypto/decrypt/aes512', (_, { [0]: value }) => decryptBykaisa(value, import.meta.env.MAIN_VITE_API_AES_KEY), true)
       this.addRoute<any[], { method: string }>('/run/shell/:method', ({ params }, data) => shell[params.method](...(data ?? [])))
       this.addRoute<any[], { method: string }>('/run/window/:method', ({ params }, data) => this[params.method](...(data ?? [])))
       this.addRoute<any[], { method: string }>('/run/app/:method', ({ params }, data) => App[params.method](...(data ?? [])))

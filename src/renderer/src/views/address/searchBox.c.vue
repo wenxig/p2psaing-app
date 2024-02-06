@@ -1,7 +1,7 @@
 <script setup lang='ts'>
 import { type ElAutocomplete, type AutocompleteFetchSuggestionsCallback, ElLoading } from 'element-plus';
 import { nextTick, ref } from 'vue';
-import * as api from '@/db/network';
+import { getSerectUser } from '@/db/network';
 import { Plus, Search } from '@element-plus/icons-vue'
 import { router } from '@c/index';
 const emit = defineEmits<{
@@ -40,7 +40,7 @@ function getLisetData(keyword: string, cb: AutocompleteFetchSuggestionsCallback)
       const loading = ElLoading.service({
         text: '查询数据中...'
       })
-      const result = await api.get(data)
+      const result = await getSerectUser(data)
       loading.close()
       emit('select', result)
     }

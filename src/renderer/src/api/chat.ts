@@ -1,10 +1,8 @@
 import db from "@/db";
 import { getTimeByUid, searchByUid } from "@/db/network";
-import { useUserStore } from "@/store/user";
 import { P2P } from ".";
 import { toUserWebSave } from "@/utils/user";
 import { isEmpty, isNumber, random } from "lodash-es";
-import { ref } from "vue";
 import { useAppStore } from "@/store/appdata";
 import { Connection } from './connection';
 import { z } from "zod";
@@ -37,9 +35,10 @@ export const isMsg = (value: unknown): value is Peer.Request.Msg => isRequest(va
   main: z.string()
 }, {
   type: z.enum(['img', 'file', 'video', 'article']),
-  main: z.string(),
   md5: z.string(),
-  name: z.string().optional()
+  name: z.string().optional(),
+  chunkNumber: z.nan().or(z.number()),
+  main:z.string().optional() //仅函数中传递填写
 }, {
   type: z.enum(['appFunction']),
   main: z.any()
@@ -54,33 +53,10 @@ export const isMsg = (value: unknown): value is Peer.Request.Msg => isRequest(va
   type: z.enum(['callback']),
   main: z.boolean()
 }, {
-  type: z.enum(["assetsTag"]),
-  is: z.enum(['file']),
-  main: {
-    size: z.string(),
-    name: z.string(),
-    md5: z.string()
-  }
-}, {
-  type: z.enum(["assetsTag"]),
-  is: z.enum(['video']),
-  main: {
-    size: z.string(),
-    cover: z.string(),
-    md5: z.string(),
-  }
-}, {
-  type: z.enum(["assetsTag"]),
-  is: z.enum(['article']),
-  main: {
-    size: z.string(),
-    cover: z.string(),
-    md5: z.string(),
-  }
+  type: z.enum(['chunk']),
+  main: z.string(),
 }].some(fn => z.object(fn as any).strict().safeParse(value.body).success)
 
-const chat_ref = ref<Chat>()
-const isReady = ref(false)
 let me: undefined | User.WebDbSaveDeep = undefined
 export class Chat extends P2P {
   public linkList = <Record<number, {
@@ -89,21 +65,17 @@ export class Chat extends P2P {
   }>>{}
   public get me() {
     if (me) return me
-    return me = useUserStore().user
+    return me = JSON.parse(window.ipc.getStateSync('user'))
   }
   public isCloseing = false
-  public static get ref() {
-    return chat_ref.value!
-  }
-  public async setup() {
-    if (isReady.value == true) return this
-    await this.whenReady()
-    isReady.value = true
-    this.peer.on('disconnected', () => !(chat_ref.value = this).isCloseing && this.peer.reconnect())
-    return this
-  }
+  public static refs = new Map<number, Chat>()
   constructor(lid?: string) {
-    super(lid ?? useUserStore().user.lid)
+    super(lid ?? JSON.parse(window.ipc.getStateSync('user')).lid)
+    Chat.refs.set(this.me.uid, this)
+    this.peer.on('disconnected', () => {
+      Chat.refs.set(this.me.uid, this)
+      this.isCloseing && this.peer.reconnect()
+    })
     this.listen('connection', (connection) => {
       return new Promise(resolve => {
         connection.onData('/handshake', async (req) => {
@@ -155,14 +127,13 @@ export class Chat extends P2P {
     })
   }
   public async connect(uid: number, config: CreateConfig): Promise<[connection: Connection, ok: true] | [connection: undefined, ok: false]> {
-    await this.whenReady()
     const user = await searchByUid(uid)
     const connection = new Connection(this.peer.connect(user.lid, {
       reliable: true,
       label: 'chat',
       metadata: [toUserWebSave(this.me), this.me.uid]
     }))
-    await this.whenReady()
+    await connection.ready
     if (!await this.handShake(connection, config)) return [undefined, false]
     await db.tempUserData.set(user, await getTimeByUid(uid))
     useAppStore().links.push(user)
@@ -224,15 +195,22 @@ type CreateConfig = {
   lid?: string,
   type: 'server' | 'chat'
 }
-export async function peerSetup(lid: string) {
-  const chat = await (new Chat(lid)).setup()
-  chat.listen('connection', conn => {
-    chat.linkList[conn.metadata[1]] = {
-      connection: conn,
-      number: NaN
-    }
-    useAppStore().links.push(conn.metadata[0])
-    actor.send({ type: 'quit', to: 'goChat', params: { dev: false, type: 'temp', uid: conn.metadata[1] } })
-    return true
+
+export const chatSetup = (lid: string) => new Promise<void>((ok) => {
+  const chat = new Chat(lid).then!(() => {
+    console.log('peer setup');
+    chat.listen('connection', async conn => {
+      await conn.ready
+      console.log(conn)
+      chat.linkList[conn.metadata[1]] = {
+        connection: conn,
+        number: NaN
+      }
+      useAppStore().links.push(conn.metadata[0])
+      actor.send({ type: 'quit', to: 'goChat', params: { dev: false, type: 'temp', uid: conn.metadata[1] } })
+      return true
+    })
+    ok()
   })
-}
+  console.log('chat', chat);
+})

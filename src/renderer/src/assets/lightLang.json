@@ -1,0 +1,770 @@
+[
+  {
+    "label": "1c",
+    "value": 0
+  },
+  {
+    "label": "gherkin",
+    "value": 1
+  },
+  {
+    "label": "php-template",
+    "value": 2
+  },
+  {
+    "label": "abnf",
+    "value": 3
+  },
+  {
+    "label": "glsl",
+    "value": 4
+  },
+  {
+    "label": "php",
+    "value": 5
+  },
+  {
+    "label": "accesslog",
+    "value": 6
+  },
+  {
+    "label": "gml",
+    "value": 7
+  },
+  {
+    "label": "plaintext",
+    "value": 8
+  },
+  {
+    "label": "actionscript",
+    "value": 9
+  },
+  {
+    "label": "go",
+    "value": 10
+  },
+  {
+    "label": "pony",
+    "value": 11
+  },
+  {
+    "label": "ada",
+    "value": 12
+  },
+  {
+    "label": "golo",
+    "value": 13
+  },
+  {
+    "label": "powershell",
+    "value": 14
+  },
+  {
+    "label": "angelscript",
+    "value": 15
+  },
+  {
+    "label": "gradle",
+    "value": 16
+  },
+  {
+    "label": "processing",
+    "value": 17
+  },
+  {
+    "label": "apache",
+    "value": 18
+  },
+  {
+    "label": "graphql",
+    "value": 19
+  },
+  {
+    "label": "profile",
+    "value": 20
+  },
+  {
+    "label": "applescript",
+    "value": 21
+  },
+  {
+    "label": "groovy",
+    "value": 22
+  },
+  {
+    "label": "prolog",
+    "value": 23
+  },
+  {
+    "label": "arcade",
+    "value": 24
+  },
+  {
+    "label": "haml",
+    "value": 25
+  },
+  {
+    "label": "properties",
+    "value": 26
+  },
+  {
+    "label": "arduino",
+    "value": 27
+  },
+  {
+    "label": "handlebars",
+    "value": 28
+  },
+  {
+    "label": "protobuf",
+    "value": 29
+  },
+  {
+    "label": "armasm",
+    "value": 30
+  },
+  {
+    "label": "haskell",
+    "value": 31
+  },
+  {
+    "label": "puppet",
+    "value": 32
+  },
+  {
+    "label": "asciidoc",
+    "value": 33
+  },
+  {
+    "label": "haxe",
+    "value": 34
+  },
+  {
+    "label": "purebasic",
+    "value": 35
+  },
+  {
+    "label": "aspectj",
+    "value": 36
+  },
+  {
+    "label": "hsp",
+    "value": 37
+  },
+  {
+    "label": "python-repl",
+    "value": 38
+  },
+  {
+    "label": "autohotkey",
+    "value": 39
+  },
+  {
+    "label": "http",
+    "value": 40
+  },
+  {
+    "label": "python",
+    "value": 41
+  },
+  {
+    "label": "autoit",
+    "value": 42
+  },
+  {
+    "label": "hy",
+    "value": 43
+  },
+  {
+    "label": "q",
+    "value": 44
+  },
+  {
+    "label": "avrasm",
+    "value": 45
+  },
+  {
+    "label": "inform7",
+    "value": 46
+  },
+  {
+    "label": "qml",
+    "value": 47
+  },
+  {
+    "label": "awk",
+    "value": 48
+  },
+  {
+    "label": "ini",
+    "value": 49
+  },
+  {
+    "label": "r",
+    "value": 50
+  },
+  {
+    "label": "axapta",
+    "value": 51
+  },
+  {
+    "label": "irpf90",
+    "value": 52
+  },
+  {
+    "label": "reasonml",
+    "value": 53
+  },
+  {
+    "label": "bash",
+    "value": 54
+  },
+  {
+    "label": "isbl",
+    "value": 55
+  },
+  {
+    "label": "rib",
+    "value": 56
+  },
+  {
+    "label": "basic",
+    "value": 57
+  },
+  {
+    "label": "java",
+    "value": 58
+  },
+  {
+    "label": "roboconf",
+    "value": 59
+  },
+  {
+    "label": "bnf",
+    "value": 60
+  },
+  {
+    "label": "javascript",
+    "value": 61
+  },
+  {
+    "label": "routeros",
+    "value": 62
+  },
+  {
+    "label": "brainfuck",
+    "value": 63
+  },
+  {
+    "label": "jboss-cli",
+    "value": 64
+  },
+  {
+    "label": "rsl",
+    "value": 65
+  },
+  {
+    "label": "c",
+    "value": 66
+  },
+  {
+    "label": "json",
+    "value": 67
+  },
+  {
+    "label": "ruby",
+    "value": 68
+  },
+  {
+    "label": "cal",
+    "value": 69
+  },
+  {
+    "label": "julia-repl",
+    "value": 70
+  },
+  {
+    "label": "ruleslanguage",
+    "value": 71
+  },
+  {
+    "label": "capnproto",
+    "value": 72
+  },
+  {
+    "label": "julia",
+    "value": 73
+  },
+  {
+    "label": "rust",
+    "value": 74
+  },
+  {
+    "label": "ceylon",
+    "value": 75
+  },
+  {
+    "label": "kotlin",
+    "value": 76
+  },
+  {
+    "label": "sas",
+    "value": 77
+  },
+  {
+    "label": "clean",
+    "value": 78
+  },
+  {
+    "label": "lasso",
+    "value": 79
+  },
+  {
+    "label": "scala",
+    "value": 80
+  },
+  {
+    "label": "clojure-repl",
+    "value": 81
+  },
+  {
+    "label": "latex",
+    "value": 82
+  },
+  {
+    "label": "scheme",
+    "value": 83
+  },
+  {
+    "label": "clojure",
+    "value": 84
+  },
+  {
+    "label": "ldif",
+    "value": 85
+  },
+  {
+    "label": "scilab",
+    "value": 86
+  },
+  {
+    "label": "cmake",
+    "value": 87
+  },
+  {
+    "label": "leaf",
+    "value": 88
+  },
+  {
+    "label": "scss",
+    "value": 89
+  },
+  {
+    "label": "coffeescript",
+    "value": 90
+  },
+  {
+    "label": "less",
+    "value": 91
+  },
+  {
+    "label": "shell",
+    "value": 92
+  },
+  {
+    "label": "coq",
+    "value": 93
+  },
+  {
+    "label": "lisp",
+    "value": 94
+  },
+  {
+    "label": "smali",
+    "value": 95
+  },
+  {
+    "label": "cos",
+    "value": 96
+  },
+  {
+    "label": "livecodeserver",
+    "value": 97
+  },
+  {
+    "label": "smalltalk",
+    "value": 98
+  },
+  {
+    "label": "cpp",
+    "value": 99
+  },
+  {
+    "label": "livescript",
+    "value": 100
+  },
+  {
+    "label": "sml",
+    "value": 101
+  },
+  {
+    "label": "crmsh",
+    "value": 102
+  },
+  {
+    "label": "llvm",
+    "value": 103
+  },
+  {
+    "label": "sqf",
+    "value": 104
+  },
+  {
+    "label": "crystal",
+    "value": 105
+  },
+  {
+    "label": "lsl",
+    "value": 106
+  },
+  {
+    "label": "sql",
+    "value": 107
+  },
+  {
+    "label": "csharp",
+    "value": 108
+  },
+  {
+    "label": "lua",
+    "value": 109
+  },
+  {
+    "label": "stan",
+    "value": 110
+  },
+  {
+    "label": "csp",
+    "value": 111
+  },
+  {
+    "label": "makefile",
+    "value": 112
+  },
+  {
+    "label": "stata",
+    "value": 113
+  },
+  {
+    "label": "css",
+    "value": 114
+  },
+  {
+    "label": "markdown",
+    "value": 115
+  },
+  {
+    "label": "step21",
+    "value": 116
+  },
+  {
+    "label": "d",
+    "value": 117
+  },
+  {
+    "label": "mathematica",
+    "value": 118
+  },
+  {
+    "label": "stylus",
+    "value": 119
+  },
+  {
+    "label": "dart",
+    "value": 120
+  },
+  {
+    "label": "matlab",
+    "value": 121
+  },
+  {
+    "label": "subunit",
+    "value": 122
+  },
+  {
+    "label": "delphi",
+    "value": 123
+  },
+  {
+    "label": "maxima",
+    "value": 124
+  },
+  {
+    "label": "swift",
+    "value": 125
+  },
+  {
+    "label": "diff",
+    "value": 126
+  },
+  {
+    "label": "mel",
+    "value": 127
+  },
+  {
+    "label": "taggerscript",
+    "value": 128
+  },
+  {
+    "label": "django",
+    "value": 129
+  },
+  {
+    "label": "mercury",
+    "value": 130
+  },
+  {
+    "label": "tap",
+    "value": 131
+  },
+  {
+    "label": "dns",
+    "value": 132
+  },
+  {
+    "label": "mipsasm",
+    "value": 133
+  },
+  {
+    "label": "tcl",
+    "value": 134
+  },
+  {
+    "label": "dockerfile",
+    "value": 135
+  },
+  {
+    "label": "mizar",
+    "value": 136
+  },
+  {
+    "label": "thrift",
+    "value": 137
+  },
+  {
+    "label": "dos",
+    "value": 138
+  },
+  {
+    "label": "mojolicious",
+    "value": 139
+  },
+  {
+    "label": "tp",
+    "value": 140
+  },
+  {
+    "label": "dsconfig",
+    "value": 141
+  },
+  {
+    "label": "monkey",
+    "value": 142
+  },
+  {
+    "label": "twig",
+    "value": 143
+  },
+  {
+    "label": "dts",
+    "value": 144
+  },
+  {
+    "label": "moonscript",
+    "value": 145
+  },
+  {
+    "label": "typescript",
+    "value": 146
+  },
+  {
+    "label": "dust",
+    "value": 147
+  },
+  {
+    "label": "n1ql",
+    "value": 148
+  },
+  {
+    "label": "vala",
+    "value": 149
+  },
+  {
+    "label": "ebnf",
+    "value": 150
+  },
+  {
+    "label": "nestedtext",
+    "value": 151
+  },
+  {
+    "label": "vbnet",
+    "value": 152
+  },
+  {
+    "label": "elixir",
+    "value": 153
+  },
+  {
+    "label": "nginx",
+    "value": 154
+  },
+  {
+    "label": "vbscript-html",
+    "value": 155
+  },
+  {
+    "label": "elm",
+    "value": 156
+  },
+  {
+    "label": "nim",
+    "value": 157
+  },
+  {
+    "label": "vbscript",
+    "value": 158
+  },
+  {
+    "label": "erb",
+    "value": 159
+  },
+  {
+    "label": "nix",
+    "value": 160
+  },
+  {
+    "label": "verilog",
+    "value": 161
+  },
+  {
+    "label": "erlang-repl",
+    "value": 162
+  },
+  {
+    "label": "node-repl",
+    "value": 163
+  },
+  {
+    "label": "vhdl",
+    "value": 164
+  },
+  {
+    "label": "erlang",
+    "value": 165
+  },
+  {
+    "label": "nsis",
+    "value": 166
+  },
+  {
+    "label": "vim",
+    "value": 167
+  },
+  {
+    "label": "excel",
+    "value": 168
+  },
+  {
+    "label": "objectivec",
+    "value": 169
+  },
+  {
+    "label": "wasm",
+    "value": 170
+  },
+  {
+    "label": "fix",
+    "value": 171
+  },
+  {
+    "label": "ocaml",
+    "value": 172
+  },
+  {
+    "label": "wren",
+    "value": 173
+  },
+  {
+    "label": "flix",
+    "value": 174
+  },
+  {
+    "label": "openscad",
+    "value": 175
+  },
+  {
+    "label": "x86asm",
+    "value": 176
+  },
+  {
+    "label": "fortran",
+    "value": 177
+  },
+  {
+    "label": "oxygene",
+    "value": 178
+  },
+  {
+    "label": "xl",
+    "value": 179
+  },
+  {
+    "label": "fsharp",
+    "value": 180
+  },
+  {
+    "label": "parser3",
+    "value": 181
+  },
+  {
+    "label": "xml",
+    "value": 182
+  },
+  {
+    "label": "gams",
+    "value": 183
+  },
+  {
+    "label": "perl",
+    "value": 184
+  },
+  {
+    "label": "xquery",
+    "value": 185
+  },
+  {
+    "label": "gauss",
+    "value": 186
+  },
+  {
+    "label": "pf",
+    "value": 187
+  },
+  {
+    "label": "yaml",
+    "value": 188
+  },
+  {
+    "label": "gcode",
+    "value": 189
+  },
+  {
+    "label": "pgsql",
+    "value": 190
+  },
+  {
+    "label": "zephir",
+    "value": 191
+  }
+]

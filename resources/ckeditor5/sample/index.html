@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-CN" dir="ltr">
+
+<head>
+  <title>CKEditor 5 ClassicEditor build</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<body data-editor="ClassicEditor" data-collaboration="false" data-revision-history="false">
+  <div class="editor"></div>
+  <script src="/js">
+  </script>
+  <script>
+    const watchdog = new CKSource.EditorWatchdog();
+
+    window.watchdog = watchdog;
+
+    watchdog.setCreator((element, config) => {
+      return CKSource.Editor
+        .create(element, config)
+        .then(editor => {
+          return editor;
+        });
+    });
+
+    watchdog.setDestructor(editor => {
+      return editor.destroy();
+    });
+
+    watchdog.on('error', handleSampleError);
+
+    watchdog
+      .create(document.querySelector('.editor'), {
+        // Editor configuration.
+      })
+      .catch(handleSampleError);
+
+    function handleSampleError(error) {
+      const issueUrl = 'https://github.com/ckeditor/ckeditor5/issues';
+
+      const message = [
+        'Oops, something went wrong!',
+        `Please, report the following error on ${issueUrl} with the build id "p6b0wh2u313b-lk0af086s0x6" and the error stack trace:`
+      ].join('\n');
+
+      console.error(message);
+      console.error(error);
+    }
+    window.addEventListener('hashchange', () => location.hash.includes('getData') && top.ck_getData(watchdog.editor.data.get()))
+  </script>
+</body>
+
+</html>

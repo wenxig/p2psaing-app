@@ -2,7 +2,7 @@ import { useUserStore } from "@s/user";
 import { watchOnce } from "@vueuse/core";
 import localforage from "localforage";
 import { ref } from "vue";
-import * as server from '@/db/network'
+import { getTimeByEmail, getTimeByUid, searchByEmail, searchByUid } from '@/db/network'
 import { remove } from "lodash-es";
 namespace db {
   const driver = localforage.INDEXEDDB
@@ -27,9 +27,9 @@ namespace db {
       await whenReady()
       const saveData = await getItem<DataWithTime<User.LastLogin>>('user.LastLogin')
       if (!saveData) return false
-      const newTime = await server.getTimeByEmail(saveData.user.email)
+      const newTime = await getTimeByEmail(saveData.user.email)
       if (saveData.time != newTime) {
-        const newData = await server.searchByEmail(saveData.user.email)
+        const newData = await searchByEmail(saveData.user.email)
         const user = {
           email: newData.email,
           img: newData.img,
@@ -59,25 +59,43 @@ namespace db {
           name: user.name,
           password: user.password
         },
-        time: await server.getTimeByEmail(user.email)
+        time: await getTimeByEmail(user.email)
       })
     }
 
   }
+  export namespace assetDB {
+    export async function get(md5: string) {
+      await whenReady()
+      return await base.getItem<string>(`assets.${md5}`) ?? null
+    }
+    export async function set(md5: string, value: string) {
+      await whenReady()
+      await base.setItem<string>(`assets.${md5}`, value)
+    }
+    export async function has(md5: string) {
+      await whenReady()
+      return (await base.keys()).includes(`assets.${md5}`)
+    }
+    export async function removeAll() {
+      await whenReady();
+      for (const key of (await base.keys()).filter(v => v.startsWith('assets.'))) await base.removeItem(key)
+    }
+  }
   export namespace tempUserData {
     export async function set(user: User.WebDbSave, time: number) {
       await whenReady()
-      await setItem(`temp.user.${user.uid.toString()}`, <DataWithTime<User.WebDbSave>>{
+      await base.setItem(`temp.user.${user.uid.toString()}`, <DataWithTime<User.WebDbSave>>{
         user,
         time
       })
     }
     export async function get(uid: number) {
       await whenReady()
-      const newTime = await server.getTimeByUid(uid)
-      const saveData = await getItem<DataWithTime<User.WebDbSave>>(`temp.user.${uid.toString()}`)
+      const newTime = await getTimeByUid(uid)
+      const saveData = await base.getItem<DataWithTime<User.WebDbSave>>(`temp.user.${uid.toString()}`)
       if (saveData?.time != newTime) {
-        const newData = await server.searchByUid(uid)
+        const newData = await searchByUid(uid)
         set(newData, newTime)
         return newData
       }
@@ -85,7 +103,7 @@ namespace db {
     }
     export async function remove(uid: number) {
       await whenReady()
-      await removeItem(`temp.user.${uid.toString()}`)
+      await base.removeItem(`temp.user.${uid.toString()}`)
     }
   }
   export namespace msg {

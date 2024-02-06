@@ -5,7 +5,7 @@ import { random } from 'lodash-es';
 import { ElLoading, ElMessage } from 'element-plus';
 import { useAppStore } from '@s/appdata';
 import { actor } from '@/controller';
-import { sendEmail, get } from '@/db/network';
+import { sendEmail, getSerectUser } from '@/db/network';
 import { HmacSHA256 } from 'crypto-js';
 const app = useAppStore()
 window.ipc.setSize(280, 400)
@@ -23,7 +23,7 @@ function checkUserAlive() {
     text: '查询数据中',
     background: !app.isDark ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
   })
-  get(HmacSHA256(from.email, from.password).toString()).then(val => {
+  getSerectUser(HmacSHA256(from.email, from.password).toString()).then(val => {
     if (!val[1]) return void ElMessage.error("用户不存在")
     isPage1.value = false
     if (import.meta.env.DEV) return void login(true)
@@ -31,7 +31,7 @@ function checkUserAlive() {
       .catch(() => ElMessage.error('邮件发送失败'))
       .then(() => console.log(`你的验证码：${passCode}`))
   })
-    .catch(() => ElMessage.error("网络错误"))
+    // .catch(() => ElMessage.error("网络错误"))
     .finally(() => loading.close())
 }
 

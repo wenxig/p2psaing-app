@@ -11,7 +11,7 @@ namespace Peer {
       headers: BaseHeader & {
         from: number
       };
-      body: Msg.index;
+      body: Msg.index
     }
     type All = Msg | Handshake
 
@@ -28,7 +28,7 @@ namespace Peer {
     send: <Tbody = Msg.index | Handshake.Body>(data: Request<Tbody> | isResponse, chunked?: boolean | undefined) => void | Promise<void>
   }
   namespace Msg {
-    type index = All | CallBask | AssetTag
+    type index = All | CallBask | Chunk
     type All = {} & (UserTextMsg | UserFileMsg | UserAppMsg | UserCodeMsg | UserEquationMsg)
 
     type UserTextMsg = {
@@ -36,10 +36,11 @@ namespace Peer {
       type: "text";
     }
     type UserFileMsg = {
-      main: string;
       type: "img" | "file" | "video" | "article",
       md5: string,
-      name?: string
+      name?: string,
+      chunkNumber: number,
+      main?: string //仅函数中传递填写
     }
     type UserAppMsg = {
       type: "appFunction";
@@ -56,7 +57,11 @@ namespace Peer {
     }
     type CallBask = {
       type: "callback";
-      main: true
+      main: boolean
+    }
+    type Chunk = {
+      type: 'chunk',
+      main: string
     }
   }
   namespace Handshake {

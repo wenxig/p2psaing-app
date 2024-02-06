@@ -27,6 +27,7 @@ type ipc = {
   dragFiles(files: File[]): void
   openExternal(url: string): void
   htmlServer(): { name: string, url: string }[]
+  decryptUserData(value: string): string
 }
 declare module "vue" {
   interface ComponentCustomProperties {

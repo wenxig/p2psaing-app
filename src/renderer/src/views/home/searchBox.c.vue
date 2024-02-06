@@ -8,7 +8,8 @@ import { searchByEmail } from '@/db/network';
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user';
 import { Chat } from '@/api/chat';
-const user = useUserStore()
+import { storeToRefs } from 'pinia';
+const { user } = storeToRefs(useUserStore())
 const showMenu = ref(false)
 const router = useRouter()
 const fastlink = reactive({
@@ -36,12 +37,10 @@ async function link() {
   await _link(uid)
   return loading.close()
   async function _link(uid: number) {
-    if (fastlink.data == user.user.email || fastlink.data == user.user.uid.toString()) {
-      return void ElMessage.error('你不能连接到你自己')
-    }
+    if (fastlink.data == user.value.email || fastlink.data == user.value.uid.toString()) return void ElMessage.error('你不能连接到你自己')
     try {
       console.log('before create');
-      const link = await Chat.ref.connect(uid, {
+      const link = await Chat.refs.get(user.value.uid)!.connect(uid, {
         type: 'chat',
       })
       console.log('after create');
@@ -51,9 +50,8 @@ async function link() {
       } else
         ElMessage.error('无法连接')
     } catch (err) {
-      throw (err);
-
       ElMessage.error('无法连接')
+      throw (err);
     } finally {
       fastlink.show = false
     }

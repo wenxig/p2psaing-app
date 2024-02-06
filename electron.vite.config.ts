@@ -110,7 +110,12 @@ export default defineConfig(({ command: mode }) => {
           '__APP_NAME__': `${package_json.name}`,
           '__APP_VERSION__': `${package_json.version}`
         }),
-        bytecodePlugin({ protectedStrings: ["https://tinywebdb.appinventor.space/api"] }),
+        bytecodePlugin({
+          protectedStrings: [(() => {
+            if (mode == 'build') throw new Error('设置aes的key为加密内容')
+            return ''
+          })()]
+        }),
         externalizeDepsPlugin(),
       ],
       build: {
@@ -131,7 +136,7 @@ export default defineConfig(({ command: mode }) => {
         replace({
           '__APP_NAME__': `${package_json.name}`,
           '__APP_VERSION__': `${package_json.version}`
-        }), bytecodePlugin({ protectedStrings: ["https://tinywebdb.appinventor.space/api"] }), externalizeDepsPlugin()],
+        }), bytecodePlugin({ protectedStrings: [] }), externalizeDepsPlugin()],
       build: {
         ...onlyBuild({
           terserOptions: {

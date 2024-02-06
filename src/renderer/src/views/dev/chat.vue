@@ -24,15 +24,10 @@ const msgs = ref<Peer.Request.Msg[]>([])
 const tempMsg = reactive({
   text: '',
   code_is: 61,
-  showPlaseCode: false
 })
-app.topBar.value = markRaw(defineComponent(() => {
-  return () => {
-    return (<div class=" w-full relative flex items-center">
-      <ElText class='!text-xl !mr-4'>dev connect</ElText>
-    </div>)
-  }
-}))
+app.topBar.value = markRaw(defineComponent(() => () => <div class=" w-full relative flex items-center">
+  <ElText class='!text-xl !mr-4'>dev connect</ElText>
+</div>))
 const sendFromMe = ref(true)
 const createMeg = (body: Peer.Msg.All): Peer.Request.Msg => ({
   body,
@@ -128,7 +123,6 @@ class SendMsg {
 provide(useSender, (key: any, ...value) => SendMsg[key](...value))
 const SEND_IMAGE_BUTTON_CLASS = 'transition-colors !text-[--el-color-info-light-5] hover:!text-[--el-color-info-light-3] active:!text-[--el-color-info]'
 // 基块 end
-
 const CodeViewC = ref<InstanceType<typeof CodeView>>()
 const EquationViewC = ref<InstanceType<typeof EquationView>>()
 const ArticleEditC = ref<InstanceType<typeof ArticleEdit>>()

@@ -77,7 +77,7 @@ const createChildWindow = (body: WindowConfig) => send({
   body: [body]
 })
 const createWindow = (body: WindowConfig) => send({
-  path: `/run/app/createWindow`,
+  path: `/run/instanes/createWindow`,
   body: [body]
 })
 const createInstanse = () => send({ // 待实现
@@ -166,7 +166,13 @@ contextBridge.exposeInMainWorld('ipc', {
       path: `/sync/httpServer`,
       body: []
     }))
-  }
+  },
+  decryptUserData(value) {
+    return sendSync({
+      path: '/crypto/decrypt/aes512',
+      body: [value]
+    })[0]
+  },
 } as Ipc)
 
 

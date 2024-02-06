@@ -1,10 +1,10 @@
 import { isEmpty } from 'lodash-es';
 import { defineStore } from 'pinia';
 import { ref, watch } from 'vue';
-import * as server from '@/db/network'
+import { updateUser } from '@/db/network'
 import db from '@/db';
-import { toUserWebSave, createEmptyDeepUser } from '@/utils/user'
-import { peerSetup } from '@a/chat';
+import { createEmptyDeepUser } from '@/utils/user'
+import { chatSetup } from '@a/chat';
 
 export const useUserStore = defineStore("user", () => {
   const reload = (steup = false): User.WebDbSaveDeep => {
@@ -15,9 +15,7 @@ export const useUserStore = defineStore("user", () => {
   const user = ref(reload(true))
   async function commit() {
     window.ipc.setState('user', JSON.stringify(user.value))
-    await server.createUpdate().commit(user.value)
-    await server.createUpdate().commit(toUserWebSave(user.value))
-    await server.createUpdate().commit(new Date().getTime())
+    await updateUser(user.value)
     await db.lastLogin.set()
     window.ipc.reload('/store/user')
   }
@@ -26,7 +24,7 @@ export const useUserStore = defineStore("user", () => {
     const userString = JSON.stringify(val)
     !(latestData == userString) && window.ipc.setState('user', latestData = userString)
   }, { deep: true })
-  if (location.hash.includes('/main')) peerSetup(user.value.lid)
-  window.ipc.onReload(`/store/user`, () => peerSetup((user.value = reload()).lid))
+  if (location.hash.includes('/main')) chatSetup(user.value.lid)
+  window.ipc.onReload(`/store/user`, () => chatSetup((user.value = reload()).lid))
   return { user, commit, $setUser: (value: User.WebDbSaveDeep) => user.value = value }
 })

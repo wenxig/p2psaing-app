@@ -1,9 +1,9 @@
 <script setup lang='ts'>
 import { onMounted, ref, watch, } from 'vue';
 import { computed } from 'vue';
-import { chunk, ceil } from 'lodash-es';
+import { ceil } from 'lodash-es';
 import Msg from './msg.c.vue'
-import { times } from 'lodash-es';
+import { times, find } from 'lodash-es';
 import DargFile from '@p/chat/check/dragFile.c.vue'
 import { fileToDataURL } from '@/utils/image';
 const ICON_SIZE = 35
@@ -12,21 +12,16 @@ const props = defineProps<{
   users: User.WebDbSave[];
   uid: number;
 }>()
-const user = props.users.find(v => v.uid == props.uid)!
-const themImgUrl = (uid: number) => props.users.find(u => u.uid == uid)!.img
+const user = find(props.users, { uid: props.uid })!
+const themImgUrl = (uid: number) => find(props.users, { uid })!.img
 const isMe = (uid: number) => uid == user.uid
 const MIN_ROW_HIEGHT_PX = 40;
 
 
 const CHUNK_SIZE = ceil(screen.height / MIN_ROW_HIEGHT_PX)
 const page = ref(0)
-const allChunks = computed<number>(() => {
-  return chunk(props.msgs, CHUNK_SIZE).length
-})
-const datas = computed<[msgs: Peer.Request.Msg[], size: number]>(() => {
-  const ch = chunk(props.msgs, CHUNK_SIZE)
-  return [ch[page.value], ch.length]
-})
+const allChunks = computed<number>(() => ceil(props.msgs.length / CHUNK_SIZE))
+const datas = computed<Peer.Request.Msg[]>(() => props.msgs.slice(page.value * CHUNK_SIZE, (page.value + 1) * CHUNK_SIZE))
 
 const msgBox = ref<HTMLDivElement>()
 onMounted(() => {
@@ -54,13 +49,13 @@ const DargFileC = ref<InstanceType<typeof DargFile>>()
 <template>
   <div class="w-full h-[75%] overflow-x-hidden overflow-y-auto relative" ref="msgBox">
     <div class="page-change-button" v-if="page != 0" @click="page--">前一页</div>
-    <div v-for="(msg) in  datas[0] " class="w-full flex my-3 px-2 msg-row"
+    <div v-for="(msg) in  datas " class="w-full flex my-3 px-2 msg-row"
       :class="[isMe(msg.headers.from) ? 'justify-end' : 'justify-start']">
       <el-avatar v-if="!isMe(msg.headers.from)" :src="themImgUrl(msg.headers.from)" :size="ICON_SIZE" shape="square" />
       <Msg :father="msgBox!" :value="(msg.body as Peer.Msg.All)" :is-me="isMe(msg.headers.from)" />
       <el-avatar v-if="isMe(msg.headers.from)" :src="themImgUrl(msg.headers.from)" :size="ICON_SIZE" shape="square" />
     </div>
-    <div class="page-change-button" v-if="page < datas[1] - 1" @click="page++"
+    <div class="page-change-button" v-if="page < (allChunks - 1)" @click="page++"
       :autocapitalize="((msgBox!.scrollTop = msgBox!.scrollHeight).toString())">下一页</div>
   </div>
   <DargFile ref="DargFileC" />

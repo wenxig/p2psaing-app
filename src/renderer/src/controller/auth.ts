@@ -1,21 +1,21 @@
 import { useUserStore } from '@s/user';
 import { random, toNumber } from 'lodash-es';
 import { HmacSHA256, SHA256 } from 'crypto-js';
-import * as server from '@/db/network'
+import { getSerectUser, count } from '@/db/network'
 import db from '@/db';
 import { toUserWebSave } from '@/utils/user';
-import { peerSetup } from '@a/chat';
+import { chatSetup } from '@a/chat';
 export async function signUp(val: User.Arg.sigeup) {
   const userStore = useUserStore()
   const lid = SHA256(random(9999999999).toString()).toString()
   const pid = HmacSHA256(val.email, val.password).toString()
-  if (!(await server.get(pid))[1]) throw false
+  if (!(await getSerectUser(pid))[1]) throw false
   userStore.$setUser({
     name: val.name,
     email: val.email,
     img: '',
     lid,
-    uid: toNumber(await server.count()),
+    uid: toNumber(await count()),
     link: {
       group: [],
       chat: []
@@ -24,12 +24,12 @@ export async function signUp(val: User.Arg.sigeup) {
     password: val.password
   })
   await userStore.commit()
-  await peerSetup(lid)
+  await chatSetup(lid)
   return toUserWebSave(userStore.user)
 }
 export async function login(val: User.Arg.login) {
   const pid = HmacSHA256(val.email, val.password).toString()
-  const user = await server.get(pid)
+  const user = await getSerectUser(pid)
   if (!user[1]) throw false
   const dbSaveData: User.WebDbSaveDeep = {
     ...user[0],
@@ -38,6 +38,6 @@ export async function login(val: User.Arg.login) {
   }
   useUserStore().$setUser(dbSaveData)
   await db.lastLogin.set()
-  await peerSetup(user[0].lid)
+  await chatSetup(user[0].lid)
   return toUserWebSave(dbSaveData)
 }
