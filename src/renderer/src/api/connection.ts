@@ -54,7 +54,7 @@ export class Connection {
       body: data!,
       headers: config?.header ?? {}
     }
-    Promise.resolve(async () => {
+    await Promise.resolve(async () => {
       if (isMsg(request) && (request.body.type == 'article' || request.body.type == 'img' || request.body.type == 'file' || request.body.type == 'video')) { //为什么不array.includeds? 答:ts不识别
         const data = request.body.main!
         request.body.main = undefined

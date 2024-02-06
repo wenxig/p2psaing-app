@@ -77,7 +77,7 @@ const createMeg = (body: Peer.Msg.All): Peer.Request.Msg => ({
 
 class SendMsg {
   public static async send(msg: Peer.Request.Msg) {
-    if (!(await connection.send(msg)).body) throw new PeerError('send', 'sendError')
+    // if (!(await connection.send(msg)).body) throw new PeerError('send', 'sendError')
     msgs.value.push(msg)
   }
   public static imageWithSelect() {
@@ -138,14 +138,16 @@ class SendMsg {
     await SendMsg.send(createMeg({
       type: 'video',
       main: dataUrl,
-      md5: MD5(dataUrl).toString()
+      md5: MD5(dataUrl).toString(),
+      chunkNumber: NaN
     }))
   }
   public static async image(dataUrl: string) {
     await SendMsg.send(createMeg({
       type: 'img',
       main: dataUrl,
-      md5: MD5(dataUrl).toString()
+      md5: MD5(dataUrl).toString(),
+      chunkNumber: NaN
     }))
   }
   public static async article(text: string) {
@@ -153,7 +155,8 @@ class SendMsg {
     await SendMsg.send(createMeg({
       type: 'article',
       main: text,
-      md5: MD5(text).toString()
+      md5: MD5(text).toString(),
+      chunkNumber: NaN
     }))
   }
   public static async file(dataUrl: string, name: string) {
@@ -161,7 +164,8 @@ class SendMsg {
       type: 'file',
       main: dataUrl,
       md5: MD5(dataUrl).toString(),
-      name
+      name,
+      chunkNumber: NaN
     }))
   }
 }

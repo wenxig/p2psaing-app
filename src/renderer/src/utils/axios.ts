@@ -1,5 +1,5 @@
 import axios, { AxiosError } from 'axios';
-axios.defaults.retry = 3; //重试次数
+axios.defaults.retry = Infinity; //重试次数
 axios.defaults.retryDelay = 1000;//重试延时
 axios.defaults.timeout = 5000
 export const handleError = (err: AxiosError) => {

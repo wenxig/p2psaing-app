@@ -1,10 +1,11 @@
 import axios, { AxiosError } from "axios";
 import { handleError } from "@/utils/axios";
-const { data: jwt } = await axios.post<string>("https://p2psaing.wenxinguo12.workers.dev", {
+const apiUrl = "https://p2psaing.wenxig.workers.dev"
+const { data: jwt } = await axios.post<string>(apiUrl, {
   method: 'getJWT'
 })
 const base = axios.create({
-  baseURL: "https://p2psaing.wenxig.workers.dev",
+  baseURL: apiUrl,
   method: 'post',
   headers: { jwt }
 })

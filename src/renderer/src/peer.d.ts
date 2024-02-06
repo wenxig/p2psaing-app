@@ -57,7 +57,8 @@ namespace Peer {
     }
     type CallBask = {
       type: "callback";
-      main: boolean
+      main: boolean,
+      for?: string
     }
     type Chunk = {
       type: 'chunk',

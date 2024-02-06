@@ -38,7 +38,7 @@ export const isMsg = (value: unknown): value is Peer.Request.Msg => isRequest(va
   md5: z.string(),
   name: z.string().optional(),
   chunkNumber: z.nan().or(z.number()),
-  main:z.string().optional() //仅函数中传递填写
+  main: z.string().optional() //仅函数中传递填写
 }, {
   type: z.enum(['appFunction']),
   main: z.any()
@@ -51,7 +51,8 @@ export const isMsg = (value: unknown): value is Peer.Request.Msg => isRequest(va
   main: z.string()
 }, {
   type: z.enum(['callback']),
-  main: z.boolean()
+  main: z.boolean(),
+  for: z.string().optional()
 }, {
   type: z.enum(['chunk']),
   main: z.string(),
