@@ -8,6 +8,7 @@ export const handleError = (err: AxiosError) => {
   config.__retryCount = config.__retryCount || 0;
   if (config.__retryCount >= config.retry) return Promise.reject(err);
   config.__retryCount += 1;
+  if (config.__retryCount >= 5) return location.reload()
   return new Promise<void>(resolve => setTimeout(resolve, config.retryDelay || 1)).then(() => axios(config));
 }
 axios.interceptors.response.use(undefined, handleError);

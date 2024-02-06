@@ -78,8 +78,11 @@ export class Chat extends P2P {
       this.isCloseing && this.peer.reconnect()
     })
     this.listen('connection', (connection) => {
+      console.log('/handshake');
       return new Promise(resolve => {
         connection.onData('/handshake', async (req) => {
+          console.log('/handshake');
+          
           if (!isHandShake(req)) {
             resolve(false)
             return false
@@ -135,7 +138,7 @@ export class Chat extends P2P {
       metadata: [toUserWebSave(this.me), this.me.uid]
     }))
     await connection.ready
-    if (!await this.handShake(connection, config)) return [undefined, false]
+    // if (!await this.handShake(connection, config)) return [undefined, false]
     await db.tempUserData.set(user, await getTimeByUid(uid))
     useAppStore().links.push(user)
     this.linkList[uid] = {

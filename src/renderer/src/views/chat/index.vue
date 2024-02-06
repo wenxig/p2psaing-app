@@ -77,7 +77,8 @@ const createMeg = (body: Peer.Msg.All): Peer.Request.Msg => ({
 
 class SendMsg {
   public static async send(msg: Peer.Request.Msg) {
-    // if (!(await connection.send(msg)).body) throw new PeerError('send', 'sendError')
+    console.log('send')
+     if (!(await connection.send(msg)).body) throw console.error(new PeerError('send', 'sendError'))
     msgs.value.push(msg)
   }
   public static imageWithSelect() {

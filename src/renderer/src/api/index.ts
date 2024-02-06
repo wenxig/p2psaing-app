@@ -23,20 +23,23 @@ export class P2P {
   constructor(lid: string) {
     this.peer = new Peer(lid)
     this.setUpPeer(lid)
-    this.listenOnce('open').then(() => {
+    
+    for (const event of this.peerEvent) this.peer.addListener(event, (data?) => this.default[event].forEach(row => event == 'connection' ? row[0](new Connection(<Peer.Connection>data)) : row[0](data)))
+  }
+  private setUpPeer(lid: string) {
+    (<WebSocket>(<any>this.peer.socket)._socket).onerror = () => {
+      this.peer.off('open')
+      this.peer = new Peer(lid)
+      this.setUpPeer(lid)
+    };
+    this.peer.once('open', () => {
       console.log('then')
+      this.peer.off('open')
       this.thenList?.forEach(f => f());
       (<WebSocket>(<any>this.peer.socket)._socket).onerror = undefined as any
       delete this.thenList
       delete this.then
     })
-    for (const event of this.peerEvent) this.peer.addListener(event, (data?) => this.default[event].forEach(row => event == 'connection' ? row[0](new Connection(<Peer.Connection>data)) : row[0](data)))
-  }
-  private setUpPeer(lid: string) {
-    (<WebSocket>(<any>this.peer.socket)._socket).onerror = () => {
-      this.peer = new Peer(lid)
-      this.setUpPeer(lid)
-    };
   }
   private thenList? = new Array<() => void>()
   public then?(resolve: () => void) {

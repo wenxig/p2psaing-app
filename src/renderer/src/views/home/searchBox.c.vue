@@ -9,6 +9,7 @@ import { useRouter } from 'vue-router'
 import { useUserStore } from '@/store/user';
 import { Chat } from '@/api/chat';
 import { storeToRefs } from 'pinia';
+import { actor } from '@/controller';
 const { user } = storeToRefs(useUserStore())
 const showMenu = ref(false)
 const router = useRouter()
@@ -22,7 +23,7 @@ async function link() {
   })
   if (isEmpty(fastlink.data)) {
     ElMessage.warning("请输入内容")
-    return
+    return loading.close()
   }
   if (z.string().email().safeParse(fastlink.data).success) {
     const result = await searchByEmail(fastlink.data)
@@ -31,13 +32,16 @@ async function link() {
   }
   if (!(/^[0-9]+$/g.test(fastlink.data))) {
     ElMessage.error('输入正确的内容')
-    return
+    return loading.close()
   }
   const uid = toNumber(fastlink.data)
   await _link(uid)
   return loading.close()
   async function _link(uid: number) {
-    if (fastlink.data == user.value.email || fastlink.data == user.value.uid.toString()) return void ElMessage.error('你不能连接到你自己')
+    if (fastlink.data == user.value.email || fastlink.data == user.value.uid.toString()) {
+      ElMessage.error('你不能连接到你自己')
+      return loading.close()
+    }
     try {
       console.log('before create');
       const link = await Chat.refs.get(user.value.uid)!.connect(uid, {
@@ -46,11 +50,14 @@ async function link() {
       console.log('after create');
       if (link[1]) {
         ElMessage.success('成功')
-        router.replace(`/main/chat/temp/${uid}`)
+        loading.close()
+        actor.send({ type: 'quit', to: 'goChat', params: { dev: false, type: 'temp', uid } })
       } else
         ElMessage.error('无法连接')
+      loading.close()
     } catch (err) {
       ElMessage.error('无法连接')
+      loading.close()
       throw (err);
     } finally {
       fastlink.show = false
