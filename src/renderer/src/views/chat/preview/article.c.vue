@@ -1,6 +1,6 @@
 <script setup lang='ts'>
 import round from "lodash-es/round";
-import style from "./atricle.c.scss?raw";
+import style from "./atricle.c.css?raw";
 import { marked } from 'marked'
 const TOPBAR_HEIGHT = 30;
 const height = round((window.screen.availHeight / 3) * 2);
@@ -24,7 +24,7 @@ const dom = `
   ${style}
   </style>
 </head>
-<body class="ck-content">${md}</body>
+<body class="ck-content markdown-body">${md}</body>
 </html>
 `
 </script>

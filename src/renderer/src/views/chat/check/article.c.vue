@@ -13,8 +13,13 @@ const emit = defineEmits<{
   writeOk: [value: string]
 }>()
 const ck = ref<HTMLIFrameElement>()
-window.ck_getData = (md) => emit('writeOk', md)
 const componentSrc = ref(window.ipc.htmlServer().find(v => v.name == 'ck')!.url)
+let preview = false
+window.ck_getData = (md) => preview ? (() => {
+  window.ipc.createChildWindow({ url: '/main/chat/article/preview', props: { main: md } })
+  preview = false
+  componentSrc.value = componentSrc.value.replaceAll('#getData', '')
+})() : emit('writeOk', md)
 const reset = () => componentSrc.value = window.ipc.htmlServer().find(v => v.name == 'ck')!.url
 </script>
 
@@ -23,8 +28,11 @@ const reset = () => componentSrc.value = window.ipc.htmlServer().find(v => v.nam
     <template #header="{ titleId, titleClass, close }">
       <div :id="titleId" :class="titleClass" class="flex items-center">
         <span class="font-bold text-xl mr-2">编写文章</span>
-        <ElButton type="primary" @click="close() || (componentSrc = componentSrc + '#getData')"
-          :disabled="componentSrc.includes('#getData')">确定</ElButton>
+        <el-tooltip class="box-item" effect="dark" content="编辑时样式和展示时样式有很大不同，请务必先预览已确认样式正确" placement="bottom-start">
+          <ElButton type="primary" @click="close() || (componentSrc = componentSrc + '#getData')"
+            :disabled="componentSrc.includes('#getData')">确定</ElButton>
+        </el-tooltip>
+        <ElButton @click="(preview = true) || (componentSrc = componentSrc + '#getData')">预览</ElButton>
       </div>
     </template>
     <div class="w-full !h-full bg-white rounded-sm ">

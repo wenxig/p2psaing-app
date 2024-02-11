@@ -1,6 +1,6 @@
 import { join } from 'path';
 import appIcon from '../../../resources/icon.png?asset'
-import { BrowserWindow, shell, app as App } from 'electron';
+import { BrowserWindow, shell, app as App,clipboard } from 'electron';
 import { is } from '@electron-toolkit/utils';
 const mainHtml = '../renderer/index.html'
 import { isUrlMatched, createMessageCenterRouterUrl, MessageCenterRouterUrl } from '../utils/url';
@@ -143,12 +143,14 @@ class Window extends BrowserWindow {
     this.once('ready-to-show', () => {
       console.log('show');
       this.show()
+      if (import.meta.env.DEV) this.webContents.openDevTools()
     })
     this.webContents.setWindowOpenHandler((details) => {
       shell.openExternal(details.url)
       return { action: 'deny' }
     })
     this.app.msgChannel.addWindow(this).then(() => {
+      this.addRoute<string[]>('/copy', (_, { [0]: value }) => clipboard.writeText(value))
       this.addRoute<string[]>('/crypto/decrypt/aes512', (_, { [0]: value }) => decryptBykaisa(value, import.meta.env.MAIN_VITE_API_AES_KEY), true)
       this.addRoute<any[], { method: string }>('/run/shell/:method', ({ params }, data) => shell[params.method](...(data ?? [])))
       this.addRoute<any[], { method: string }>('/run/window/:method', ({ params }, data) => this[params.method](...(data ?? [])))
@@ -199,6 +201,7 @@ class Window extends BrowserWindow {
       ...options,
       parent: this
     }, this.app)
+    return true
   }
   public addRoute<T = any, P extends Record<string, string> = any, Q extends Record<string, string> = any>(path: string, fn: MessageCenterRouterRowFn<T, P, Q>, sync = false): () => void {
     return this.app.msgChannel.addRoute<T>(this, path, fn, sync)

@@ -3,7 +3,8 @@ import { ConnectionSignal, ConnectionSignalOff, Code, FunctionMath } from '@vico
 import { ref, defineComponent, reactive, watch, markRaw, provide } from 'vue';
 import { Picture, VideoPlay, Document } from '@element-plus/icons-vue';
 import { ElIcon, ElMessage, ElSpace, ElText } from 'element-plus';
-import { toNumber, find, isEmpty, times } from 'lodash-es';
+import { find, isEmpty, times, toNumber } from 'lodash-es';
+import { useSender, useIsSending } from '../chat/inject';
 import EquationView from '@p/chat/check/equation.c.vue';
 import ArticleEdit from '@p/chat/check/article.c.vue';
 import CodeView from '@p/chat/check/code.c.vue';
@@ -13,13 +14,11 @@ import { fileToDataURL } from '@/utils/image';
 import { useFileDialog } from '@vueuse/core';
 import { useUserStore } from '@/store/user';
 import MsgList from '@p/chat/msgList.c.vue';
-import { useSender, useIsSending } from '../chat/inject';
-import { Chat, isMsg } from '@/api/chat';
 import { useRoute } from 'vue-router';
 import { storeToRefs } from 'pinia';
-import { PeerError } from 'peerjs';
 import { MD5 } from 'crypto-js';
 import db from '@/db';
+import { Request, Header, Body } from '@/api';
 // 我可爱导(入)了
 
 const file = (accept = 'image/*') => useFileDialog({ accept })
@@ -27,36 +26,33 @@ const app = useAppStore()
 const { user } = storeToRefs(useUserStore())
 const route = useRoute()
 const toUser = find(app.links, { uid: toNumber(route.params.uid) })!
-const connection = Chat.refs.get(user.value.uid)!.linkList[toUser.uid].connection
-const msgs = ref<Peer.Request.Msg[]>([])
+const connection = app.peer!.allConnects.find(r => r.conn.metadata.starter == user.value.uid || r.conn.metadata.starter == toUser.uid)!
+const msgs_obj = ref((() => {
+  const getValue = () => app.allConnectsMsgs[app.allConnectsMsgs.findIndex(v => v.uid == toNumber(route.params.uid))]
+  if (getValue()) return getValue()
+  app.allConnectsMsgs.push({ uid: toNumber(route.params.uid), msg: [] })
+  return getValue()
+})())
 db.msg.get(toUser.uid).then((data) => {
-  msgs.value = data
-  watch(msgs, (msg) => {
+  msgs_obj.value.msg = data
+  watch(() => msgs_obj.value.msg, (msg) => {
     const data = msg.at(-1)!
-    if (data.body.type != 'callback') db.msg.add(toUser.uid, data)
+    db.msg.add(toUser.uid, data)
   })
 })
 connection.onData(`/msg`, async (data) => {
-  if (!isMsg(data)) return false
-  if (data.body.type == 'callback') return true
-  msgs.value.push(data)
-  return {
-    path: '/msg',
-    headers: {
-      time: new Date().getTime(),
-      from: user.value.uid,
-    },
-    body: {
-      type: 'callback',
-      main: true,
-    }
-  }
+  msgs_obj.value.msg.push(data.toPeerMsg())
+  return new Request(data.url.fullPath + '#callback', new Body({
+    type: 'callback',
+    main: true,
+    for: data.headers.get('time')!.toString()
+  }), new Header({}))
 })
 app.topBar.value = markRaw(defineComponent(() => () => <div class=" w-full relative flex items-center">
   <ElText class='!text-xl !mr-4'>{toUser.name}</ElText>
   <ElSpace size={5}>
     {route.params.type == 'temp' && <ElIcon color='gray'><Clock20Regular /></ElIcon>}
-    {connection.isOpen.value ? <ElIcon><ConnectionSignal /></ElIcon> : <ElIcon><ConnectionSignalOff /></ElIcon>}
+    {connection.isOpen ? <ElIcon><ConnectionSignal /></ElIcon> : <ElIcon><ConnectionSignalOff /></ElIcon>}
   </ElSpace>
 </div>))
 
@@ -76,25 +72,24 @@ const createMeg = (body: Peer.Msg.All): Peer.Request.Msg => ({
 
 
 class SendMsg {
-  public static async send(msg: Peer.Request.Msg) {
-    console.log('send')
-     if (!(await connection.send(msg)).body) throw console.error(new PeerError('send', 'sendError'))
-    msgs.value.push(msg)
+  public static send(msg: Peer.Request.Msg) {
+    connection.send(new Request(msg))
+    msgs_obj.value.msg.push(msg)
   }
   public static imageWithSelect() {
     const f = file()
     f.open()
     f.onChange(async () => {
-      const imgs = await Promise.all(times(f.files.value?.length ?? 0, async i => await fileToDataURL(f.files.value![i])))
-      for (const img of imgs) SendMsg.image(img)
+      const imgs = await Promise.all(times(f.files.value?.length ?? 0, async i => [await fileToDataURL(f.files.value![i]), f.files.value![i].name]))
+      for (const img of imgs) SendMsg.image(img[0], img[1])
     })
   }
   public static videoWithSelect() {
     const f = file('video/*')
     f.open()
     f.onChange(async () => {
-      const videos = await Promise.all(times(f.files.value?.length ?? 0, async i => await fileToDataURL(f.files.value![i])))
-      for (const video of videos) SendMsg.video(video)
+      const videos = await Promise.all(times(f.files.value?.length ?? 0, async i => [await fileToDataURL(f.files.value![i]), f.files.value![i].name]))
+      for (const video of videos) SendMsg.video(video[0], video[1])
     })
   }
   public static fileWithSelect() {
@@ -116,17 +111,17 @@ class SendMsg {
     }))
     tempMsg.text = ''
   }
-  public static async text() {
+  public static text() {
     if (isEmpty(tempMsg.text)) ElMessage.error('不能发送空消息')
-    await SendMsg.send(createMeg({
+    SendMsg.send(createMeg({
       type: 'text',
       main: tempMsg.text.replaceAll('$$', '')
     }))
     tempMsg.text = ''
   }
-  public static async code() {
+  public static code() {
     if (isEmpty(tempMsg.text)) ElMessage.error('不能发送空消息')
-    await SendMsg.send(createMeg({
+    SendMsg.send(createMeg({
       type: 'code',
       main: tempMsg.text,
       is: tempMsg.code_is
@@ -135,38 +130,37 @@ class SendMsg {
     CodeViewC.value?.close()
   }
 
-  public static async video(dataUrl: string) {
-    await SendMsg.send(createMeg({
+  public static video(dataUrl: string, name: string) {
+    SendMsg.send(createMeg({
       type: 'video',
       main: dataUrl,
       md5: MD5(dataUrl).toString(),
-      chunkNumber: NaN
+      name
     }))
   }
-  public static async image(dataUrl: string) {
-    await SendMsg.send(createMeg({
+  public static image(dataUrl: string, name: string) {
+    SendMsg.send(createMeg({
       type: 'img',
       main: dataUrl,
       md5: MD5(dataUrl).toString(),
-      chunkNumber: NaN
+      name
     }))
   }
-  public static async article(text: string) {
+  public static article(text: string, name: string) {
     if (isEmpty(text)) ElMessage.error('不能发送空消息')
-    await SendMsg.send(createMeg({
+    SendMsg.send(createMeg({
       type: 'article',
       main: text,
       md5: MD5(text).toString(),
-      chunkNumber: NaN
+      name
     }))
   }
-  public static async file(dataUrl: string, name: string) {
-    await SendMsg.send(createMeg({
+  public static file(dataUrl: string, name: string) {
+    SendMsg.send(createMeg({
       type: 'file',
       main: dataUrl,
       md5: MD5(dataUrl).toString(),
       name,
-      chunkNumber: NaN
     }))
   }
 }
@@ -182,7 +176,7 @@ const ArticleEditC = ref<InstanceType<typeof ArticleEdit>>()
 <template>
   <div class=" h-full overflow-hidden">
     <ElUpload class="!hidden"></ElUpload>
-    <MsgList :msgs="msgs" :users="[user, toUser]" :uid="user.uid" />
+    <MsgList :msgs="msgs_obj.msg" :users="connection.users" />
     <el-space class="pl-1 border-t w-full h-[5%]">
       <el-icon @click="SendMsg.imageWithSelect()" size="25">
         <Picture :class="SEND_IMAGE_BUTTON_CLASS" />

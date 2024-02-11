@@ -28,6 +28,7 @@ type ipc = {
   openExternal(url: string): void
   htmlServer(): { name: string, url: string }[]
   decryptUserData(value: string): string
+  copy(value:string):any
 }
 declare module "vue" {
   interface ComponentCustomProperties {

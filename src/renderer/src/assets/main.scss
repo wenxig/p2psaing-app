@@ -22,7 +22,7 @@
   font-family: var(--el-font-family) !important;
   // user-select: none;
 }
-*:is(.monaco *, .n-code *, .katex *){
+*:is(.monaco *, .katex *){
   all:unset;
 }
 

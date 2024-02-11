@@ -4,15 +4,12 @@ import { ref, reactive } from 'vue'
 import { isEmpty, toNumber } from "lodash-es";
 import { ElMessage, ElLoading } from 'element-plus'
 import { z } from 'zod'
-import { searchByEmail } from '@/db/network';
-import { useRouter } from 'vue-router'
+import { searchByEmail, searchByUid } from '@/db/network';
 import { useUserStore } from '@/store/user';
-import { Chat } from '@/api/chat';
 import { storeToRefs } from 'pinia';
-import { actor } from '@/controller';
+import { useAppStore } from '@/store/appdata';
 const { user } = storeToRefs(useUserStore())
 const showMenu = ref(false)
-const router = useRouter()
 const fastlink = reactive({
   show: ref(false),
   data: ""
@@ -27,36 +24,32 @@ async function link() {
   }
   if (z.string().email().safeParse(fastlink.data).success) {
     const result = await searchByEmail(fastlink.data)
-    await _link(result.uid)
+    await _link(result.lid)
     return loading.close()
   }
-  if (!(/^[0-9]+$/g.test(fastlink.data))) {
-    ElMessage.error('输入正确的内容')
+  if (/^[0-9]+$/g.test(fastlink.data)) {
+    const result = await searchByUid(toNumber(fastlink.data))
+    await _link(result.lid)
     return loading.close()
   }
-  const uid = toNumber(fastlink.data)
-  await _link(uid)
+  ElMessage.error('输入正确的内容')
   return loading.close()
-  async function _link(uid: number) {
+
+  async function _link(itLid: string) {
     if (fastlink.data == user.value.email || fastlink.data == user.value.uid.toString()) {
       ElMessage.error('你不能连接到你自己')
       return loading.close()
     }
     try {
       console.log('before create');
-      const link = await Chat.refs.get(user.value.uid)!.connect(uid, {
-        type: 'chat',
-      })
-      console.log('after create');
-      if (link[1]) {
+      useAppStore().peer!.connect(itLid, 'temp').then(() => {
+        console.log('after create');
         ElMessage.success('成功')
-        loading.close()
-        actor.send({ type: 'quit', to: 'goChat', params: { dev: false, type: 'temp', uid } })
-      } else
-        ElMessage.error('无法连接')
-      loading.close()
+      }).catch(() => {
+        ElMessage.error('无法连接1')
+      }).finally(loading.close)
     } catch (err) {
-      ElMessage.error('无法连接')
+      ElMessage.error('无法连接2')
       loading.close()
       throw (err);
     } finally {

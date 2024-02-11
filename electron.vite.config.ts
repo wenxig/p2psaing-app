@@ -40,7 +40,7 @@ const rendererConfig = defineViteConfig({
     }),
     createHtmlPlugin({
       minify: true,
-      entry: 'src/main.ts',
+      entry: 'src/main.tsx',
       inject: {
         data: {
           title: package_json.name,

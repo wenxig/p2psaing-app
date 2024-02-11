@@ -4,7 +4,8 @@ import { HmacSHA256, SHA256 } from 'crypto-js';
 import { getSerectUser, count } from '@/db/network'
 import db from '@/db';
 import { toUserWebSave } from '@/utils/user';
-import { chatSetup } from '@a/chat';
+import { useAppStore } from '@s/appdata';
+import { createPeer } from '@/api';
 export async function signUp(val: User.Arg.sigeup) {
   const userStore = useUserStore()
   const lid = SHA256(random(9999999999).toString()).toString()
@@ -24,10 +25,12 @@ export async function signUp(val: User.Arg.sigeup) {
     password: val.password
   })
   await userStore.commit()
-  await chatSetup(lid)
+  useAppStore().peer = await createPeer(lid) as any
+  console.log('peersetupok')
   return toUserWebSave(userStore.user)
 }
 export async function login(val: User.Arg.login) {
+
   const pid = HmacSHA256(val.email, val.password).toString()
   const user = await getSerectUser(pid)
   if (!user[1]) throw false
@@ -38,6 +41,6 @@ export async function login(val: User.Arg.login) {
   }
   useUserStore().$setUser(dbSaveData)
   await db.lastLogin.set()
-  await chatSetup(user[0].lid)
+  useAppStore().peer = await createPeer(user[0].lid) as any
   return toUserWebSave(dbSaveData)
 }

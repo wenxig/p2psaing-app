@@ -4,7 +4,8 @@ import { ref, watch } from 'vue';
 import { updateUser } from '@/db/network'
 import db from '@/db';
 import { createEmptyDeepUser } from '@/utils/user'
-import { chatSetup } from '@a/chat';
+import { createPeer } from '@/api';
+import { useAppStore } from '@s/appdata';
 
 export const useUserStore = defineStore("user", () => {
   const reload = (steup = false): User.WebDbSaveDeep => {
@@ -24,7 +25,7 @@ export const useUserStore = defineStore("user", () => {
     const userString = JSON.stringify(val)
     !(latestData == userString) && window.ipc.setState('user', latestData = userString)
   }, { deep: true })
-  if (location.hash.includes('/main')) chatSetup(user.value.lid)
-  window.ipc.onReload(`/store/user`, () => chatSetup((user.value = reload()).lid))
+
+  window.ipc.onReload(`/store/user`, async () => useAppStore().peer = await createPeer((user.value = reload()).lid))
   return { user, commit, $setUser: (value: User.WebDbSaveDeep) => user.value = value }
 })

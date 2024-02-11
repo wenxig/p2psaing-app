@@ -47,8 +47,8 @@ export const toUserWebSaveDeep = (val: unknown): User.WebDbSaveDeep => webSaveDe
 export const createRandomUser = (): User.WebDbSave => ({
   email: `${random(0, 100000)}@gmail.com`,
   lid: `${random(100000, 999999)}${random(100000, 999999)}${random(100000, 999999)}`,
-  uid: random(0, 100000),
-  img: '/userIcon.png',
+  uid: random(100000, 1000000),
+  img: `https://picsum.photos/200?time=${(new Date()).getTime()}`,
   name: `${random(100000, 999999)}`,
 })
 export const createEmptyDeepUser = (): User.WebDbSaveDeep => ({

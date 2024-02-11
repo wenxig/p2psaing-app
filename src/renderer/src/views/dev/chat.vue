@@ -13,12 +13,14 @@ import { fileToDataURL } from '@/utils/image';
 import { MD5 } from 'crypto-js';
 import { Code, FunctionMath } from '@vicons/carbon';
 import { useSender } from '../chat/inject';
-import { times } from 'lodash-es';
+import { isEmpty, times } from 'lodash-es';
+import { useUserStore } from '@/store/user';
+import { storeToRefs } from 'pinia';
 const file = (accept = 'image/*') => useFileDialog({
   accept
 })
 const app = useAppStore()
-const user = createRandomUser()
+const { user } = storeToRefs(useUserStore())
 const toUser = createRandomUser()
 const msgs = ref<Peer.Request.Msg[]>([])
 const tempMsg = reactive({
@@ -32,26 +34,29 @@ const sendFromMe = ref(true)
 const createMeg = (body: Peer.Msg.All): Peer.Request.Msg => ({
   body,
   headers: {
-    from: sendFromMe.value ? user.uid : toUser.uid,
+    from: sendFromMe.value ? user.value.uid : toUser.uid,
     time: new Date().getTime()
   },
   path: `/msg`
 })
 class SendMsg {
+  public static send(msg: Peer.Request.Msg) {
+    msgs.value.push(msg)
+  }
   public static imageWithSelect() {
     const f = file()
     f.open()
     f.onChange(async () => {
-      const imgs = await Promise.all(times(f.files.value?.length ?? 0, async i => await fileToDataURL(f.files.value![i])))
-      for (const img of imgs) SendMsg.image(img)
+      const imgs = await Promise.all(times(f.files.value?.length ?? 0, async i => [await fileToDataURL(f.files.value![i]), f.files.value![i].name]))
+      for (const img of imgs) SendMsg.image(img[0], img[1])
     })
   }
   public static videoWithSelect() {
     const f = file('video/*')
     f.open()
     f.onChange(async () => {
-      const videos = await Promise.all(times(f.files.value?.length ?? 0, async i => await fileToDataURL(f.files.value![i])))
-      for (const video of videos) SendMsg.video(video)
+      const videos = await Promise.all(times(f.files.value?.length ?? 0, async i => [await fileToDataURL(f.files.value![i]), f.files.value![i].name]))
+      for (const video of videos) SendMsg.video(video[0], video[1])
     })
   }
   public static fileWithSelect() {
@@ -66,56 +71,63 @@ class SendMsg {
     ArticleEditC.value?.open()
   }
   public static equation() {
-    msgs.value.push(createMeg({
+    if (isEmpty(tempMsg.text)) ElMessage.error('不能发送空消息')
+    SendMsg.send(createMeg({
       type: 'equation',
-      main: tempMsg.text || '<empty>'
+      main: tempMsg.text
     }))
     tempMsg.text = ''
   }
   public static text() {
-    msgs.value.push(createMeg({
+    if (isEmpty(tempMsg.text)) ElMessage.error('不能发送空消息')
+    SendMsg.send(createMeg({
       type: 'text',
-      main: tempMsg.text.replaceAll('$$', '') || '<empty>'
+      main: tempMsg.text.replaceAll('$$', '')
     }))
     tempMsg.text = ''
   }
   public static code() {
-    msgs.value.push(createMeg({
+    if (isEmpty(tempMsg.text)) ElMessage.error('不能发送空消息')
+    SendMsg.send(createMeg({
       type: 'code',
-      main: tempMsg.text || '// <empty>',
+      main: tempMsg.text,
       is: tempMsg.code_is
     }))
     tempMsg.text = ''
     CodeViewC.value?.close()
   }
 
-  public static video(dataUrl: string) {
-    msgs.value.push(createMeg({
+  public static video(dataUrl: string, name: string) {
+    SendMsg.send(createMeg({
       type: 'video',
-      main: dataUrl,
-      md5: MD5(dataUrl).toString()
-    }))
-  }
-  public static image(dataUrl: string) {
-    msgs.value.push(createMeg({
-      type: 'img',
-      main: dataUrl,
-      md5: MD5(dataUrl).toString()
-    }))
-  }
-  public static article(text: string) {
-    msgs.value.push(createMeg({
-      type: 'article',
-      main: text,
-      md5: MD5(text).toString()
-    }))
-  }
-  public static file(dataUrl: string, name: string) {
-    msgs.value.push(createMeg({
-      type: 'file',
       main: dataUrl,
       md5: MD5(dataUrl).toString(),
       name
+    }))
+  }
+  public static image(dataUrl: string, name: string) {
+    SendMsg.send(createMeg({
+      type: 'img',
+      main: dataUrl,
+      md5: MD5(dataUrl).toString(),
+      name
+    }))
+  }
+  public static article(text: string, name: string) {
+    if (isEmpty(text)) ElMessage.error('不能发送空消息')
+    SendMsg.send(createMeg({
+      type: 'article',
+      main: text,
+      md5: MD5(text).toString(),
+      name
+    }))
+  }
+  public static file(dataUrl: string, name: string) {
+    SendMsg.send(createMeg({
+      type: 'file',
+      main: dataUrl,
+      md5: MD5(dataUrl).toString(),
+      name,
     }))
   }
 

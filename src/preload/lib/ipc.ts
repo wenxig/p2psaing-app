@@ -29,13 +29,16 @@ contextBridge.exposeInMainWorld('instance_name', {
 console.log('perload init');
 port1.start()
 port1.onmessage = ({ data }: { data: MessageInstance }) => {
+  console.log('>>>', data)
   for (const { fn, path } of routers.filter(({ path }) => isUrlMatched(path, data.path))) fn(createMessageCenterRouterUrl(path, data.path), data.body)
 }
 
 
 const send = <T = any, P extends Record<string, string> = any, Q extends Record<string, string> = any>(msg: MessageInstance) => new Promise<T>((res) => {
   port1.postMessage(msg)
+  console.log('ipc>>', msg)
   const stop = addRouter<T, P, Q>(msg.path, ({ hash }, data) => {
+    console.log('ipc<<', data)
     if (hash !== 'callback') return false
     stop()
     res(data)
@@ -173,6 +176,12 @@ contextBridge.exposeInMainWorld('ipc', {
       body: [value]
     })[0]
   },
+  copy(value: string) {
+    return send({
+      path: '/copy',
+      body: [value]
+    })
+  }
 } as Ipc)
 
 
