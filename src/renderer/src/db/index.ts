@@ -2,7 +2,7 @@ import { useUserStore } from "@s/user";
 import { watchOnce } from "@vueuse/core";
 import localforage from "localforage";
 import { ref } from "vue";
-import { getTimeByEmail, getTimeByUid, searchByEmail, searchByUid } from '@/db/network'
+import { getTimeByEmail, getTimeByUid, hasUserByEmail, searchByEmail, searchByUid } from '@/db/network'
 import { remove } from "lodash-es";
 namespace db {
   const driver = localforage.INDEXEDDB
@@ -26,7 +26,7 @@ namespace db {
     export async function get() {
       await whenReady()
       const saveData = await getItem<DataWithTime<User.LastLogin>>('user.LastLogin')
-      if (!saveData) return false
+      if (!saveData || (await hasUserByEmail(saveData.user.email) == true)) return false
       const newTime = await getTimeByEmail(saveData.user.email)
       if (saveData.time != newTime) {
         const newData = await searchByEmail(saveData.user.email)
@@ -48,19 +48,14 @@ namespace db {
       await whenReady()
       return await removeItem('user.LastLogin')
     }
-    export async function set(data?: DataWithTime<User.LastLogin>) {
+    export async function set(data: DataWithTime<{
+      img: string;
+      name: string;
+      password: string;
+      email: string;
+    }>) {
       await whenReady()
-      if (data) return void await setItem<DataWithTime<User.LastLogin>>('user.LastLogin', data)
-      const { user } = useUserStore()
-      await setItem<DataWithTime<User.LastLogin>>('user.LastLogin', {
-        user: {
-          'email': user.email,
-          img: user.img,
-          name: user.name,
-          password: user.password
-        },
-        time: await getTimeByEmail(user.email)
-      })
+      return void await setItem<DataWithTime<User.LastLogin>>('user.LastLogin', data)
     }
 
   }

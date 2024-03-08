@@ -10,7 +10,7 @@ class ImgUploder {
   private github = axios.create({
     baseURL: `https://api.github.com/repos/wenxig/__APP_NAME__-app-db/contents`,
     headers: {
-      "Authorization": window.getToken("github"),
+      "Authorization": 'github',
       "Content-Type": "application/json; charset=utf-8",
       "Accept": "application/vnd.github.v3+json"
     }
@@ -18,7 +18,7 @@ class ImgUploder {
   private smms = axios.create({
     baseURL: "https://sm.ms/api/v2",
     headers: {
-      "Authorization": window.getToken("smms"),
+      "Authorization": 'smms',
       "Content-Type": "multipart/form-data;charset=UTF-8"
     }
   })

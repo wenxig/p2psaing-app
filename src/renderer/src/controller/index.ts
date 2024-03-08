@@ -1,7 +1,6 @@
 import { setup, createActor } from 'xstate';
 import { Router, createRouter, createWebHashHistory } from 'vue-router';
 import routes from "./routes";
-import { login, signUp } from "./auth";
 import db from '@/db';
 import { useUserStore } from '@/store/user';
 import { toUserWebSave } from '@/utils/user';
@@ -81,10 +80,8 @@ const appMachine = setup({
         reenter: true,
         guard({ event }) {
           if (event.type != 'logining') return false
-          addAsyncProcess(async () => {
-            const user = await login(event.data)
-            runPluginLfe('onLogin', user)
-          })
+          const user = toUserWebSave(useUserStore())
+          runPluginLfe('onLogin', user)
           return true
         }
       },
@@ -95,10 +92,8 @@ const appMachine = setup({
         target: "onAuthed",
         guard({ event }) {
           if (event.type != 'singuping') return false
-          addAsyncProcess(async () => {
-            const user = await signUp(event.data)
-            runPluginLfe('onSignUp', user)
-          })
+          const user = toUserWebSave(useUserStore())
+          runPluginLfe('onSignUp', user)
           return true
         },
       },

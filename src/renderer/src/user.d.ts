@@ -1,57 +1,34 @@
 namespace User {
-  type Base = {
-    name: string;
-    password: string;
-    email: string;
-  }
-  type Ids = {
-    pid: string;
-    uid: number;
-    lid: string;
-  }
   interface MsgSave {
     group: {
-      uid: Pick<Ids, "uid">;
+      uid: number;
       msg: (Peer.Msg.index | never)[]
     }[];
     chat: {
-      uid: Pick<Ids, "uid">;
+      uid: number;
       name?: string;
       msg: (Peer.Msg.index | never)[]
     }[]
   }
-  interface WebDbSaveDeep extends Base, Ids {
-    img: string;
-    introduction?: string;
-    delImg?: string;
-    link: {
-      group: {
-        gid: string;
-      }[];
-      chat: {
-        uid: number;
-      }[]
-    }
-  }
-  interface WebDbSave {
-    name: string;
-    img: string;
-    email: string;
-    introduction?: string;
-    lid: string;
-    uid: number
-  }
+  type WebDbSaveDeep = import("./utils/user").WebDbSaveDeep
+  type WebDbSave = import("./utils/user").WebDbSave
   namespace Arg {
     type login = {
       email: string,
       password: string
     }
-    type sigeup = Base
+    type sigeup = {
+      name: string;
+      password: string;
+      email: string;
+    }
   }
   type LastLogin = {
     img: string;
-  } & Base
-
+    name: string;
+    password: string;
+    email: string;
+  }
 }
 
 

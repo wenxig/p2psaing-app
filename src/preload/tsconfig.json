@@ -30,5 +30,6 @@
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
     "baseUrl": ".",
+    "noImplicitReturns": false
   }
 }

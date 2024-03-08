@@ -1,19 +1,19 @@
 import { readFileSync } from 'fs';
 import _ckeditorHTML from '../../../resources/ckeditor5/sample/index.html?asset'
 import _ckeditorMainJS from '../../../resources/ckeditor5/build/ckeditor?asset'
-import express from 'express';
+import { Hono } from 'hono';
+import { serve } from '@hono/node-server';
 import { AddressInfo } from 'node:net';
 const ckeditorHTML = readFileSync(_ckeditorHTML).toString()
+const ckeditorMainJS = readFileSync(_ckeditorMainJS).toString()
 export function useCkeditor() {
-  const app = express()
-  app.get('/', (_req, res) => {
-    if (import.meta.env.DEV) res.send(readFileSync(_ckeditorHTML).toString())
-    else res.send(ckeditorHTML)
+  const app = new Hono()
+  app.get('/', c => {
+    if (import.meta.env.DEV) return c.html(readFileSync(_ckeditorHTML).toString())
+    return c.html(ckeditorHTML)
   })
-  app.get('/js', (_, res) => {
-    res.sendFile(_ckeditorMainJS)
-  })
-  const l = app.listen(0)
+  app.get('/js', c => c.text(ckeditorMainJS))
+  const server = serve(app).listen(0)
 
-  return () => (<AddressInfo>l.address()).port
+  return () => (<AddressInfo>server.address()).port
 }

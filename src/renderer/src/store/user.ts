@@ -26,6 +26,6 @@ export const useUserStore = defineStore("user", () => {
     !(latestData == userString) && window.ipc.setState('user', latestData = userString)
   }, { deep: true })
 
-  window.ipc.onReload(`/store/user`, async () => useAppStore().peer = await createPeer((user.value = reload()).lid))
+  window.ipc.onReload(`/store/user`, async () => (<any>useAppStore().peer) = await createPeer((user.value = reload()).lid))
   return { user, commit, $setUser: (value: User.WebDbSaveDeep) => user.value = value }
 })

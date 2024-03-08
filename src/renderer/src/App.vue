@@ -30,15 +30,14 @@ if (!useAppStore().peer && location.hash.includes('/main')) createPeer(user.valu
 </script>
 
 <template>
-  <n-config-provider :locale="nZhCn" :date-locale="nDateZhCN" class="w-full h-full" :katex="(katex as any)" :hljs="hljs">
+  <n-config-provider :locale="nZhCn" :date-locale="nDateZhCN" class="w-full h-full" :katex="(katex as any)"
+    :hljs="hljs">
     <n-global-style />
     <el-config-provider :locale="elZhCn">
       <Suspense>
         <router-view class="overflow-hidden"></router-view>
         <template #fallback>
-          <NSpin :delay="1000" class="!w-full !h-full">
-            <template #description>从网络加载内容中</template>
-          </NSpin>
+          <span>从网络加载内容中</span>
         </template>
       </Suspense>
     </el-config-provider>

@@ -4,10 +4,10 @@ import { ElLoading, ElMessage, type FormInstance, type FormRules } from 'element
 import { isEmpty, random } from 'lodash-es';
 import { InfoFilled } from '@element-plus/icons-vue';
 import { useAppStore } from '@s/appdata'
-import { searchByEmail, sendEmail } from '@/db/network';
-import { isUserWebSave } from '@/utils/user';
+import { hasUserByEmail, sendEmail } from '@/db/network';
 import { Checker } from "./checkers";
 import { actor } from '@/controller';
+import { signUp as signupApi } from '@/db/auth';
 const emailPass = ref("")
 const app = useAppStore();
 window.ipc.setSize(650, 460)
@@ -59,9 +59,13 @@ const signUp = (formEl: FormInstance | undefined) => {
       text: '上传数据中',
       background: !app.isDark ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
     })
-    return searchByEmail(ruleForm.email).then(ret => {
-      if (isUserWebSave(ret)) return void (isUploadToDb.value = true);
+    return hasUserByEmail(ruleForm.email).then(async ret => {
+      if (ret == false) {
+        await signupApi(ruleForm)
+        return isUploadToDb.value = true;
+      }
       ElMessage.error("用户已经存在")
+      return false
     }).catch(ElMessage.error).finally(() => loading.close())
   })
 }
@@ -106,8 +110,7 @@ const signUp = (formEl: FormInstance | undefined) => {
             同意
           </el-checkbox>
           <n-button quaternary type="primary" class=" !pl-0 !pr-0"
-            @click.stop="$ipc.createChildWindow({ width: 300, height: 300, url: '/p', windowChannel: `userp`, more: false, parents: $window.instance_name.my })"
-            size="small">《用户许可》</n-button>
+            @click.stop="$ipc.createChildWindow({ width: 300, height: 300, url: '/p' })" size="small">《用户许可》</n-button>
         </el-form-item>
         <el-form-item class="!w-full !mb-0">
           <el-button type="primary" @click="signUp(ruleFormRef)">提交</el-button>
