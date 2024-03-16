@@ -44,12 +44,13 @@ function down() {
     aLink.click()
   })
 }
+import userIconImgUrl from '@/assets/userIcon.png?url';
 </script>
 <template>
   <el-card>
     <ElSpace class="!w-full !h-2/3" direction="vertical">
       <NSpin :show="!option.isReady">
-        <VuePictureCropper class="!w-[25vw] !h-[25vw]" :box-style="option.boxStyle" :img="option.img || '/userIcon.png'"
+        <VuePictureCropper class="!w-[25vw] !h-[25vw]" :box-style="option.boxStyle" :img="option.img || userIconImgUrl"
           :options="option.base" @ready="option.isReady = true" />
       </NSpin>
       <div class="text-center px-5 py-1">

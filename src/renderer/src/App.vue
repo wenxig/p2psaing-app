@@ -10,7 +10,6 @@ import { useThemeVars } from 'naive-ui';
 import { useUserStore } from '@s/user';
 import { useStyleTag } from '@vueuse/core';
 import db from './db';
-import { actor } from "@c/index";
 import { useAppStore } from './store/appdata';
 import { createPeer } from '@/api';
 import { storeToRefs } from 'pinia';
@@ -20,7 +19,6 @@ const joinStyle = useStyleTag('', { id: 'app-inject-style' })
 let isLoadCSS = false
 db.app.sub((styles) => {
   if (!isLoadCSS) {
-    actor.send({ type: 'loadCSS' })
     isLoadCSS = true
   }
   styles = styles.filter(({ isLoad }) => isLoad)

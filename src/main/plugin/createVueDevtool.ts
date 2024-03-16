@@ -5,6 +5,6 @@ export function createVueDevtool() {
     __dirname,
     '../../resources/vue_devtools'
   )
-  
+
   return session.defaultSession.loadExtension(vueDevToolsPath)
 }

@@ -91,7 +91,7 @@ class Uploader extends ImgUploder {
         else continue
         userStore.user.img = val[0]
         userStore.user.delImg = val[1]
-        await userStore.commit()
+        await userStore.$commit()
         appStore.settingPage.loadProgress = 100
         return val
       }
@@ -100,7 +100,7 @@ class Uploader extends ImgUploder {
     }
     return ['', '']
   }
-  constructor(){
+  constructor() {
     super()
   }
 }

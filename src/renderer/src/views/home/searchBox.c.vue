@@ -1,10 +1,9 @@
 <script setup lang='ts'>
 import { Plus, Search } from '@element-plus/icons-vue'
 import { ref, reactive } from 'vue'
-import { isEmpty, toNumber } from "lodash-es";
+import { isEmpty } from "lodash-es";
 import { ElMessage, ElLoading } from 'element-plus'
-import { z } from 'zod'
-import { searchByEmail, searchByUid } from '@/db/network';
+import { getUser } from '@/db/network';
 import { useUserStore } from '@/store/user';
 import { storeToRefs } from 'pinia';
 import { useAppStore } from '@/store/appdata';
@@ -22,17 +21,8 @@ async function link() {
     ElMessage.warning("请输入内容")
     return loading.close()
   }
-  if (z.string().email().safeParse(fastlink.data).success) {
-    const result = await searchByEmail(fastlink.data)
-    await _link(result.lid)
-    return loading.close()
-  }
-  if (/^[0-9]+$/g.test(fastlink.data)) {
-    const result = await searchByUid(toNumber(fastlink.data))
-    await _link(result.lid)
-    return loading.close()
-  }
-  ElMessage.error('输入正确的内容')
+  const result = await getUser(fastlink.data)
+  await _link(result.lid)
   return loading.close()
 
   async function _link(itLid: string) {

@@ -1,9 +1,9 @@
-import { useUserStore } from "@s/user";
 import { watchOnce } from "@vueuse/core";
 import localforage from "localforage";
 import { ref } from "vue";
-import { getTimeByEmail, getTimeByUid, hasUserByEmail, searchByEmail, searchByUid } from '@/db/network'
+import { getTime, hasUser, getUser, getSerectUser } from '@/db/network'
 import { remove } from "lodash-es";
+import { toLastLogin } from "@/utils/user";
 namespace db {
   const driver = localforage.INDEXEDDB
   export const base = localforage.createInstance({
@@ -26,16 +26,11 @@ namespace db {
     export async function get() {
       await whenReady()
       const saveData = await getItem<DataWithTime<User.LastLogin>>('user.LastLogin')
-      if (!saveData || (await hasUserByEmail(saveData.user.email) == true)) return false
-      const newTime = await getTimeByEmail(saveData.user.email)
+      if (!saveData || !await hasUser(saveData.user.email)) return false
+      const newTime = await getTime(saveData.user.email)
       if (saveData.time != newTime) {
-        const newData = await searchByEmail(saveData.user.email)
-        const user = {
-          email: newData.email,
-          img: newData.img,
-          name: newData.name,
-          password: saveData.user.password
-        }
+        const newData = await getSerectUser(saveData.user.pid)
+        const user = toLastLogin(newData)
         set({
           user,
           time: newTime
@@ -48,12 +43,7 @@ namespace db {
       await whenReady()
       return await removeItem('user.LastLogin')
     }
-    export async function set(data: DataWithTime<{
-      img: string;
-      name: string;
-      password: string;
-      email: string;
-    }>) {
+    export async function set(data: DataWithTime<User.LastLogin>) {
       await whenReady()
       return void await setItem<DataWithTime<User.LastLogin>>('user.LastLogin', data)
     }
@@ -87,10 +77,10 @@ namespace db {
     }
     export async function get(uid: number) {
       await whenReady()
-      const newTime = await getTimeByUid(uid)
+      const newTime = await getTime(uid)
       const saveData = await base.getItem<DataWithTime<User.WebDbSave>>(`temp.user.${uid.toString()}`)
       if (saveData?.time != newTime) {
-        const newData = await searchByUid(uid)
+        const newData = await getUser(uid)
         set(newData, newTime)
         return newData
       }

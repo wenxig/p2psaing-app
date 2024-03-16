@@ -1,19 +1,19 @@
 <script setup lang='ts'>
 import { ChatRound } from "@element-plus/icons-vue";
 import Control from '@/components/control.vue';
-import { ref, nextTick } from 'vue';
+import { nextTick, shallowRef } from 'vue';
+import userIconImgUrl from '@/assets/userIcon.png?url';
 import { useUserStore } from '@s/user';
 import { storeToRefs } from 'pinia';
 import AsideButton from './asideButton.c.vue';
 import { Code20Filled } from '@vicons/fluent';
 import { Settings } from '@vicons/carbon';
-import { nowRouterState } from '@c/index';
 import gsap from "gsap"
 const { user } = storeToRefs(useUserStore())
 
 const BASE_SIZE_AVATAR = 40
 const BASE_SIZE_CHANGE = 5
-const DivEl = ref<HTMLDivElement>()
+const DivEl = shallowRef<HTMLDivElement>()
 const bigSize = (el: HTMLElement) => {
   nextTick(() => {
     gsap.to(el, {
@@ -46,14 +46,15 @@ const nomeSize = (el: HTMLElement) => {
 
 <template>
   <el-container class=" h-full">
-    <el-aside class="relative region-drag bg-[var(--el-color-info-light-7)] !pt-20 !h-full flex justify-center !w-[60px]">
+    <el-aside
+      class="relative region-drag bg-[var(--el-color-info-light-7)] !pt-20 !h-full flex justify-center !w-[60px]">
       <Control class="absolute top-0 left-0"></Control>
       <el-space direction='vertical' class=" w-full h-full">
         <div @mouseleave="(e) => nomeSize(e.target as HTMLElement)" ref="DivEl"
           @mouseenter="(e) => bigSize(e.target as HTMLElement)" class=" relative DivEl"
           :style="{ width: `${BASE_SIZE_AVATAR}px`, height: `${BASE_SIZE_AVATAR}px` }">
           <el-avatar shape="square" class="region-no-drag !w-full !h-full"
-            :src="user.img == '' ? '/userIcon.png' : user.img"
+            :src="user.img == '' ? userIconImgUrl : user.img"
             @click="$ipc.createChildWindow({ width: 800, height: 500, url: '/main/setting/user' })" />
         </div>
         <div
@@ -65,31 +66,28 @@ const nomeSize = (el: HTMLElement) => {
           <NThing class="!w-full !h-full">
             <template #avatar>
               <el-avatar shape="square" class="region-no-drag" :size="BASE_SIZE_AVATAR"
-                :src="user.img == '' ? '/userIcon.png' : user.img" />
+                :src="user.img == '' ? userIconImgUrl : user.img" />
             </template>
             <template #header>{{ user.name }}</template>
             <template #description>{{ user.introduction }}</template>
             <ElDivider class="!m-0" />
           </NThing>
         </div>
-        <AsideButton :primary="nowRouterState == 'onHomeRouter' || nowRouterState == 'onChatRouter'"
-          @click="$actor.send({ type: 'quit', to: 'goHome' })">
+        <AsideButton :disabled="$route.meta?.for == 'chat'" @click="$router.push('/main')">
           <ChatRound />
         </AsideButton>
-        <AsideButton :primary="nowRouterState == 'onAddressRouter'"
-          @click="$actor.send({ type: 'quit', to: 'goAddress' })">
+        <AsideButton :disabled="$route.meta?.for == 'address'" @click="$router.push('/main/address')">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
             <path
               d="M6 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm-5 6s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H1zM11 3.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1h-4a.5.5 0 0 1-.5-.5zm.5 2.5a.5.5 0 0 0 0 1h4a.5.5 0 0 0 0-1h-4zm2 3a.5.5 0 0 0 0 1h2a.5.5 0 0 0 0-1h-2zm0 3a.5.5 0 0 0 0 1h2a.5.5 0 0 0 0-1h-2z" />
           </svg>
         </AsideButton>
-        <AsideButton :primary="nowRouterState == 'onDevRouter'" @click="$actor.send({ type: 'quit', to: 'goDev' })">
+        <AsideButton :disabled="$route.meta?.for == 'dev'" @click="$router.push('/main/dev')">
           <Code20Filled />
         </AsideButton>
       </el-space>
       <el-space direction='vertical' class=" w-full h-auto absolute bottom-2">
-        <AsideButton :primary="nowRouterState == 'onSettingRouter'"
-          @click="$actor.send({ type: 'quit', to: 'goSetting' })">
+        <AsideButton :disabled="$route.meta?.for == 'setting'" @click="$router.push('/main/setting/app')">
           <Settings />
         </AsideButton>
       </el-space>

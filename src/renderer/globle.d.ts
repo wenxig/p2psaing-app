@@ -1,6 +1,5 @@
 import type { AxiosResponse } from 'axios';
 import type { WindowConfig } from '../main/hook/useWindow'
-import { actor } from "./src/controller";
 type ipc = {
   setSize(width: number, height: number): Promise<void>
   setResizable(agree: boolean): Promise<void>
@@ -34,7 +33,6 @@ declare module "vue" {
   interface ComponentCustomProperties {
     $ipc: ipc
     $window: typeof window
-    $actor: typeof actor
   }
 }
 declare module 'axios' {

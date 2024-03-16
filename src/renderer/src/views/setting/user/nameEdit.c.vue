@@ -19,7 +19,7 @@ function userRename() {
   isOnNameUpdate.value = true
   user.value.name = settingPage.value.name
   isOnNameUpdate.value = false
-  userStore.commit()
+  userStore.$commit()
 }
 </script>
 
@@ -28,8 +28,7 @@ function userRename() {
     <transition name="el-fade-in-linear" :duration="150">
       <el-space v-if="!settingPage.isEditName" class="!absolute ml-2" @mouseenter="showEditNameIcon = true"
         @mouseleave="showEditNameIcon = false">
-        <el-text size="large"
-          @click.stop="settingPage.isEditName = true">{{ settingPage.name || user.name }}</el-text>
+        <el-text size="large" @click.stop="settingPage.isEditName = true">{{ settingPage.name || user.name }}</el-text>
         <transition name="el-fade-in-linear" :duration="100">
           <el-icon color="var(--el-color-info)" v-if="showEditNameIcon" size="large"
             @click.stop="settingPage.isEditName = true">
@@ -40,9 +39,8 @@ function userRename() {
       </el-space>
     </transition>
     <transition name="el-fade-in-linear" :duration="150">
-      <el-input id="p-name-eide-input" type="text" class="!absolute !w-60"
-        :model-value="settingPage.name || user.name" @update:model-value="val => settingPage.name = val"
-        :disabled="isOnNameUpdate" v-if="settingPage.isEditName">
+      <el-input id="p-name-eide-input" type="text" class="!absolute !w-60" :model-value="settingPage.name || user.name"
+        @update:model-value="val => settingPage.name = val" :disabled="isOnNameUpdate" v-if="settingPage.isEditName">
         <template #suffix>
           <el-icon @click="settingPage.name = user.name" id="p-name-eide-icon">
             <Refresh />

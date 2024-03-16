@@ -14,8 +14,7 @@ namespace User {
   type WebDbSave = import("./utils/user").WebDbSave
   namespace Arg {
     type login = {
-      email: string,
-      password: string
+      pid: string
     }
     type sigeup = {
       name: string;
@@ -23,12 +22,7 @@ namespace User {
       email: string;
     }
   }
-  type LastLogin = {
-    img: string;
-    name: string;
-    password: string;
-    email: string;
-  }
+  type LastLogin = import("./utils/user").LastLogin
 }
 
 

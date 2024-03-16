@@ -7,7 +7,7 @@ import lightLangs from '@/assets/lightLang.json';
 import { useUserStore } from '@/store/user';
 import { ref } from 'vue';
 import { useAppStore } from '@/store/appdata'
-import { actor } from '@/controller'
+import { router } from '@/router'
 
 export const createPeer = (lid: string) => new Promise<Peer>(r => new Peer(lid, r))
 export class Peer {
@@ -113,10 +113,10 @@ export class Connection {
       this.mode = 'temp'
       this.starter = NaN
     }
-    this.conn.once('data', data => {
-      app.links.push(data as any)
-      this.users.push(data as any)
-      actor.send({ type: 'quit', to: 'goChat', params: { dev: false, type: 'temp', uid: (<User.WebDbSave>data).uid } })
+    this.conn.once('data', (data:any) => {
+      app.links.push(data)
+      this.users.push(data)
+      router.push(`/main/chat/temp/${(<User.WebDbSave>data).uid}`)
     })
     this.conn.once('open', () => {
       this.isOpen.value = true

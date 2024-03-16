@@ -1,16 +1,17 @@
 <script setup lang='ts'>
 import { type ElAutocomplete, type AutocompleteFetchSuggestionsCallback, ElLoading } from 'element-plus';
-import { nextTick, ref } from 'vue';
+import { nextTick, ref, shallowRef } from 'vue';
 import { getSerectUser } from '@/db/network';
 import { Plus, Search } from '@element-plus/icons-vue'
-import { router } from '@c/index';
+import { useRouter } from 'vue-router';
+const router = useRouter()
 const emit = defineEmits<{
-  'select': [value: [undefined, false] | [User.WebDbSaveDeep, true]]
+  'select': [value: User.WebDbSaveDeep | void]
 }>()
 const iconRotate = ref('0deg')
 const filteData = ref('')
 const searchData = ref('')
-const AddUserCom = ref<InstanceType<typeof ElAutocomplete>>()
+const AddUserCom = shallowRef<InstanceType<typeof ElAutocomplete>>()
 function filteUsers(keyword: string, cb: any) {
   cb([keyword])
 }
@@ -31,7 +32,7 @@ function getLisetData(keyword: string, cb: AutocompleteFetchSuggestionsCallback)
       await router.push(`/main/address/${data}`)
       // const result = await api.get(data)
       loading.close()
-      emit('select', [undefined, false])
+      emit('select', undefined)
     }
   }, {
     data: keyword,
@@ -99,5 +100,4 @@ function getLisetData(keyword: string, cb: AutocompleteFetchSuggestionsCallback)
 //       color: #ddd;
 //     }
 //   }
-// }
-</style>
+// }</style>

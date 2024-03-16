@@ -1,24 +1,14 @@
 <script setup lang='ts'>
 import Layout from '@l/base.vue';
 import MainLayout from '@l/rightBase.vue';
-import { ref } from 'vue'
 import SearchBox from './searchBox.c.vue';
-let height = ref(window.innerHeight)
-window.onresize = () => {
-  height.value = window.innerHeight;
-}
+import { getUserAddress } from '@/db/network';
+import { NVirtualList } from 'naive-ui';
+import { useUserStore } from '@/store/user';
+const ITEM_HEIGHT = 40
+const { user } = useUserStore()
+const allAddress = await getUserAddress(user.uid)
 
-const props = {
-  value: 'id',
-  label: 'label',
-  children: 'children',
-}
-const data: listItem[] = []
-interface listItem {
-  value: string | number
-  label: string
-  children: never[]
-}
 </script>
 
 <template>
@@ -28,12 +18,14 @@ interface listItem {
         <SearchBox />
       </template>
       <template #aside-main>
-        <el-tree-v2 :data="data" :props="props" :height="height - 60" :item-size="60" v-slot="{ data }" empty-text="你没有好友"
-          check-on-click-node>
-          <div>
-            <p>{{ data }}</p>
-          </div>
-        </el-tree-v2>
+        <ElAutoResizer v-slot="{ height, width }">
+          <NVirtualList v-slot="{ item }: { item: number }" :items="allAddress"
+            :style="`height:${height}px;width:${width}px;`" :itemSize="ITEM_HEIGHT">
+            <div>
+              {{ item }}
+            </div>
+          </NVirtualList>
+        </ElAutoResizer>
       </template>
       <template #default>
         <router-view></router-view>

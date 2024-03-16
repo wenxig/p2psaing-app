@@ -19,21 +19,26 @@ const routes: RouteRecordRaw[] = [
   },
   {
     path: "/main",
+    meta: { for: 'chat' },
     component: () => import("@p/home/index.vue"),
     children: [{
       path: "chat/:type/:uid",
-      component: () => import("@p/chat/index.vue")
+      component: () => import("@p/chat/index.vue"),
+      meta: { for: 'chat' }
     },
     {
       path: "dev/chat",
-      component: () => import("@p/dev/chat.vue")
+      component: () => import("@p/dev/chat.vue"),
+      meta: { for: 'dev' }
     }]
   },
   {
     path: "/main/address",
     component: () => import("@p/address/index.vue"),
+    meta: { for: 'address' },
     children: [{
       path: ':uid',
+      meta: { for: 'address' },
       component: () => import("@p/address/index/index.vue")
     }]
   },
@@ -43,23 +48,23 @@ const routes: RouteRecordRaw[] = [
   },
   {
     path: "/main/setting/user",
+    meta: { for: 'setting' },
     component: () => import("@p/setting/user/index.vue")
   },
   {
     path: "/main/setting/app",
-    component: () => import("@p/setting/app/index.vue")
+    component: () => import("@p/setting/app/index.vue"),
+    meta: { for: 'setting' },
   },
   {
     path: "/main/dev",
+    meta: { for: 'dev' },
     component: () => import("@p/dev/index.vue")
   },
   {
-    path: "/main/dev/state",
-    component: () => import("@p/dev/state.vue")
-  },
-  {
     path: "/main/chat/:type/preview",
-    component: () => import("@p/chat/preview/index.vue")
+    component: () => import("@p/chat/preview/index.vue"),
+    meta: { for: 'chat' },
   }
 ];
 export default routes;

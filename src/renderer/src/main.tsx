@@ -6,25 +6,21 @@ import { createPinia } from 'pinia';
 import 'element-plus/es/components/message/style/css'
 import 'element-plus/es/components/loading/style/css'
 import 'element-plus/es/components/message-box/style/css'
-import { $setup, actor } from "./controller";
+import { router } from "./router";
 import { isEmpty } from 'lodash-es';
 while (true) {
-  console.log(window.ipc.htmlServer()[0].url);
-
   if (!isEmpty(window.ipc)) {
     const app = createApp(App)
     const pinia = createPinia()
     app.use(pinia)
-    app.use($setup())
+    app.use(router)
     app.use({
       install(app) {
         app.config.globalProperties.$ipc = window.ipc
         app.config.globalProperties.$window = window
-        app.config.globalProperties.$actor = actor
       },
     })
     app.mount("#app")
-    actor.send({ type: 'loadPlugin' })
     break;
   }
 }

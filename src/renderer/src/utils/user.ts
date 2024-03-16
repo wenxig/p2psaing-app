@@ -33,9 +33,19 @@ export const webSaveDeepRule = z.object({
 })
 export type WebDbSaveDeep = TypeOf<typeof webSaveDeepRule>
 
+export const lastLoginRule = z.object({
+  img: z.string(),
+  name: z.string(),
+  email: z.string().email(),
+  pid: z.string(),
+})
+export type LastLogin = TypeOf<typeof lastLoginRule>
+
 export const isUserWebSave = (val: unknown): val is User.WebDbSave => webSaveRule.safeParse(val).success
+export const isLastLogin = (val: unknown): val is User.LastLogin => lastLoginRule.safeParse(val).success
 export const isUserWebSaveDeep = (val: unknown): val is User.WebDbSaveDeep => webSaveDeepRule.safeParse(val).success
 export const toUserWebSave = (val: unknown): User.WebDbSave => webSaveRule.parse(val)
+export const toLastLogin = (val: unknown): User.LastLogin => lastLoginRule.parse(val)
 export const toUserWebSaveDeep = (val: unknown): User.WebDbSaveDeep => webSaveDeepRule.parse(val)
 export const createRandomUser = (): User.WebDbSave => ({
   email: `${random(0, 100000)}@gmail.com`,
