@@ -13,14 +13,31 @@ const emit = defineEmits<{
   writeOk: [value: string]
 }>()
 const ck = ref<HTMLIFrameElement>()
-const componentSrc = ref(window.ipc.htmlServer().find(v => v.name == 'ck')!.url)
+const componentSrc = ref(window.ipc.getHttpComponents().find(v => v.name == 'ck')!.url)
 let preview = false
 window.ck_getData = (md) => preview ? (() => {
+  console.log('perview')
   window.ipc.createChildWindow({ url: '/main/chat/article/preview', props: { main: md } })
   preview = false
   componentSrc.value = componentSrc.value.replaceAll('#getData', '')
 })() : emit('writeOk', md)
-const reset = () => componentSrc.value = window.ipc.htmlServer().find(v => v.name == 'ck')!.url
+const reset = () => componentSrc.value = window.ipc.getHttpComponents().find(v => v.name == 'ck')!.url
+
+const load = () => {
+  const doc = ck.value!.contentWindow!.document
+  const styleTag = doc.createElement('style')
+  doc.head.append(styleTag)
+  const loadCSS = () => {
+    const color = getComputedStyle(document.body).getPropertyValue('--el-bg-color').trim()
+    styleTag.innerHTML = `
+      html, body {
+        background-color: ${color};
+      }
+    `
+  }
+  loadCSS()
+  window.ipc.onReload('theme', loadCSS)
+}
 </script>
 
 <template>
@@ -35,8 +52,8 @@ const reset = () => componentSrc.value = window.ipc.htmlServer().find(v => v.nam
         <ElButton @click="(preview = true) || (componentSrc = componentSrc + '#getData')">预览</ElButton>
       </div>
     </template>
-    <div class="w-full !h-full bg-white rounded-sm ">
-      <iframe ref="ck" :src="componentSrc" frameborder="0" class="w-full h-full"></iframe>
+    <div class="w-full !h-full bg-[--el-bg-color] rounded-sm ">
+      <iframe ref="ck" :src="componentSrc" frameborder="0" class="w-full h-full" @load="load"></iframe>
     </div>
   </el-dialog>
 </template>

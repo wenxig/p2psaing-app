@@ -40,6 +40,10 @@ const routes: RouteRecordRaw[] = [
       path: ':uid',
       meta: { for: 'address' },
       component: () => import("@p/address/index/index.vue")
+    }, {
+      path: 'check/:uid',
+      meta: { for: 'address' },
+      component: () => import("@p/address/index/check.c.vue")
     }]
   },
   {

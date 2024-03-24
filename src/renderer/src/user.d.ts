@@ -4,11 +4,7 @@ namespace User {
       uid: number;
       msg: (Peer.Msg.index | never)[]
     }[];
-    chat: {
-      uid: number;
-      name?: string;
-      msg: (Peer.Msg.index | never)[]
-    }[]
+    chat: WebDbSave[]
   }
   type WebDbSaveDeep = import("./utils/user").WebDbSaveDeep
   type WebDbSave = import("./utils/user").WebDbSave

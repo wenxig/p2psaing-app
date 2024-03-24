@@ -4,9 +4,8 @@ import { createSize } from '@/utils/element';
 const TOPBAR_HEIGHT = 30;
 const { height, width } = createSize(window.props as { width: number, height: number }, [screen.availWidth * 0.8, screen.availHeight * 0.9], true)
 window.ipc.setResizable(true)
-  .then(() => window.ipc.setSize(width, height + TOPBAR_HEIGHT))
-  .then(() => window.ipc.setResizable(false))
-  .then(() => window.ipc.toTop())
+window.ipc.setSize({ width, height: height + TOPBAR_HEIGHT })
+window.ipc.toTop()
 
 </script>
 

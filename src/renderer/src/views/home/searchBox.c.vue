@@ -7,8 +7,10 @@ import { getUser } from '@/db/network';
 import { useUserStore } from '@/store/user';
 import { storeToRefs } from 'pinia';
 import { useAppStore } from '@/store/appdata';
+import { useRouter } from 'vue-router';
 const { user } = storeToRefs(useUserStore())
 const showMenu = ref(false)
+const router=useRouter()
 const fastlink = reactive({
   show: ref(false),
   data: ""
@@ -22,30 +24,25 @@ async function link() {
     return loading.close()
   }
   const result = await getUser(fastlink.data)
-  await _link(result.lid)
-  return loading.close()
-
-  async function _link(itLid: string) {
-    if (fastlink.data == user.value.email || fastlink.data == user.value.uid.toString()) {
-      ElMessage.error('你不能连接到你自己')
-      return loading.close()
-    }
-    try {
-      console.log('before create');
-      useAppStore().peer!.connect(itLid, 'temp').then(() => {
-        console.log('after create');
-        ElMessage.success('成功')
-      }).catch(() => {
-        ElMessage.error('无法连接1')
-      }).finally(loading.close)
-    } catch (err) {
-      ElMessage.error('无法连接2')
-      loading.close()
-      throw (err);
-    } finally {
-      fastlink.show = false
-    }
+  if (fastlink.data == user.value.email || fastlink.data == user.value.uid.toString()) {
+    ElMessage.error('你不能连接到你自己')
+    return loading.close()
   }
+  try {
+    useAppStore().peer!.connect(result.lid, 'temp').then(() => {
+      ElMessage.success('成功')
+      router.replace(`/main/chat/temp/${result.uid}`)
+    }).catch(() => {
+      ElMessage.error('无法连接1')
+    }).finally(loading.close)
+  } catch (err) {
+    ElMessage.error('无法连接2')
+    loading.close()
+    throw (err);
+  } finally {
+    fastlink.show = false
+  }
+  return loading.close()
 }
 </script>
 

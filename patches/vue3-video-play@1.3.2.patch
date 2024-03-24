@@ -1,0 +1,13 @@
+diff --git a/package.json b/package.json
+index dfe4efe5a7d873a0aa1c70b1f162aba29f4e58ea..bdcfaceb14ea6eb4ae95cf04ca68ce1b78d1c6fd 100644
+--- a/package.json
++++ b/package.json
+@@ -7,7 +7,7 @@
+     "lib"
+   ],
+   "main": "./dist/index.umd.js",
+-  "module": "./dist/index.es.js",
++  "module": "./dist/index.mjs",
+   "scripts": {
+     "dev": "vite",
+     "build": "vue-tsc --noEmit && vite build",

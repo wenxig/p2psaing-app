@@ -1,5 +1,5 @@
 <script setup lang='ts'>
-import { shallowReactive,shallowRef, ref } from 'vue';
+import { shallowReactive, shallowRef, ref } from 'vue';
 import { ElLoading, ElMessage, type FormInstance, type FormRules } from 'element-plus'
 import { isEmpty, random } from 'lodash-es';
 import { InfoFilled } from '@element-plus/icons-vue';
@@ -9,7 +9,7 @@ import { Checker } from "./checkers";
 import { signUp as signupApi } from '@/db/auth';
 const emailPass = ref("")
 const app = useAppStore();
-window.ipc.setSize(650, 460)
+window.ipc.setSize({ width: 650, height: 460 })
 const ruleFormRef = shallowRef<FormInstance>()
 const allowUserPer = ref(false)
 
@@ -123,10 +123,10 @@ const signUp = () => {
         </template>
       </el-popover>
     </el-main>
-    <el-result icon="success" title="成功" sub-title="点击确定将登陆" class="!fixed w-full h-full bg-white z-10"
+    <el-result icon="success" title="成功" sub-title="点击确定将登陆" class="!fixed w-full h-full bg-[--el-bg-color] z-10"
       v-if="isUploadToDb">
       <template #extra>
-        <el-button type="primary" @click="$router.push(`/main`)">确定</el-button>
+        <el-button type="primary" @click="$router.push(`/main`).then(() => $ipc.toTop())">确定</el-button>
       </template>
     </el-result>
     <control class="absolute top-0 left-0 z-20" type="quit" :minsize="false" :maxsize="false"></control>

@@ -1,5 +1,5 @@
 <script setup lang='ts'>
-import { useUserStore } from '@s/user';
+import { RELOAD_NAME, useUserStore } from '@s/user';
 import { useAppStore } from '@s/appdata';
 import NameEdit from './nameEdit.c.vue';
 import { Plus } from '@element-plus/icons-vue'
@@ -28,6 +28,7 @@ async function upload(rawFile: File) {
   }
   imageUrl.value = value
   progressFlag.value = false
+  window.ipc.reload(RELOAD_NAME)
   return true
 }
 const reload = () => {

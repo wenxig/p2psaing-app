@@ -4,6 +4,11 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  vue3-video-play@1.3.2:
+    hash: xddaju4cvcrshkdxiua4chol5i
+    path: patches/vue3-video-play@1.3.2.patch
+
 dependencies:
   '@electron-toolkit/utils':
     specifier: ^3.0.0
@@ -88,7 +93,7 @@ dependencies:
     version: 4.3.0(vue@3.4.21)
   vue3-video-play:
     specifier: ^1.3.2
-    version: 1.3.2(typescript@5.3.3)
+    version: 1.3.2(patch_hash=xddaju4cvcrshkdxiua4chol5i)(typescript@5.3.3)
   zod:
     specifier: ^3.22.4
     version: 3.22.4
@@ -6387,7 +6392,7 @@ packages:
       typescript: 5.3.3
     dev: true
 
-  /vue3-video-play@1.3.2(typescript@5.3.3):
+  /vue3-video-play@1.3.2(patch_hash=xddaju4cvcrshkdxiua4chol5i)(typescript@5.3.3):
     resolution: {integrity: sha512-eEwCJ0NIkfVQgTj0I3Kf9b1E/04Qne8mQQiE8r77BocblHsZ2T6af3q8l8Zzs/OvjlpQAQvkN/ACVUOJC3RSXg==}
     dependencies:
       hls.js: 1.5.7
@@ -6396,6 +6401,7 @@ packages:
     transitivePeerDependencies:
       - typescript
     dev: false
+    patched: true
 
   /vue@3.4.21(typescript@5.3.3):
     resolution: {integrity: sha512-5hjyV/jLEIKD/jYl4cavMcnzKwjMKohureP8ejn3hhEjwhWIhWeuzL2kJAjzl/WyVsgPY56Sy4Z40C3lVshxXA==}

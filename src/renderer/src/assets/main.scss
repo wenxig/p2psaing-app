@@ -22,9 +22,6 @@
   font-family: var(--el-font-family) !important;
   // user-select: none;
 }
-*:is(.monaco *, .katex *){
-  all:unset;
-}
 
 body,
 html,

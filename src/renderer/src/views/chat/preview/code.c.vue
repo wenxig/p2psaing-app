@@ -2,8 +2,8 @@
 import lightLangs from '@/assets/lightLang.json';
 const TOPBAR_HEIGHT = 30;
 window.ipc.setResizable(true)
-  .then(() => window.ipc.setSize(700, 500 + TOPBAR_HEIGHT))
-  .then(() => window.ipc.toTop())
+window.ipc.setSize({ width: 700, height: 500 + TOPBAR_HEIGHT })
+window.ipc.toTop()
 </script>
 
 <template>

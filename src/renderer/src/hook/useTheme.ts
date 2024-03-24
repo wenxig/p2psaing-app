@@ -1,4 +1,3 @@
-import { useAppStore } from '@/store/appdata'
 import type { useThemeVars, CustomThemeCommonVars, ThemeCommonVars } from 'naive-ui'
 import { nextTick } from 'vue'
 const cssVarName = [
@@ -105,18 +104,14 @@ const styleName: Array<keyof (CustomThemeCommonVars & ThemeCommonVars)> = [
 ]
 
 export async function useLightTheme(themeRef: ReturnType<typeof useThemeVars>) {
-  const appStore = useAppStore()
-  appStore.isDark = false
+  document.querySelector('html')!.className = document.querySelector('html')!.className.replaceAll('dark', 'light')
   await nextTick()
-  styleName.forEach((tag, index) => {
-    themeRef.value[tag] = <any>(getComputedStyle(document.documentElement).getPropertyValue(cssVarName[index]).trim())
-  })
+  await nextTick()
+  styleName.forEach((tag, index) => themeRef.value[tag] = <any>(getComputedStyle(document.body).getPropertyValue(cssVarName[index]).trim()))
 }
-export async function usrDarkTheme(themeRef: ReturnType<typeof useThemeVars>) {
-  const appStore = useAppStore()
-  appStore.isDark = true
+export async function useDarkTheme(themeRef: ReturnType<typeof useThemeVars>) {
+  document.querySelector('html')!.className = document.querySelector('html')!.className.replaceAll('light', 'dark')
   await nextTick()
-  styleName.forEach((tag, index) => {
-    themeRef.value[tag] = <any>(getComputedStyle(document.documentElement).getPropertyValue(cssVarName[index]).trim())
-  })
+  await nextTick()
+  styleName.forEach((tag, index) => themeRef.value[tag] = <any>(getComputedStyle(document.body).getPropertyValue(cssVarName[index]).trim()))
 }

@@ -9,7 +9,7 @@ import { sendEmail, hasUser } from '@/db/network';
 import { HmacSHA256 } from 'crypto-js';
 import { useRouter } from 'vue-router';
 const app = useAppStore()
-window.ipc.setSize(280, 400)
+window.ipc.setSize({ width: 280, height: 400 })
 const passCode = random(100000, 999999).toString()
 const isPassCodeRight = ref(true)
 const isPage1 = ref(true)
@@ -42,9 +42,10 @@ function login(jump: boolean = false) {
     _login({
       pid: HmacSHA256(from.email, from.password).toString()
     })
-      .then(() => router.push('/main'))
-      .finally(lodaing.close)
       .catch(() => ElMessage.error('网络错误'))
+      .then(() => router.push('/main'))
+      .then(() => window.ipc.toTop())
+      .finally(lodaing.close)
   } else {
     if (to) clearTimeout(to)
     isPassCodeRight.value = false

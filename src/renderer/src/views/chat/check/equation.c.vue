@@ -28,7 +28,7 @@ const options: KatexOptions = {
 
 <template>
   <NModal v-model:show="showEquationModel">
-    <div class="w-2/3 !h-[60vh] bg-white rounded-sm ">
+    <div class="w-2/3 !h-[60vh] bg-[--el-bg-color] rounded-sm ">
       <div class="h-1/6 flex items-center">
         <div class=" flex items-center w-2/4 pl-3">
           <el-icon :size="25">

@@ -1,27 +1,31 @@
-import { ipcRenderer, contextBridge as _cb } from "electron";
-import { type Ipc, keysWithValue, keysWithoutValue, type withValue, type withoutValue } from '../../renderer/src/api/ipc';
-const contextBridge = { exposeInMainWorld: import.meta.env.DEV ? (key: string, value: any) => void (window[key] = value) : _cb.exposeInMainWorld }
-const ipcSend = <T extends keyof Ipc>(id: T, ...val: Parameters<Ipc[T]>) => ipcRenderer.send(id, ...val)
-const ipcSendSync = <T extends keyof Ipc>(id: T, ...val: Parameters<Ipc[T]>) => ipcRenderer.sendSync(id, ...val)
+import { ipcRenderer, contextBridge } from 'electron'
+import { keysWithValue, keysWithoutValue } from '../../renderer/src/api/ipc'
+const injectToRender = (key: string, value: any) => {
+  // window[key] = value
+  contextBridge.exposeInMainWorld(key, value)
+}
 
-const injectValue: Partial<Ipc> = {}
+const ipcSend = (id: any, ...val: any): void => ipcRenderer.send(id, ...val)
+const ipcSendSync = (id: any, ...val: any) => ipcRenderer.sendSync(id, ...val)
 
+const injectValue: any = {}
 
-for (const key of keysWithValue as (keyof typeof withValue)[]) injectValue[key] = (...val: any[]) => ipcSendSync(key, ...val)
-for (const key of keysWithoutValue as (keyof typeof withoutValue)[]) injectValue[key] = (...val: any[]) => ipcSend(key, ...val) as any
+for (const key of keysWithValue) injectValue[key] = (...val: any[]) => ipcSendSync(key, ...val)
+for (const key of keysWithoutValue) injectValue[key] = (...val: any[]) => ipcSend(key, ...val) as any
 
-const reloads = new Set<{ id: string, fn: Parameters<Ipc['onReload']>[1] }>()
+const reloads = new Set<{ id: string; fn: Function }>()
 injectValue.onReload = (id, fn) => {
   const add = { id, fn }
   reloads.add(add)
   return () => reloads.delete(add)
 }
-ipcRenderer.addListener('reload', (_e, id: string) => reloads.forEach(({ id: _id, fn }) => (id == _id) && fn()))
+ipcRenderer.addListener('reload', (_e, id: string, ...data: any) => reloads.forEach(({ id: _id, fn }) => id == _id && fn(...data)))
 
 injectValue.onMessage = (id, fn) => {
-  const handle = (...data: any[]) => fn(...(data.slice(1)))
+
+  const handle = (_event: Electron.IpcRendererEvent, ...args: any[]) => fn(...args)
   ipcRenderer.addListener(id, handle)
   return () => ipcRenderer.removeListener(id, handle)
 }
-
-contextBridge.exposeInMainWorld('ipc', injectValue)
+injectToRender('ipc', injectValue)
+injectToRender('instance_name', ipcSendSync('getInstance'))

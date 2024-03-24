@@ -3,7 +3,8 @@ import { join } from 'node:path'
 export function createVueDevtool() {
   const vueDevToolsPath = join(
     __dirname,
-    '../../resources/vue_devtools'
+    __RESOURCES_PATH__,
+    'vue_devtools'
   )
 
   return session.defaultSession.loadExtension(vueDevToolsPath)

@@ -6,8 +6,8 @@ const TOPBAR_HEIGHT = 30;
 const height = round((window.screen.availHeight / 3) * 2);
 const width = round((window.screen.availWidth / 5) * 2);
 window.ipc.setResizable(true)
-  .then(() => window.ipc.setSize(width, height))
-  .then(() => window.ipc.toTop())
+window.ipc.setSize({ width, height })
+window.ipc.toTop()
 
 const md = marked(window.props.main, {
   gfm: true,
@@ -40,4 +40,4 @@ const dom = `
       height: `calc(100vh - ${TOPBAR_HEIGHT}px)`
     }"></iframe>
   </div>
-</template>   
+</template>

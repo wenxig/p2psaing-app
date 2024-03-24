@@ -4,7 +4,7 @@ import db from '@/db';
 import { CircleCheck, CircleClose, Plus, Delete, Close, Edit } from '@element-plus/icons-vue';
 import { ElMessageBox, UploadRawFile } from 'element-plus';
 import { remove } from 'lodash-es';
-import { reactive, watch, ref } from 'vue';
+import { shallowRef,reactive, watch, ref,triggerRef } from 'vue';
 const isUpLoadReady = ref(true)
 const isUpLoadSetup = ref(false)
 const editPage = reactive({
@@ -36,7 +36,7 @@ const editPage = reactive({
     }).catch(() => { })
   },
   upLoad() {
-    const find = styles.findIndex(({ name }) => name == this.name)
+    const find = styles.value.findIndex(({ name }) => name == this.name)
     const data = {
       about: this.about,
       code: this.code,
@@ -44,11 +44,9 @@ const editPage = reactive({
       time: this.time ?? new Date(),
       name: this.name
     }
-    if (find + 1) {
-      styles[find] = data
-    } else {
-      styles.push(data)
-    }
+    if (find + 1) styles.value[find] = data
+     else styles.value.push(data)
+  triggerRef(styles)
     this.reset()
   },
   time: <Date | null>null,
@@ -57,10 +55,11 @@ const editPage = reactive({
   about: ''
 })
 const BASE_ROW_HEIGHT = 50
-const styles = reactive<db.app.Code[]>([])
+const styles = shallowRef<db.app.Code[]>([])
 db.app.getAllStyle().then((ss) => {
-  styles.splice(0, Infinity)
-  styles.push(...ss)
+  styles.value.splice(0, Infinity)
+  styles.value.push(...ss)
+  triggerRef(styles)
   isUpLoadSetup.value = true
   watch(styles, (val) => {
     isUpLoadReady.value = false;
@@ -76,10 +75,11 @@ db.app.getAllStyle().then((ss) => {
 })
 function removeCSS(name: string) {
   db.app.removeStyle(name)
-  return remove(styles, { name })
+   remove(styles.value, { name })
+   return triggerRef(styles)
 }
 function editCSS(name: string) {
-  const find = styles.find((t) => name == t.name)!
+  const find = styles.value.find((t) => name == t.name)!
   editPage.code = find.code
   editPage.name = find.name
   editPage.about = find.about
@@ -102,7 +102,7 @@ function upLoadCSSFile(raw: UploadRawFile) {
 
 <template>
   <el-text>当前加载的css</el-text>
-  <div class="w-full h-[30rem] border rounded-lg" v-loading="!isUpLoadSetup">
+  <div class="w-full h-[30rem] border border-[--el-border-color] rounded-lg" v-loading="!isUpLoadSetup">
     <NVirtualList class="w-full h-full bg-transparent overflow-y-auto" :itemSize="BASE_ROW_HEIGHT" :items="styles">
       <template #default="{ item }: { item: db.app.Code }">
         <div class="flex items-center w-full border-b border-[--el-border-color]"

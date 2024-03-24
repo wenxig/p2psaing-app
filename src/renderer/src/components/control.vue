@@ -16,8 +16,8 @@ const props = withDefaults(defineProps<{
 const isFocus = ref(true)
 const isHover = ref(false)
 const isMaxSize = ref(false)
-window.ipc.addRouter(`/emit/focus`, () => isFocus.value = true)
-window.ipc.addRouter(`/emit/blur`, () => isFocus.value = false)
+window.ipc.onMessage(`focus`, () => isFocus.value = true)
+window.ipc.onMessage(`blur`, () => isFocus.value = false)
 const classes = [[
   'bg-red-500',
   'active:bg-red-700'

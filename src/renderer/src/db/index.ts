@@ -1,9 +1,8 @@
 import { watchOnce } from "@vueuse/core";
 import localforage from "localforage";
 import { ref } from "vue";
-import { getTime, hasUser, getUser, getSerectUser } from '@/db/network'
+import { hasUser } from '@/db/network'
 import { remove } from "lodash-es";
-import { toLastLogin } from "@/utils/user";
 namespace db {
   const driver = localforage.INDEXEDDB
   export const base = localforage.createInstance({
@@ -27,16 +26,6 @@ namespace db {
       await whenReady()
       const saveData = await getItem<DataWithTime<User.LastLogin>>('user.LastLogin')
       if (!saveData || !await hasUser(saveData.user.email)) return false
-      const newTime = await getTime(saveData.user.email)
-      if (saveData.time != newTime) {
-        const newData = await getSerectUser(saveData.user.pid)
-        const user = toLastLogin(newData)
-        set({
-          user,
-          time: newTime
-        })
-        return user
-      }
       return saveData.user
     }
     export async function remove() {
@@ -48,48 +37,6 @@ namespace db {
       return void await setItem<DataWithTime<User.LastLogin>>('user.LastLogin', data)
     }
 
-  }
-  export namespace assetDB {
-    export async function get(md5: string) {
-      await whenReady()
-      return await base.getItem<string>(`assets.${md5}`) ?? null
-    }
-    export async function set(md5: string, value: string) {
-      await whenReady()
-      await base.setItem<string>(`assets.${md5}`, value)
-    }
-    export async function has(md5: string) {
-      await whenReady()
-      return (await base.keys()).includes(`assets.${md5}`)
-    }
-    export async function removeAll() {
-      await whenReady();
-      for (const key of (await base.keys()).filter(v => v.startsWith('assets.'))) await base.removeItem(key)
-    }
-  }
-  export namespace tempUserData {
-    export async function set(user: User.WebDbSave, time: number) {
-      await whenReady()
-      await base.setItem(`temp.user.${user.uid.toString()}`, <DataWithTime<User.WebDbSave>>{
-        user,
-        time
-      })
-    }
-    export async function get(uid: number) {
-      await whenReady()
-      const newTime = await getTime(uid)
-      const saveData = await base.getItem<DataWithTime<User.WebDbSave>>(`temp.user.${uid.toString()}`)
-      if (saveData?.time != newTime) {
-        const newData = await getUser(uid)
-        set(newData, newTime)
-        return newData
-      }
-      return saveData.user
-    }
-    export async function remove(uid: number) {
-      await whenReady()
-      await base.removeItem(`temp.user.${uid.toString()}`)
-    }
   }
   export namespace msg {
     export async function add(uid: number, body: Peer.Request.Msg) {
@@ -109,7 +56,7 @@ namespace db {
       name: string,
       isLoad: boolean
     }
-    const subs: { fn: (allStyle: Code[]) => any; key: symbol; }[] = []
+    const subs: ({ fn: (allStyle: Code[]) => any; key: symbol; })[] = []
     export function sub(fn: (allStyle: Code[]) => any, setup = false) {
       const key = Symbol('sub')
       subs.push({ fn, key })
@@ -131,6 +78,19 @@ namespace db {
       const keys = (await getAllKeys()).filter(val => val.endsWith('_style'))
       const items: Code[] = []
       for (const key of keys) items.push((await getItem(key))!)
+      return items
+    }
+    type ConfigTotal = any
+    export async function setSetting(key: string, form: string, value: ConfigTotal) {
+      await setItem(`setting_${form}_${key}`, value)
+    }
+    export async function getSetting(key: string, form: string) {
+      return await getItem<ConfigTotal>(`setting_${form}_${key}`)
+    }
+    export async function getAllSetting(from: string) {
+      const keys = (await getAllKeys()).filter(val => val.startsWith(`setting_${from}`))
+      const items: Record<string, ConfigTotal> = {}
+      for (const key of keys) items[key.match(/(?<=setting_\w+_)\w+/g)![0]] = (await getItem<ConfigTotal>(key))!
       return items
     }
   }

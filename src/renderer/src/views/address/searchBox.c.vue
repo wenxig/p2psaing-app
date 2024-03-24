@@ -24,7 +24,7 @@ async function toAddUser() {
 function getLisetData(keyword: string, cb: AutocompleteFetchSuggestionsCallback) {
   cb([{
     data: keyword,
-    text: `搜素用户: `,
+    text: `搜索用户: `,
     async method(data: string) {
       const loading = ElLoading.service({
         text: '查询数据中...'
@@ -50,7 +50,7 @@ function getLisetData(keyword: string, cb: AutocompleteFetchSuggestionsCallback)
 </script>
 
 <template>
-  <el-input v-model="filteData" :fetch-suggestions="filteUsers" placeholder="uid/p2pid" class=" h-auto" clearable
+  <el-input v-model="filteData" :fetch-suggestions="filteUsers" placeholder="uid/p2pid" clearable
     v-if="iconRotate == '0deg'">
   </el-input>
   <el-autocomplete ref="AddUserCom" @select="item => item.method(item.data)" v-model="searchData"

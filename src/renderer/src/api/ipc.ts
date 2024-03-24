@@ -1,48 +1,40 @@
-import { z, type TypeOf } from "zod";
+import type { WindowConfig } from '../../../main/hook/useWindow'
 
-
-export const withValue = {
-  getState: z.function().returns(z.any()).args(z.string()),
-  getSelfState: z.function().returns(z.any()).args(z.string()),
-  getVersion: z.function().returns(z.any()),
-  getHttpComponents: z.function().returns(z.object({ name: z.string(), url: z.string() }).array()),
-
+type WithValue = {
+  getState: (key: string) => any
+  getSelfState: (key: string) => any
+  getHttpComponents: () => { name: string, url: string }[],
+  getVersion: () => Record<string, string>
+  getInstance: () => {
+    my: number,
+    parent: number,
+    root: number,
+  }
+}
+type Listeners = {
+  onReload: (key: string, fn: (...data:any) => any) => () => void;
+  onMessage: (key: string, fn: () => any) => () => void;
 }
 
-export const listeners = {
-  onReload: z.function().returns(z.function().returns(z.void())).args(z.string(), z.function().returns(z.any())),
-  onMessage: z.function().returns(z.function().returns(z.void())).args(z.string(), z.function().returns(z.any())),
+type WithoutValue = {
+  minimize: () => void,
+  maximize: () => void,
+  unmaximize: () => void,
+  close: () => void,
+  quitApp: () => void,
+  toTop: () => void,
+  relanch: () => void,
+  reload: (key: string, ...value: any) => void,
+  openExternal: (url: string) => void,
+  setSize: (config: { width: number, height: number }) => void
+  setResizable: (mode: boolean) => void,
+  setState: (state: { key: string, value: string }) => void
+  setSelfState: (state: { key: string, value: string }) => void
+  createWindow: (config: WindowConfig) => void,
+  createChildWindow: (config: WindowConfig) => void
 }
+export const keysWithValue: (keyof WithValue)[] = ['getHttpComponents', 'getState', 'getInstance', 'getSelfState', 'getVersion'] as const
+export const keysWithoutValue: (keyof WithoutValue)[] = ["minimize", "maximize", "unmaximize", "close", "quitApp", "toTop", "relanch", "reload", "openExternal", "setSize", "setResizable", "setState", "setSelfState", "createWindow", "createChildWindow"]
+export const keysListeners: (keyof Listeners)[] = ["onReload", "onMessage"]
 
-export const withoutValue = {
-  minimize: z.function().returns(z.void()),
-  maximize: z.function().returns(z.void()),
-  unmaximize: z.function().returns(z.void()),
-  close: z.function().returns(z.void()),
-  quitApp: z.function().returns(z.void()),
-  toTop: z.function().returns(z.void()),
-  relanch: z.function().returns(z.void()),
-  reload: z.function().returns(z.void()).args(z.string()), // arg0:name
-  openExternal: z.function().returns(z.void()).args(z.string()), // arg0:url
-  copy: z.function().returns(z.void()).args(z.string()), // arg0:value
-
-  setSize: z.function().returns(z.void()).args(z.object({ width: z.number(), height: z.number() })),
-  setResizable: z.function().returns(z.void()).args(z.boolean()),
-  setState: z.function().returns(z.void()).args(z.object({ key: z.string(), value: z.string() })),
-  setSelfState: z.function().returns(z.void()).args(z.object({ key: z.string(), value: z.string() })),
-
-  createWindow: z.function().returns(z.void()).args(z.any()),
-  createChildWindow: z.function().returns(z.void()).args(z.any()),
-}
-export const ipc = {
-  ...withValue,
-  ...withoutValue,
-  ...listeners
-}
-
-export const keysWithValue = Object.keys(withValue)
-export const keysWithoutValue = Object.keys(withoutValue)
-export const keysListeners = Object.keys(withoutValue)
-
-const _s = z.object(ipc)
-export type Ipc = TypeOf<typeof _s>
+export type Ipc = WithValue & Listeners & WithoutValue

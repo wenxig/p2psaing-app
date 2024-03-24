@@ -5,7 +5,7 @@ import katex from 'katex'
 import 'katex/dist/katex.css'
 import hljs from 'highlight.js';
 import 'highlight.js/scss/atom-one-light.scss';
-import { useLightTheme } from '@h/useTheme';
+import { useLightTheme, useDarkTheme } from '@h/useTheme';
 import { useThemeVars } from 'naive-ui';
 import { useUserStore } from '@s/user';
 import { useStyleTag } from '@vueuse/core';
@@ -13,7 +13,14 @@ import db from './db';
 import { useAppStore } from './store/appdata';
 import { createPeer } from '@/api';
 import { storeToRefs } from 'pinia';
-useLightTheme(useThemeVars())
+const themeVar = useThemeVars()
+useDarkTheme(themeVar)
+db.app.getSetting('theme', 'app').then(v => window.ipc.reload('theme', !v))
+window.ipc.reload('theme')
+window.ipc.onReload('theme', v => {
+  if (v) useLightTheme(themeVar)
+  else useDarkTheme(themeVar)
+})
 const { user } = storeToRefs(useUserStore())
 const joinStyle = useStyleTag('', { id: 'app-inject-style' })
 let isLoadCSS = false
@@ -28,8 +35,7 @@ if (!useAppStore().peer && location.hash.includes('/main')) createPeer(user.valu
 </script>
 
 <template>
-  <n-config-provider :locale="nZhCn" :date-locale="nDateZhCN" class="w-full h-full" :katex="(katex as any)"
-    :hljs="hljs">
+  <n-config-provider :locale="nZhCn" :date-locale="nDateZhCN" class="w-full h-full" :katex="katex" :hljs="hljs">
     <n-global-style />
     <el-config-provider :locale="elZhCn">
       <Suspense>

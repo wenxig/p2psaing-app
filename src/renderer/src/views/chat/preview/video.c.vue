@@ -33,9 +33,8 @@ const options = reactive({
   ], //显示所有按钮,
 })
 window.ipc.setResizable(true)
-  .then(() => window.ipc.setSize(width, height + TOPBAR_HEIGHT))
-  .then(() => window.ipc.toTop())
-  .then(() => window.ipc.setResizable(false))
+window.ipc.setSize({ width, height: height + TOPBAR_HEIGHT })
+window.ipc.toTop()
 function download(href: string, title: string) {
   const a = document.createElement('a');
   a.setAttribute('href', href);

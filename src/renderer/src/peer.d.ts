@@ -16,7 +16,7 @@ namespace Peer {
     } & Record<string, string | number>
   }  namespace Msg {
     type index = All
-    type All = {} & (UserTextMsg | UserFileMsg | UserAppMsg | UserCodeMsg | UserEquationMsg)
+    type All =  (UserTextMsg | UserFileMsg | UserAppMsg | UserCodeMsg | UserEquationMsg)
 
     type UserTextMsg = {
       main: string;

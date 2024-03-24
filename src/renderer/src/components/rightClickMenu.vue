@@ -1,9 +1,3 @@
-<template>
-  <slot :handleContextMenu="handleContextMenu"></slot>
-  <n-dropdown placement="bottom-start" trigger="manual" :x="x" :y="y" :options="totels" :show="showDropdown"
-    :on-clickoutside="onClickoutside" @select="_handleSelect" />
-</template>
-
 <script lang="ts" setup>
 import { ref, nextTick } from 'vue'
 import { isEmpty } from 'lodash-es'
@@ -17,7 +11,7 @@ const totels = ref<RightMenuPropsTotels>([])
 const showDropdown = ref(false)
 const x = ref(0)
 const y = ref(0)
-let handleSelect: [hs: () => boolean | void, key: string][] =[]
+let handleSelect: [hs: () => boolean | void, key: string][] = []
 function _handleSelect(key: string) {
   const cb = handleSelect.find(k => k[1] == key)
   if (isEmpty(cb) || (cb![0]() == true)) {
@@ -35,7 +29,7 @@ function handleContextMenu(e: MouseEvent, totel: RightMenuPropsTotels) {
     for (const { children } of totel.filter(l => 'children' in l)) toHs(children!, ret)
     return ret
   }
-  handleSelect=toHs(totel)
+  handleSelect = toHs(totel)
   totels.value = totel
   showDropdown.value = false
   nextTick().then(() => {
@@ -44,13 +38,18 @@ function handleContextMenu(e: MouseEvent, totel: RightMenuPropsTotels) {
     y.value = e.clientY
   })
 }
-function onClickoutside(fn: () => boolean | void) {
-  const cb = fn()
-  if ((cb == true) || isEmpty(cb)) {
-    showDropdown.value = false
-    return
-  }
-  showDropdown.value = true
+function onClickoutside() {
+  showDropdown.value = false
 }
 
 </script>
+<template>
+  <slot :handleContextMenu="handleContextMenu"></slot>
+  <n-dropdown placement="bottom-start" trigger="manual" :x="x" :y="y" :options="totels" :show="showDropdown"
+    @clickoutside="onClickoutside" @select="_handleSelect" />
+</template>
+<style scoped lang='scss'>
+:deep(.n-dropdown-menu,.n-dropdown-menu *) {
+  --n-color: var(--el-bg-color) !important;
+}
+</style>

@@ -2,6 +2,7 @@
 import { onMounted, computed, watch, ref, nextTick, onBeforeUnmount } from 'vue'
 import * as monaco from 'monaco-editor'
 import loader from "@monaco-editor/loader";
+import db from '@/db';
 loader.config({ monaco });
 loader.config({
   "vs/nls": {
@@ -28,7 +29,7 @@ function useMonacoEditor(language: string = 'css') {
         // 圆角
         roundedSelection: true,
         // 主题
-        theme: 'vs',
+        theme: !(await db.app.getSetting('theme', 'app')) ? 'vs' : 'vs-dark',
         // 主键
         multiCursorModifier: 'ctrlCmd',
         // 滚动条
@@ -60,6 +61,11 @@ function useMonacoEditor(language: string = 'css') {
     if (getOption(monaco.editor.EditorOption.readOnly)) updateOptions({ readOnly: false })
     monacoEditor?.setValue(val)
     setTimeout(async () => await formatDoc(), 10)
+  })
+  window.ipc.onReload('theme', v => {
+    updateOptions({
+      theme: v ? 'vs-dark' : 'vs'
+    })
   })
 
   // 配置更新
@@ -110,19 +116,35 @@ const monacoEditorStyle = computed(() => ({
 }))
 
 const { monacoEditorRef, createEditor, updateVal, updateOptions, getEditor } = useMonacoEditor(props.language)
-onMounted(async () => {
-  const monacoEditor = await createEditor(props.editorOption)
-  updateMonacoVal(props.modelValue);
-  monacoEditor?.onDidChangeModelContent(() => emits('update:modelValue', monacoEditor!.getValue()));
-  monacoEditor?.onDidBlurEditorText(() => emits('blue'))
-  emits('mounted')
-})
+
+const isError = ref(false)
+const load = async () => {
+  try {
+    const monacoEditor = await createEditor(props.editorOption)
+    updateMonacoVal(props.modelValue);
+    monacoEditor?.onDidChangeModelContent(() => emits('update:modelValue', monacoEditor!.getValue()));
+    monacoEditor?.onDidBlurEditorText(() => emits('blue'))
+    emits('mounted')
+    isError.value = false
+  } catch (error) {
+    console.error(error)
+    isError.value = true
+  }
+}
 
 watch(() => props.modelValue, () => updateMonacoVal(props.modelValue))
 
 const updateMonacoVal = (val: string) => val !== getEditor()?.getValue() && updateVal(val)
 defineExpose({ updateOptions })
+onMounted(load)
 </script>
 <template>
-  <div ref="monacoEditorRef" :style="monacoEditorStyle" class="monaco"></div>
+  <div :style="monacoEditorStyle" v-if="isError">
+    <el-result icon="error" title="加载错误" sub-title="点击下面的按钮重试">
+      <template #extra>
+        <el-button type="primary" @click="load()">重试</el-button>
+      </template>
+    </el-result>
+  </div>
+  <div ref="monacoEditorRef" :style="monacoEditorStyle" v-else class="monaco"></div>
 </template>

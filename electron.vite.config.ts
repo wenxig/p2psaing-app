@@ -35,6 +35,7 @@ const rendererConfig = defineViteConfig({
       'process.env': JSON.stringify({
         NODE_ENV: import.meta.env,
       }),
+      '__RENDER_PATH__': '../renderer/',
       '__APP_NAME__': `${package_json.name}`,
       '__APP_VERSION__': `${package_json.version}`
     }),
@@ -106,16 +107,7 @@ export default defineConfig(({ command: mode }) => {
   return {
     main: {
       plugins: [
-        replace({
-          '__APP_NAME__': `${package_json.name}`,
-          '__APP_VERSION__': `${package_json.version}`
-        }),
-        bytecodePlugin({
-          protectedStrings: [(() => {
-            if (mode == 'build') throw new Error('设置aes的key为加密内容')
-            return ''
-          })()]
-        }),
+        bytecodePlugin(),
         externalizeDepsPlugin(),
       ],
       build: {
@@ -129,6 +121,16 @@ export default defineConfig(({ command: mode }) => {
           minify: "terser",
         }, {}),
         outDir: 'dist/main',
+        rollupOptions: {
+          plugins: [
+            replace({
+              '__APP_NAME__': `"${package_json.name}"`,
+              '__RENDER_PATH__': '"../renderer/"',
+              '__PRELOAD_PATH__': '"../preload/"',
+              '__APP_VERSION__': `${package_json.version}`,
+              '__RESOURCES_PATH__': `"../../resources/"`
+            })]
+        }
       }
     },
     preload: {

@@ -11,6 +11,7 @@ import CodeView from '@p/chat/check/code.c.vue';
 import { Clock20Regular } from '@vicons/fluent';
 import { useAppStore } from '@/store/appdata';
 import { fileToDataURL } from '@/utils/image';
+import { Request, Header, Body } from '@/api';
 import { useFileDialog } from '@vueuse/core';
 import { useUserStore } from '@/store/user';
 import MsgList from '@p/chat/msgList.c.vue';
@@ -18,7 +19,6 @@ import { useRoute } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { MD5 } from 'crypto-js';
 import db from '@/db';
-import { Request, Header, Body } from '@/api';
 // 我可爱导(入)了
 
 const file = (accept = 'image/*') => useFileDialog({ accept })

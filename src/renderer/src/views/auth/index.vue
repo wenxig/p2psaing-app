@@ -9,7 +9,7 @@ import userIconImgUrl from '@/assets/userIcon.png?url';
 const qrcodeValue = '你扫你吗呢'
 const lastLogin = shallowRef<false | User.LastLogin>(await db.lastLogin.get())
 if (lastLogin.value && (await hasUser(lastLogin.value.email) == false)) lastLogin.value = false
-window.ipc.setSize(280, 400)
+window.ipc.setSize({ width: 280, height: 400 })
 const router = useRouter()
 function login() {
   if (!lastLogin.value) return
@@ -18,7 +18,8 @@ function login() {
   })
   _login(lastLogin.value)
     .finally(loading.close)
-    .then(() => void router.push('/main'))
+    .then(() => router.push('/main'))
+    .then(()=>window.ipc.toTop())
 }
 </script>
 

@@ -1,11 +1,11 @@
 import type { AxiosResponse } from 'axios';
 import type { WindowConfig } from '../main/hook/useWindow'
 import type { IpcRendererEvent } from 'electron';
+export type { Ipc } from './src/api/ipc';
 import type { Ipc } from './src/api/ipc';
-type ipc = Ipc
 declare module "vue" {
   interface ComponentCustomProperties {
-    $ipc: ipc
+    $ipc: Ipc
     $window: typeof window
   }
 }
@@ -25,15 +25,14 @@ declare global {
     [K in keyof T]: T[K] extends Function ? K : never;
   }[keyof T];
   interface Window {
-    getToken(of: 'github' | 'smms'): string
-    instance_name: {
-      my: number,
-      parent: number
-    }
+    instance_name: ReturnType<Ipc['getInstance']>
     goHome: () => void
-    ipc: ipc
-    plugins: AppPlugin.Plugin[],
-    props: Record<string, any>,
+    ipc: Ipc
+    plugins: AppPlugin.Plugin[]
+    props: Record<string, any>
     ck_getData(md: string): void
+  }
+  interface JSON {
+    safetyParse(value: any): any
   }
 }

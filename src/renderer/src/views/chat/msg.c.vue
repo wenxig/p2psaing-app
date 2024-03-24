@@ -2,9 +2,10 @@
 import { Picture, Document } from '@element-plus/icons-vue'
 import { Code } from '@vicons/carbon';
 import { defineComponent } from 'vue';
-import { ElIcon } from 'element-plus';
+import { ElIcon,ElText } from 'element-plus';
 import { getBase64ImageSize, getVideoFrameImage, getBase64VideoSize } from '@/utils/image';
 import { KatexOptions } from 'katex';
+
 const props = defineProps<{
   value: Peer.Msg.All
   isMe: boolean
@@ -26,9 +27,9 @@ const MsgBlock = defineComponent<{ class: string }, ['click']>(({ class: c }, { 
         {slots.icon!()}
       </ElIcon>
     </div>
-    <div class="ml-2 h-full max-w-[60%] overflow-hidden flex flex-col text-base font-bold">
+    <ElText class="!ml-2 !h-full !max-w-[60%] !overflow-hidden !flex !flex-col !font-bold">
       {slots.default!()}
-    </div>
+    </ElText>
   </div >
 </>), {
   emits: ['click'],
@@ -53,17 +54,17 @@ const options: KatexOptions = {
 </script>
 
 <template>
-  <div v-if="value.type == 'text'" v-once :class="isMe ? 'popMe' : 'popThey'" @contextMenu="(e: MouseEvent) => $emit('contextMenu', e, [{
+  <div v-if="value.type == 'text'" v-once :class="isMe ? 'popMe' : 'popThey'" @click.right="(e: MouseEvent) => $emit('contextMenu', e, [{
     key: 'copy',
     label: '复制',
     handleSelect() {
-      window.ipc.copy(props.value.main)
+      navigator.clipboard.writeText(props.value.main);
     }
   }])"
     class="max-w-[45%] inline-block rounded-md p-2 px-3 before:content-['']  before:w-2 before:h-2 before:block before:m-0 before:!absolute before:rotate-45 relative !break-all">
-    <span v-for="text in value.main.split('\n')">
+    <ElText size="large" v-for="text in value.main.split('\n')">
       {{ text ?? '\n' }}<br />
-    </span>
+    </ElText>
   </div>
   <MsgBlock v-else-if="value.type == 'code'" v-once :class="isMe ? 'popMe' : 'popThey'"
     @click="$ipc.createChildWindow({ url: '/main/chat/code/preview', props: { codeType: value.is, code: value.main } })">
@@ -71,14 +72,13 @@ const options: KatexOptions = {
     代码块
   </MsgBlock>
   <el-image v-else-if="value.type == 'img'" class="rounded-md w-1/3 !bg-transparent" :class="isMe ? 'popMe' : 'popThey'"
-    v-once fit="cover" :src="value.main" @contextMenu="(e: MouseEvent) => $emit('contextMenu', e, [{
-      key: 'copy',
-      label: '复制',
-      handleSelect() {
-        window.ipc.copy(props.value.main)
-      }
-    }])"
-    @click="$ipc.createChildWindow({ url: '/main/chat/image/preview', props: { img: value.main, ...imageSize } })">
+    v-once fit="cover" :src="value.main" @click.right="(e: MouseEvent) => $emit('contextMenu', e, [{
+    key: 'copy',
+    label: '复制',
+    handleSelect() {
+      navigator.clipboard.writeText(props.value.main)
+    }
+  }])" @click="$ipc.createChildWindow({ url: '/main/chat/image/preview', props: { img: value.main, ...imageSize } })">
     <template #error>
       <div
         class="flex items-center justify-center w-full h-full bg-[--el-fill-color-light] text-[--el-text-color-secondary]">

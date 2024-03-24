@@ -5,7 +5,7 @@ import { useAppStore } from '@s/appdata';
 import Layout from '@l/base.vue';
 import MainLayout from '@l/rightBase.vue';
 const appStore = useAppStore();
-window.ipc.setSize(900, 770)
+window.ipc.setSize({ width: 900, height: 770 })
 window.ipc.setResizable(true)
 </script>
 
