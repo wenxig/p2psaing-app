@@ -54,3 +54,11 @@ a {
   outline: none;
   -webkit-app-region: no-drag;
 }
+
+.n-dropdown-menu,
+.n-dropdown-menu * {
+  --n-color: var(--el-bg-color) !important;
+  --n-text-color: var(--el-text-color-primary) !important;
+  --n-option-color-hover: var(--el-fill-color-dark) !important;
+  --n-option-color-active: var(--el-fill-color-darker) !important;
+}

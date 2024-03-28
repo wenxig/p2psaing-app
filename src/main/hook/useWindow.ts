@@ -1,7 +1,7 @@
 import { join } from 'path'
 import appIcon from '../../../resources/icon.png?asset'
 import { dependencies, devDependencies } from '../../../package.json'
-import { BrowserWindow, shell, app as App } from 'electron'
+import { BrowserWindow, shell, app as App,clipboard } from 'electron'
 import { is } from '@electron-toolkit/utils'
 import { Ipc } from '../../renderer/globle'
 import { useCkeditor } from './useCkeditor'
@@ -106,6 +106,7 @@ class Window extends BrowserWindow {
       parent: this.getParentWindow()?.id ?? this.id,
       root: this.root.id
     }))
+    this.onMessage('copy', v => clipboard.writeText(v))
     this.onMessage('reload', (id, ...value) => this.app.allSend('reload', id, ...value))
     this.onMessage('getHttpComponents', () => [{
       name: 'ck',

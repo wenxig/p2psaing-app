@@ -12,7 +12,7 @@ type WithValue = {
   }
 }
 type Listeners = {
-  onReload: (key: string, fn: (...data:any) => any) => () => void;
+  onReload: (key: string, fn: (...data: any) => any) => () => void;
   onMessage: (key: string, fn: () => any) => () => void;
 }
 
@@ -32,9 +32,10 @@ type WithoutValue = {
   setSelfState: (state: { key: string, value: string }) => void
   createWindow: (config: WindowConfig) => void,
   createChildWindow: (config: WindowConfig) => void
+  copy: (text: string)=> void
 }
 export const keysWithValue: (keyof WithValue)[] = ['getHttpComponents', 'getState', 'getInstance', 'getSelfState', 'getVersion'] as const
-export const keysWithoutValue: (keyof WithoutValue)[] = ["minimize", "maximize", "unmaximize", "close", "quitApp", "toTop", "relanch", "reload", "openExternal", "setSize", "setResizable", "setState", "setSelfState", "createWindow", "createChildWindow"]
+export const keysWithoutValue: (keyof WithoutValue)[] = ["minimize",'copy', "maximize", "unmaximize", "close", "quitApp", "toTop", "relanch", "reload", "openExternal", "setSize", "setResizable", "setState", "setSelfState", "createWindow", "createChildWindow"]
 export const keysListeners: (keyof Listeners)[] = ["onReload", "onMessage"]
 
 export type Ipc = WithValue & Listeners & WithoutValue

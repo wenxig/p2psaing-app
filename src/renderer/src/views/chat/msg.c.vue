@@ -1,11 +1,11 @@
 <script setup lang='tsx'>
 import { Picture, Document } from '@element-plus/icons-vue'
 import { Code } from '@vicons/carbon';
-import { defineComponent } from 'vue';
-import { ElIcon,ElText } from 'element-plus';
+import { defineComponent, ref } from 'vue';
+import { ElIcon, ElText, type ElImage } from 'element-plus';
 import { getBase64ImageSize, getVideoFrameImage, getBase64VideoSize } from '@/utils/image';
 import { KatexOptions } from 'katex';
-
+import { toNumber } from 'lodash-es';
 const props = defineProps<{
   value: Peer.Msg.All
   isMe: boolean
@@ -51,14 +51,27 @@ const options: KatexOptions = {
   throwOnError: false,
   errorColor: 'var(--el-color-danger)',
 }
+
+const handleCopy = window.ipc.copy
+
+
+const msgRef = ref<HTMLElement>()
+defineExpose<{
+  getHeight(): number
+}>({
+  getHeight() {
+    return toNumber(window.getComputedStyle(msgRef.value!).height.match(/\d+/g))
+  }
+})
+
 </script>
 
 <template>
-  <div v-if="value.type == 'text'" v-once :class="isMe ? 'popMe' : 'popThey'" @click.right="(e: MouseEvent) => $emit('contextMenu', e, [{
+  <div v-if="value.type == 'text'" ref="msgRef" v-once :class="isMe ? 'popMe' : 'popThey'" @click.right="(e: MouseEvent) => $emit('contextMenu', e, [{
     key: 'copy',
     label: '复制',
     handleSelect() {
-      navigator.clipboard.writeText(props.value.main);
+      handleCopy(props.value.main);
     }
   }])"
     class="max-w-[45%] inline-block rounded-md p-2 px-3 before:content-['']  before:w-2 before:h-2 before:block before:m-0 before:!absolute before:rotate-45 relative !break-all">
@@ -66,17 +79,19 @@ const options: KatexOptions = {
       {{ text ?? '\n' }}<br />
     </ElText>
   </div>
-  <MsgBlock v-else-if="value.type == 'code'" v-once :class="isMe ? 'popMe' : 'popThey'"
+  <MsgBlock :ref="el => msgRef = (el as InstanceType<typeof MsgBlock>)!.$el" v-else-if="value.type == 'code'" v-once
+    :class="isMe ? 'popMe' : 'popThey'"
     @click="$ipc.createChildWindow({ url: '/main/chat/code/preview', props: { codeType: value.is, code: value.main } })">
     <template #icon><Code /></template>
     代码块
   </MsgBlock>
-  <el-image v-else-if="value.type == 'img'" class="rounded-md w-1/3 !bg-transparent" :class="isMe ? 'popMe' : 'popThey'"
-    v-once fit="cover" :src="value.main" @click.right="(e: MouseEvent) => $emit('contextMenu', e, [{
+  <el-image v-else-if="value.type == 'img'" :ref="el => msgRef = (el as InstanceType<typeof ElImage>)!.$el"
+    class="rounded-md w-1/3 !bg-transparent" :class="isMe ? 'popMe' : 'popThey'" v-once fit="cover" :src="value.main"
+    @click.right="(e: MouseEvent) => $emit('contextMenu', e, [{
     key: 'copy',
     label: '复制',
     handleSelect() {
-      navigator.clipboard.writeText(props.value.main)
+      handleCopy(props.value.main)
     }
   }])" @click="$ipc.createChildWindow({ url: '/main/chat/image/preview', props: { img: value.main, ...imageSize } })">
     <template #error>
@@ -88,11 +103,12 @@ const options: KatexOptions = {
       </div>
     </template>
   </el-image>
-  <img v-else-if="value.type == 'video'"
+  <img v-else-if="value.type == 'video'" ref="msgRef"
     @click="$ipc.createChildWindow({ url: '/main/chat/video/preview', props: { video: props.value.main, ...videoSize } })"
     class="rounded-md object-cover w-1/3 !bg-transparent select-none pointer-events-none" :src="videoImage"
     :class="isMe ? 'popMe' : 'popThey'" />
-  <MsgBlock v-else-if="value.type == 'file'" v-once :class="isMe ? 'popMe' : 'popThey'"
+  <MsgBlock v-else-if="value.type == 'file'" :ref="el => msgRef = (el as InstanceType<typeof MsgBlock>)!.$el" v-once
+    :class="isMe ? 'popMe' : 'popThey'"
     @click="() => download(props.value.main, (value as Peer.Msg.UserFileMsg).name!)">
     <template #icon><svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink"
         viewBox="0 0 1024 1024">
@@ -103,14 +119,14 @@ const options: KatexOptions = {
     </template>
     {{ value.name! }}
   </MsgBlock>
-  <MsgBlock v-else-if="value.type == 'article'" v-once :class="isMe ? 'popMe' : 'popThey'"
+  <MsgBlock  :ref="el => msgRef = (el as InstanceType<typeof MsgBlock>)!.$el" v-else-if="value.type == 'article'" v-once :class="isMe ? 'popMe' : 'popThey'"
     @click="$ipc.createChildWindow({ url: '/main/chat/article/preview', props: { main: props.value.main } })">
     <template #icon>
       <Document />
     </template>
     文章
   </MsgBlock>
-  <div v-if="value.type == 'equation'" v-once :class="isMe ? 'popMe' : 'popThey'"
+  <div v-if="value.type == 'equation'" v-once :class="isMe ? 'popMe' : 'popThey'" ref="msgRef"
     class="max-w-[45%] inline-block rounded-md p-2 px-3 before:content-['']  before:w-2 before:h-2 before:block before:m-0 before:!absolute before:rotate-45 relative !break-all">
     <NEquation :value="value.main" :katex-options="options" />
   </div>

@@ -1,6 +1,6 @@
 import type { AxiosResponse } from 'axios';
 import type { WindowConfig } from '../main/hook/useWindow'
-import type { IpcRendererEvent } from 'electron';
+import type { IpcRendererEvent, Clipboard } from 'electron';
 export type { Ipc } from './src/api/ipc';
 import type { Ipc } from './src/api/ipc';
 declare module "vue" {

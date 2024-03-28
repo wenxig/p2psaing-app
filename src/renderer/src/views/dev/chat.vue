@@ -1,8 +1,8 @@
 <script setup lang='tsx'>
 import { useAppStore } from '@/store/appdata';
 import { ref, defineComponent, reactive, markRaw, provide } from 'vue'
-import { ElText } from 'element-plus'
-import MsgList from '@p/chat/msgList.c.vue'
+import { ElText,ElMessage } from 'element-plus'
+import MsgList from './msgList.c.vue'
 import CodeView from '@p/chat/check/code.c.vue'
 import EquationView from '@p/chat/check/equation.c.vue'
 import ArticleEdit from '@p/chat/check/article.c.vue'
@@ -143,7 +143,7 @@ const ArticleEditC = ref<InstanceType<typeof ArticleEdit>>()
 <template>
   <div class=" h-full overflow-hidden">
     <ElUpload class="!hidden"></ElUpload>
-    <MsgList :msgs="msgs" :users="[user, toUser]" :uid="user.uid" />
+    <MsgList :msgs="msgs" :users="[user, toUser]" />
     <el-space class="pl-1 border-[--el-border-color] border-t w-full h-[5%]">
       <el-icon @click="SendMsg.imageWithSelect()" size="25">
         <Picture :class="SEND_IMAGE_BUTTON_CLASS" />
